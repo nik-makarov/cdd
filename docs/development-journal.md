@@ -190,3 +190,13 @@ entries, keep private data out, and distinguish local work from publication.
   `go.mod`, `tools/go.mod`, `tools/notices/main.go`, `tools/release/`,
   `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md`,
   `CHANGELOG.md`, `packaging/README.md`, `docs/`.
+- `2026-11-13T19:10:47Z` — Route shell-function output by the absolute-path
+  contract instead of maintaining a second argument parser. Relay successful
+  informational output verbatim and preserve selection, cancellation, errors,
+  and newline-containing paths. Real zsh/bash regression tests exercise CLI
+  aliases, explicit/repeated boolean values, initialization, help, and invalid
+  arguments. Formatting, vet, shuffled race-enabled application/tool tests, and
+  the host build passed. Host-binary informational checks and a native zsh PTY
+  selection with --version=false passed. No dependencies changed; no hosted CI,
+  Git push, or publication ran. Paths: `shell.go`, `shell_test.go`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.

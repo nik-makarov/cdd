@@ -34,6 +34,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Fixed
 
+- Relay informational output through shell integration for every supported flag
+  spelling, including `--version=true`, instead of attempting to `cd` into it.
 - Clear Children when the current-directory (`.`) row is highlighted, including
   after entering a folder, instead of duplicating the Current listing.
 

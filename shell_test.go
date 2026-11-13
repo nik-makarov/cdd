@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -14,6 +15,9 @@ import (
 // without a TTY. This includes failure after partial output.
 func TestMain(m *testing.M) {
 	if os.Getenv("CDD_TEST_HELPER") == "1" {
+		if os.Getenv("CDD_TEST_MODE") == "cli" {
+			os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+		}
 		for _, arg := range os.Args[1:] {
 			if arg == "--help" {
 				fmt.Print("HELP\n")
@@ -33,6 +37,80 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	}
 	os.Exit(m.Run())
+}
+
+func TestShellInformationalArguments(t *testing.T) {
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, shell := range []string{"zsh", "bash"} {
+		t.Run(shell, func(t *testing.T) {
+			binary, err := exec.LookPath(shell)
+			if err != nil {
+				t.Skipf("%s is not installed", shell)
+			}
+			base, err := filepath.EvalSymlinks(t.TempDir())
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, tt := range []struct {
+				name, kind string
+				args       []string
+				code       int
+			}{
+				{"version equals", "version", []string{"--version=true"}, 0},
+				{"version alias", "version", []string{"-version"}, 0},
+				{"last version value wins", "version", []string{"--version=false", "--version=1"}, 0},
+				{"help alias", "help", []string{"--h"}, 0},
+				{"help after false version", "help", []string{"--version", "--version=false", "--help"}, 0},
+				{"init alias", "init", []string{"-init", "zsh"}, 0},
+				{"init equals", "init", []string{"--init=bash"}, 0},
+				{"invalid boolean", "error", []string{"--version=invalid"}, 2},
+				{"missing init value", "error", []string{"--init"}, 2},
+				{"unknown before help", "error", []string{"--unknown", "--help"}, 2},
+			} {
+				t.Run(tt.name, func(t *testing.T) {
+					command := "cdd"
+					for _, arg := range tt.args {
+						command += " " + shellQuote(arg)
+					}
+					script := shellInit(executable) + "\n" + command + `
+_cdd_test_code=$?
+printf '%s\000%s' "$_cdd_test_code" "$PWD"
+`
+					cmd := exec.Command(binary, "-f", "-c", script)
+					cmd.Dir = base
+					cmd.Env = append(os.Environ(), "CDD_TEST_HELPER=1", "CDD_TEST_MODE=cli")
+					var stderr bytes.Buffer
+					cmd.Stderr = &stderr
+					out, err := cmd.Output()
+					if err != nil {
+						t.Fatalf("shell failed: %v, %q", err, stderr.String())
+					}
+					suffix := strconv.Itoa(tt.code) + "\x00" + base
+					if !bytes.HasSuffix(out, []byte(suffix)) {
+						t.Fatalf("informational arguments changed directory or exit code: stdout %q, stderr %q", out, stderr.String())
+					}
+					output := string(out[:len(out)-len(suffix)])
+					switch tt.kind {
+					case "version":
+						if output != "cdd "+version+"\n" || stderr.Len() != 0 {
+							t.Fatalf("version output changed: stdout %q, stderr %q", output, stderr.String())
+						}
+					case "init":
+						if !strings.HasPrefix(output, "cdd() {") || !strings.HasSuffix(output, "}\n") || stderr.Len() != 0 {
+							t.Fatalf("init output changed: stdout %q, stderr %q", output, stderr.String())
+						}
+					case "help", "error":
+						if output != "" || !strings.Contains(stderr.String(), "Usage:") {
+							t.Fatalf("usage output changed: stdout %q, stderr %q", output, stderr.String())
+						}
+					}
+				})
+			}
+		})
+	}
 }
 
 func TestShellIntegration(t *testing.T) {

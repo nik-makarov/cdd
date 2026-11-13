@@ -202,6 +202,10 @@ After updating the binary, rerun its `--init` command through `eval` to refresh
 an existing function; replacing the binary alone does not update shell code.
 
 The binary outputs only the chosen absolute path, without a trailing newline.
+The shell function sends only absolute path output to `cd` and relays other
+successful stdout unchanged. It does not parse flags independently, so aliases,
+boolean values such as `--version=true`, and `--init` output follow the binary's
+argument parser without accidentally becoming directory names.
 The UI uses terminal stdin/stderr, falling back to `/dev/tty` when needed.
 Help and errors go to stderr. `--help`, `--version`, and `--init` work without
 an interactive terminal.

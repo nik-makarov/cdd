@@ -311,3 +311,16 @@ notification, and returned zero. A search of maintained source and documentation
 found no previous command/module spelling. No dependency versions changed.
 The owner reported completing the GitHub repository rename; the local SSH origin
 was updated accordingly. No Git push, hosted CI, or release publication ran.
+
+## Shell informational flags regression, 2026-11-13
+
+`make check build` passed, including formatting, vet, shuffled race-enabled
+application/tool tests, and the host build. Real zsh/bash subprocesses exercise
+the application's argument parser through the generated function: aliases,
+explicit and repeated boolean values, help, initialization output, invalid
+values, missing arguments, and unknown flags retain their output and exit codes
+without changing directories. Existing filename, cancellation, and error cases
+also passed. A host-binary smoke check verified version, help, and initialization
+output. A native zsh PTY check confirmed that `--version=false` opens the picker,
+changes to the selected directory, and exits zero. No dependencies changed;
+hosted CI and release publication were not run.

@@ -27,6 +27,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Make the current directory's address more prominent with a bold final name,
+  subdued pane labels, and dim side entries that retain their type colors.
 - Skip automatic releases and tap updates for pushes that only change Markdown
   files or docs/; include those changes in the next release.
 - Rename the command, shell function, executables, archives, and Go modules to

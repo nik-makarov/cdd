@@ -13,7 +13,7 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 	m.children = []entry{{name: "nested"}, {name: "readme.txt", kind: file}}
 	view := m.view()
 	plain := plainFrame(view)
-	for _, text := range []string{"Parent", "[Current]", "Children", "sibling/", "nested/", "readme.txt", "> selected/"} {
+	for _, text := range []string{"Parent", "Current", "Children", "sibling/", "nested/", "readme.txt", "> selected/"} {
 		if !strings.Contains(plain, text) {
 			t.Errorf("tree missing %q: %q", text, plain)
 		}
@@ -22,6 +22,18 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 		t.Fatal("only the active middle row should have a selection bar")
 	}
 	width, margin := m.viewWidth()
+	heading := m.treeHeading(width, margin)
+	if strings.Contains(heading, m.styles.accent) || strings.Contains(heading, m.styles.strong) || strings.Contains(plainFrame(heading), "[Current]") {
+		t.Fatalf("pane labels compete with the current path: %q", heading)
+	}
+	address := m.pathLine(m.path, width, true).render(width)
+	if !strings.HasPrefix(address, "/projects/") || !strings.Contains(address, m.styles.accent+"current") {
+		t.Fatalf("current address must have a normal prefix and accented basename: %q", address)
+	}
+	parent := m.contextLine(m.parent, 0, width, "").render(width)
+	if !strings.Contains(parent, m.styles.muted) || strings.Contains(parent, m.styles.strong) {
+		t.Fatalf("the current folder in the parent pane must remain subdued: %q", parent)
+	}
 	widths := treeWidths(width)
 	for _, line := range strings.Split(plain, "\n") {
 		if index := strings.Index(line, ">"); index >= 0 && index != margin+widths[0]+3 {

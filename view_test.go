@@ -217,15 +217,23 @@ func TestEntryColorsAndMarkers(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			item := entry{name: "name", kind: tt.kind}
-			line := m.itemLine(item, 40, false, false).render(40)
+			line := m.itemLine(item, 40, false).render(40)
 			if !strings.Contains(line, tt.color) || plainFrame(line) != "  name"+tt.marker {
 				t.Fatalf("entry is not distinguishable: %q", line)
 			}
+			side := m.contextLine([]entry{item}, 0, 40, "").render(40)
+			if !strings.Contains(side, tt.color) || !strings.Contains(side, m.styles.muted) || strings.Contains(side, m.styles.selected) || plainFrame(side) != plainFrame(line) {
+				t.Fatalf("side pane lost dimming, type color, or content: %q", side)
+			}
 			m := m
 			m.styles = terminalStyles(true, "xterm", "1")
-			line = m.itemLine(item, 40, true, false).render(40)
+			line = m.itemLine(item, 40, true).render(40)
 			if strings.Contains(line, "\x1b[3") || !strings.Contains(line, "\x1b[7m") || !strings.Contains(plainFrame(line), "name"+tt.marker) {
 				t.Fatalf("NO_COLOR lost the entry marker or added color: %q", line)
+			}
+			side = m.contextLine([]entry{item}, 0, 40, "").render(40)
+			if strings.Contains(side, "\x1b[3") || !strings.Contains(side, m.styles.muted) || !strings.Contains(side, "name"+tt.marker) {
+				t.Fatalf("NO_COLOR side pane lost dimming or markers: %q", side)
 			}
 		})
 	}

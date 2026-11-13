@@ -30,9 +30,9 @@ func (m browser) paneRow(parts []viewLine, widths []int, margin int) string {
 
 func (m browser) treeHeading(width, margin int) string {
 	widths := treeWidths(width)
-	parts := []viewLine{{{"[Current]", m.styles.accent}}}
+	parts := []viewLine{{{"Current", m.styles.muted}}}
 	if len(widths) == 3 {
-		parts = []viewLine{{{"Parent", m.styles.muted}}, {{"[Current]", m.styles.accent}}, {{"Children", m.styles.muted}}}
+		parts = []viewLine{{{"Parent", m.styles.muted}}, {{"Current", m.styles.muted}}, {{"Children", m.styles.muted}}}
 	}
 	return m.paneRow(parts, widths, margin)
 }
@@ -63,7 +63,13 @@ func (m browser) contextLine(items []entry, index, width int, message string) vi
 	if index >= len(items) {
 		return nil
 	}
-	return m.itemLine(items[index], width, false, items[index].path == m.path)
+	line := m.itemLine(items[index], width, false)
+	for i := range line {
+		if line[i].style != m.styles.muted {
+			line[i].style += m.styles.muted
+		}
+	}
+	return line
 }
 
 func (m browser) treeLines(rows, width, margin int) []string {

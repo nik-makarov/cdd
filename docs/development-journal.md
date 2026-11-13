@@ -261,3 +261,15 @@ entries, keep private data out, and distinguish local work from publication.
   No dependencies changed; hosted CI and publication were not run. Paths:
   `view.go`, `view_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-13T21:12:05Z` — Emphasize the active directory address over pane
+  labels. Render Current without brackets using the same dim style as Parent
+  and Children; use the normal foreground for the active path prefix and retain
+  its bold cyan basename. Dim side entries without losing type colors/markers,
+  and remove bold current-folder emphasis from the parent pane. Formatting, vet,
+  shuffled race-enabled application/tool tests, and host build passed. Updated
+  renderer assertions cover hierarchy, side colors, NO_COLOR, and selection.
+  A color-enabled native 120-column PTY check confirmed the emitted styling and
+  successful directory selection. No dependencies changed; GitHub DNS prevented
+  remote synchronization, and no push, hosted CI, or publication ran. Paths:
+  `tree.go`, `tree_test.go`, `view.go`, `view_test.go`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.

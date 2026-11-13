@@ -70,10 +70,10 @@ browsing location. Continue navigating or cancel to return to your shell.
 ### Tree view (default)
 
 The middle pane is always active and lists the current directory's folders and
-files. The left pane shows its parent's entries, emphasizing the current folder
-without making that pane active. The right pane previews the entries inside the
-highlighted directory, including directory symlinks. Highlighting the `.` row
-leaves Children blank, including immediately after entering a directory.
+files. The left pane shows its parent's entries as context. The right pane
+previews entries inside the highlighted directory, including directory symlinks.
+Highlighting the `.` row leaves Children blank, including after entering a
+directory.
 Highlighting a file shows no directory preview. File contents are never read or
 opened.
 
@@ -85,10 +85,16 @@ within their own column, preserving the directory name when space permits.
 
 Folders are cyan, files use the theme's dim foreground, and directory symlinks
 are magenta. Suffixes also distinguish entries without color: `/` for folders,
-`@/` for directory
-links, `@` for file links, and `@!` for broken or inaccessible links. A file may
-be highlighted, but Enter and Right cannot choose or open it. Preview read errors
-stay in their side pane without preventing navigation in the middle.
+`@/` for directory links, `@` for file links, and `@!` for broken or inaccessible
+links. A file may be highlighted, but Enter and Right cannot choose or open it.
+Preview read errors stay in their side pane without preventing navigation in
+the middle.
+
+Pane labels are dim, including `Current` without brackets. Both side panes use
+dim text while retaining entry-type colors and markers; the current folder in
+the parent pane is not bold. The active address uses the normal foreground for
+the parent path and bold cyan for its final directory name, so the address and
+selected row stand out from the surrounding context.
 
 The center has more width than either side pane. Below 59 terminal cells, the
 side panes are hidden while the active list and tree-mode file display remain.

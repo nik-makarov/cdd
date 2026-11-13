@@ -378,3 +378,18 @@ and switching to the compact view displayed its current path over both columns.
 Highlighting a file cleared the right address. Directory selection then returned
 the correct absolute path with exit status zero. No dependencies changed; hosted
 CI and release publication were not run during these local checks.
+
+## Active-pane visual emphasis, 2026-11-13
+
+`make check build` passed, including formatting, vet, shuffled race-enabled tests,
+release-tool checks, and the host build. Existing renderer tests now verify muted
+pane labels without brackets or bold emphasis, a normal foreground prefix with
+an accented current basename, dim side entries retaining type colors/markers,
+and removal of bold current-folder emphasis from the parent pane. NO_COLOR
+checks retain side dimming and entry markers without color; existing selection,
+clipping, pane-path, and terminal-size checks passed.
+
+A color-enabled native 120-column PTY check confirmed muted labels and both side
+panes, a normal current path prefix with a bold cyan basename, unchanged central
+selection styling, and successful absolute-directory selection. No dependency
+versions changed or hosted CI/publication ran during local verification.

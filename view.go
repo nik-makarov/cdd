@@ -147,7 +147,7 @@ func (m browser) pathLine(path string, width int, active bool) viewLine {
 	base := display(filepath.Base(path))
 	parent := strings.TrimSuffix(text, base)
 	if parent != text {
-		return viewLine{{parent, m.styles.muted}, {base, m.styles.accent}}
+		return viewLine{{parent, ""}, {base, m.styles.accent}}
 	}
 	return viewLine{{text, m.styles.accent}}
 }
@@ -248,19 +248,16 @@ func (m browser) entryLine(index, width int) viewLine {
 	if index >= len(m.visible) {
 		return nil
 	}
-	return m.itemLine(m.visible[index], width, index == m.cursor, false)
+	return m.itemLine(m.visible[index], width, index == m.cursor)
 }
 
-func (m browser) itemLine(item entry, width int, selected, focus bool) viewLine {
+func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 	label := item.label()
 	style := m.styles.directory
 	if !item.isDir() {
 		style = m.styles.file
 	} else if item.kind == folderLink {
 		style = m.styles.link
-	}
-	if focus {
-		style += m.styles.strong
 	}
 	row := viewLine{{"  " + label, style}}
 	if item.name == "." {

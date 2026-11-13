@@ -1,0 +1,123 @@
+name: Update dependencies
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-dependencies
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update Go and module dependencies
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GOTOOLCHAIN: local
+      GH_REPO: ${{ github.repository }}
+      BASE_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Find an existing update pull request
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="$(gh pr list --base "$BASE_BRANCH" --author 'github-actions[bot]' --state open --limit 1000 \
+            --json headRefName,url \
+            --jq '[.[] | select(.headRefName | startswith("automation/dependency-update-"))][0].url // empty')"
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+          if [ -n "$url" ]; then
+            printf 'An update pull request is already open: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        if: steps.existing.outputs.url == ''
+        with:
+          go-version: stable
+          check-latest: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+
+      - name: Update Go and modules
+        if: steps.existing.outputs.url == ''
+        id: update
+        run: |
+          go_version="$(go env GOVERSION)"
+          go list -m all > "$RUNNER_TEMP/application-before.txt"
+          go -C tools list -m all > "$RUNNER_TEMP/tools-before.txt"
+          go list -m -f '{{.Path}}' all > "$RUNNER_TEMP/runtime-paths-before.txt"
+          go mod edit -go="${go_version#go}"
+          go -C tools mod edit -go="${go_version#go}"
+          go get -u ./...
+          go -C tools get -u tool
+          go mod tidy
+          go -C tools mod tidy
+          go list -m -f '{{.Path}}' all > "$RUNNER_TEMP/runtime-paths-after.txt"
+          diff -u "$RUNNER_TEMP/runtime-paths-before.txt" "$RUNNER_TEMP/runtime-paths-after.txt"
+          go list -m all > "$RUNNER_TEMP/application-after.txt"
+          go -C tools list -m all > "$RUNNER_TEMP/tools-after.txt"
+          {
+            printf 'go_version=%s\n' "$go_version"
+            if git diff --quiet -- go.mod go.sum tools/go.mod tools/go.sum; then
+              printf 'changed=false\n'
+              printf 'Go and module dependencies are already up to date.\n' >> "$GITHUB_STEP_SUMMARY"
+            else
+              printf 'changed=true\n'
+            fi
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Install zsh for shell integration tests
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y zsh
+
+      - name: Validate the updated dependencies
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          make check build cross-build
+          make audit
+
+      - name: Create the update pull request
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPDATED_GO: ${{ steps.update.outputs.go_version }}
+        run: |
+          timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf '\n- `%s` — Update Go to %s and refresh application/tool module versions and checksums. Formatting, vet, race-enabled tests, host packaging, four cross-builds, checksum verification, and vulnerability scans passed on the GitHub Ubuntu runner. Runtime module paths are unchanged; macOS runtime CI remains a separate check. Paths: `go.mod`, `go.sum`, `tools/go.mod`, `tools/go.sum`.\n' \
+            "$timestamp" "${UPDATED_GO#go}" >> CHANGELOG.md
+          body="$RUNNER_TEMP/dependency-update-pr.md"
+          {
+            printf 'Update both Go directives to **%s** and refresh existing application and tool dependencies.\n\n' "$UPDATED_GO"
+            printf 'Passed on Ubuntu: formatting, vet, race-enabled tests, host build, four platform cross-builds, checksum verification, and vulnerability scans. Runtime module paths are unchanged.\n\n'
+            printf 'Review the version/checksum changes and regenerated redistribution notices before merging. GitHub may require approval to run the separate pull-request CI.\n\n'
+            printf 'Application module changes:\n\n```diff\n'
+            diff -u --label before --label after "$RUNNER_TEMP/application-before.txt" "$RUNNER_TEMP/application-after.txt" || test "$?" -eq 1
+            printf '```\n\nTool module changes:\n\n```diff\n'
+            diff -u --label before --label after "$RUNNER_TEMP/tools-before.txt" "$RUNNER_TEMP/tools-after.txt" || test "$?" -eq 1
+            printf '```\n\nWorkflow run: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
+          } > "$body"
+          branch="automation/dependency-update-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$branch"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add go.mod go.sum tools/go.mod tools/go.sum CHANGELOG.md
+          git diff --cached --check
+          git commit -m "Update Go and dependencies"
+          gh auth setup-git --hostname github.com
+          git push --set-upstream origin "$branch"
+          url="$(gh pr create --base "$BASE_BRANCH" --head "$branch" \
+            --title "Update Go and dependencies" --body-file "$body")"
+          printf 'Created update pull request: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"

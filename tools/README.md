@@ -20,6 +20,13 @@ It uses only the Go standard library. `make notices`, `make build`, and
 `make cross-build` run it to create one `bin/THIRD_PARTY_LICENSES.txt`.
 See [third-party notices](../THIRD_PARTY_NOTICES.md) for the packaging contract.
 
+## Dependency updates
+
+The GitHub **Update dependencies** workflow updates the Go release and both
+modules, validates the candidate, and opens a PR. See
+[maintenance](../docs/maintenance.md) for the button and required repository
+settings. It keeps the application and tool module graphs separate.
+
 To update the scanner deliberately:
 
 ```sh

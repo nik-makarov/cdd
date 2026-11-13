@@ -34,3 +34,19 @@ entries, keep private data out, and distinguish local work from publication.
   and cross-platform runtime testing were not performed. Paths: `README.md`,
   `docs/`, `CHANGELOG.md`, `tools/`, `Makefile`, `.github/`, `AGENTS.md`,
   `CONTRIBUTING.md`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md`.
+- `2026-11-13T16:37:32Z` — Add a manually dispatched GitHub workflow that selects
+  stable Go, updates both Go directives and existing application/tool modules,
+  validates the candidate, and opens a reviewable PR with a UTC journal entry.
+  Stop when an update PR is already open, skip unchanged candidates, and reject
+  runtime module-path changes. Use the built-in repository token without new
+  Actions or automatic merging; each PR gets a new branch without force-pushing.
+  Document the button, required GitHub settings, PR CI approval, and review scope;
+  preserve Dependabot for Actions updates and formalize imperative English commit
+  subjects. Actionlint without ShellCheck and Bash syntax checks passed. An
+  isolated cached-proxy test verified upgrades, the no-change case, and the graph
+  guard; the upgraded candidate passed vet, race-enabled tests, host packaging,
+  and four cross-builds. Checksum verification passed, but database DNS prevented
+  a clean vulnerability scan. Hosted execution, permission changes, Git push, and
+  PR creation were not performed; working module versions remain unchanged.
+  Paths: `.github/workflows/update-dependencies.yml`, `docs/maintenance.md`,
+  `docs/testing.md`, `README.md`, `tools/README.md`, `AGENTS.md`, `CONTRIBUTING.md`.

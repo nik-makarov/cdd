@@ -78,6 +78,7 @@ local validation does not establish that they have run. See
 
 ## Documentation
 
+- [Update Go and dependencies with a button](docs/maintenance.md)
 - [Usage, installation, and shell integration](docs/usage.md)
 - [Architecture and dependency boundaries](docs/architecture.md)
 - [Verification and manual acceptance](docs/testing.md)

@@ -85,3 +85,25 @@ Use [usage](usage.md) for expected controls and the shell contract.
 
 GitHub security settings, publication, and hosted CI remain unverified. These
 results describe local preparation, not a release or deployment.
+
+## Manual update workflow validation, 2026-11-13
+
+Actionlint 1.7.12 accepted both workflow files with ShellCheck explicitly disabled;
+all updater `run` blocks also passed Bash syntax checks. The actual update block
+was executed in a disposable Git clone against a cached module proxy. Starting
+from Go 1.26.4 directives and older runtime modules, it updated both Go directives,
+runtime packages, and existing tool dependencies. A second run reported no changes.
+A synthetic runtime module-path change was rejected before PR publication.
+
+The cached-proxy fixture disabled the unavailable checksum service only for that
+isolated exercise; the production workflow keeps Go's default checksum settings.
+The resulting candidate passed `make check build cross-build`, including
+race-enabled tests and all four platform builds. Both module checksum checks
+passed under the normal environment. The vulnerability scan could not reach
+`vuln.go.dev`, so a complete successful updater run was not established.
+
+No hosted workflow, repository permission change, authenticated Git push, or PR
+creation was executed. The working repository's module files were not updated
+by the fixture. GitHub authentication, permission checks, and PR CI approval
+behavior require the published workflow and repository settings described in
+[maintenance](maintenance.md).

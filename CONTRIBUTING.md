@@ -7,6 +7,8 @@ Replace private directory names and paths before posting terminal output.
 Use English for documentation, comments, user-facing messages, issues, pull
 requests, and commits. Write non-ASCII test fixture data using Go Unicode
 escapes to preserve Unicode coverage while keeping source text in English.
+Use concise imperative commit subjects describing the concrete change, without
+Conventional Commits prefixes. Keep unrelated changes in separate commits.
 
 ## Development
 

@@ -140,6 +140,20 @@ metacharacters, and trailing newlines. Cancellation or failure before selection
 leaves the current working directory unchanged. The shell reports a failed `cd`,
 for example if a directory is removed after selection.
 
+After a successful directory change, the function prints the original and
+resulting shell directories to stderr:
+
+```text
+0go: /old/path -> /new/path
+```
+
+Paths are shell-escaped so spaces, newlines, and terminal control characters
+cannot make the notification ambiguous or inject terminal commands. Cancellation,
+picker failure, failed `cd`, and selecting the current directory do not print a
+move notification. A failed `cd` still reports the shell's own error.
+After updating the binary, rerun its `--init` command through `eval` to refresh
+an existing function; replacing the binary alone does not update shell code.
+
 The binary outputs only the chosen absolute path, without a trailing newline.
 The UI uses terminal stdin/stderr, falling back to `/dev/tty` when needed.
 Help and errors go to stderr. `--help`, `--version`, and `--init` work without

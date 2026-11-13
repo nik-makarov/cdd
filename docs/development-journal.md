@@ -109,3 +109,15 @@ entries, keep private data out, and distinguish local work from publication.
   publication ran. Paths: `cli.go`, `cli_test.go`, `errors.go`, `errors_test.go`,
   `browser.go`, `terminal.go`, `view.go`, `CHANGELOG.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T17:57:59Z` — Report successful shell directory changes as an
+  original-to-resulting path notification on stderr, using builtin printf with
+  shell escaping to keep control characters and newlines out of the terminal.
+  Preserve stdout, cancellation/failure status, and silent unchanged or empty
+  selections; retain the shell's own error when cd fails. Document that existing
+  shell functions must be refreshed after a binary update. Formatting, vet,
+  race-enabled application/tool tests, and host packaging passed. Actual zsh/bash
+  subprocesses checked notifications, hostile-looking names, terminal controls,
+  stdout isolation, and failure/silence cases. A native PTY check confirmed the
+  message, directory change, and zero exit status. No dependencies changed;
+  hosted CI and publication did not run. Paths: `shell.go`, `shell_test.go`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.

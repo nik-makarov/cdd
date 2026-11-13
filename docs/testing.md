@@ -23,7 +23,9 @@ non-empty `NO_COLOR` (including `0`), tiny windows, scrolling with expanded help
 literal `?` filter input, and sanitization of dynamic text before styling.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
-on failure, and help passthrough.
+on failure, and help passthrough. Separate stdout/stderr assertions verify move
+notifications, escaped terminal controls, and silence on unchanged directories,
+cancellation, empty selection, picker failure, and failed `cd`.
 
 Input-decoder tests cover complete and fragmented terminal sequences, Unicode,
 malformed input, and Esc timeout behavior. For decoder changes, also run:
@@ -220,3 +222,16 @@ parser matched `flag` in table tests and 4,174,566 fuzz executions over about
 and failed output writes. A native PTY check initialized zsh with `--init=zsh`,
 ran `--hidden=false -- /tmp`, and changed the shell directory with exit status
 zero. No dependency versions changed; hosted CI and publication did not run.
+
+## Directory-change notification validation, 2026-11-13
+
+`make check build` passed, including vet and shuffled race-enabled tests for
+the application and build tools. Actual zsh and bash subprocesses verified
+separate stdout/stderr, both paths in ordinary notifications, single-line escaped
+output for unusual names and terminal controls, and no notification on unchanged
+directories, empty selection, cancellation, picker error, or failed `cd`.
+
+A native PTY check loaded the rebuilt binary's shell function and selected a
+different directory. The notification showed the original and resulting shell
+paths, the directory changed, and the function returned zero. No dependencies
+changed; hosted CI and publication were not performed.

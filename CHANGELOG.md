@@ -11,6 +11,8 @@ version is published on GitHub. Development history is recorded separately in
 - Browse directories with arrow keys or `hjkl`, then choose one with Enter.
 - Filter directory names, show hidden directories, and follow directory symlinks.
 - Change the current shell's directory through zsh or bash integration.
+- Report the original and destination paths after a successful shell directory
+  change, with safely escaped paths on stderr.
 - Cancel selection without changing the current working directory.
 - Use a theme-aware directory picker with a full-row selection bar, highlighted
   current path, compact controls, and expandable keyboard help via `?`.

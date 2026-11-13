@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -19,6 +21,8 @@ func TestMain(m *testing.M) {
 			}
 		}
 		switch os.Getenv("ZERO_GO_TEST_MODE") {
+		case "empty":
+			os.Exit(0)
 		case "cancel":
 			os.Exit(130)
 		case "error":
@@ -54,19 +58,26 @@ func TestShellIntegration(t *testing.T) {
 			for _, tt := range []struct {
 				name, mode, target, args, prefix, code string
 			}{
+				{"plain", "select", "plain", "", "", "0"},
 				{"spaces", "select", "with spaces", "", "", "0"},
 				{"metacharacters", "select", "quote'\" $() `touch INJECTED` ; * [x]", "", "", "0"},
 				{"unicode", "select", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u65e5\u672c\u8a9e", "", "", "0"},
 				{"trailing newlines", "select", "new\nline\n\n", "", "", "0"},
+				{"terminal controls", "select", "escape\x1b[31m\t\rname", "", "", "0"},
 				{"trailing dot", "select", "trailing.", "", "", "0"},
+				{"current directory", "select", ".", "", "", "0"},
 				{"cancel", "cancel", "cancelled", "", "", "130"},
+				{"empty selection", "empty", "unused-empty", "", "", "0"},
+				{"failed cd", "missing", "missing-directory", "", "", "1"},
 				{"partial output on error", "error", "failed", "", "", "1"},
 				{"help", "select", "unused", "--hidden --help", "HELP\n", "0"},
 			} {
 				t.Run(tt.name, func(t *testing.T) {
 					target := filepath.Join(base, tt.target)
-					if err := os.Mkdir(target, 0o755); err != nil {
-						t.Fatal(err)
+					if target != base && tt.mode != "missing" {
+						if err := os.Mkdir(target, 0o755); err != nil {
+							t.Fatal(err)
+						}
 					}
 					script := shellInit(helper) + "\n0go " + tt.args + `
 _0go_test_code=$?
@@ -75,9 +86,11 @@ printf '%s\000%s' "$_0go_test_code" "$PWD"
 					cmd := exec.Command(binary, "-f", "-c", script)
 					cmd.Dir = base
 					cmd.Env = append(os.Environ(), "ZERO_GO_TEST_HELPER=1", "ZERO_GO_TEST_MODE="+tt.mode, "ZERO_GO_TEST_TARGET="+target)
-					out, err := cmd.CombinedOutput()
+					var stderr bytes.Buffer
+					cmd.Stderr = &stderr
+					out, err := cmd.Output()
 					if err != nil {
-						t.Fatalf("shell failed: %v: %s", err, out)
+						t.Fatalf("shell failed: %v: stdout %q, stderr %q", err, out, stderr.String())
 					}
 					wantPath := target
 					if tt.mode != "select" || tt.args != "" {
@@ -86,6 +99,24 @@ printf '%s\000%s' "$_0go_test_code" "$PWD"
 					want := tt.prefix + tt.code + "\x00" + wantPath
 					if string(out) != want {
 						t.Fatalf("got %q, want %q", out, want)
+					}
+					message := stderr.String()
+					moved := wantPath != base
+					if moved {
+						if !strings.HasPrefix(message, "0go: "+base+" -> ") || !strings.HasSuffix(message, "\n") || strings.Count(message, "\n") != 1 || strings.ContainsAny(message, "\x1b\r\t") {
+							t.Fatalf("missing or unsafe move message: %q", message)
+						}
+						if tt.name == "plain" || tt.name == "trailing dot" {
+							if want := "0go: " + base + " -> " + target + "\n"; message != want {
+								t.Fatalf("move message = %q, want %q", message, want)
+							}
+						}
+					} else if tt.mode == "missing" {
+						if message == "" || strings.HasPrefix(message, "0go: ") {
+							t.Fatalf("failed cd must report its error without a success message: %q", message)
+						}
+					} else if message != "" {
+						t.Fatalf("no directory change, but received message: %q", message)
 					}
 					if _, err := os.Stat(filepath.Join(base, "INJECTED")); !os.IsNotExist(err) {
 						t.Fatal("shell executed filename contents")

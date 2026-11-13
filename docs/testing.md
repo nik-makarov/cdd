@@ -13,7 +13,7 @@ unavailable shell are skipped locally; CI supplies both shells.
 | `make test` | Application and build-tool tests without race instrumentation |
 | `make build` | Host binary and complete redistribution license files |
 | `make cross-build` | Linux and macOS amd64/arm64 binaries with license files |
-| `make dist` | Three preview archives, SHA-256 checksums, licenses, and curated notes |
+| `make dist` | Four preview archives, SHA-256 checksums, licenses, and curated notes |
 | `make audit` | Checksums for both modules and vulnerability scans of the application and build tools |
 
 Application tests cover browsing, parent selection, case-insensitive filtering,
@@ -24,6 +24,10 @@ literal `?` filter input, and sanitization of dynamic text before styling.
 Column tests cover ordered two-column pages, automatic fallback for short/narrow
 lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
 filter-mode switching, full-page navigation, and selection/opening from the right.
+Tree-mode tests verify default mode, a single active middle pane, file-action
+guards, parent and child context, file/link colors and suffixes, directory-link
+navigation, preview failures, and focus across view changes. Both views are
+checked across terminal sizes, including hidden side panes in narrow tree view.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough. Separate stdout/stderr assertions verify move
@@ -257,3 +261,25 @@ selection. The zsh function changed to the selected directory and returned zero.
 This verifies interaction and terminal protocol; screenshot review across themes,
 Linux runtime testing, hosted CI, and publication were not performed. No new
 dependencies or module-version changes were introduced.
+
+## Tree and compact view validation, 2026-11-13
+
+`make check build cross-build` passed on macOS arm64 with Go 1.27.4, including
+vet, shuffled race-enabled application/tool tests, and four target builds.
+Tests cover the default tree mode, view switching with folder focus, compact
+directory-only filtering, file and symlink classification, file-action guards,
+logical directory-link navigation, parent/child context, preview failures,
+distinct type colors/markers, NO_COLOR, and safe clipping in both layouts.
+Tree panes retain exactly one active middle row; narrow windows hide context
+panes without changing mode or selection. The relocated tree renderer test also
+passed in a subsequent ordinary application test run.
+
+A native PTY check at 100 cells showed the parent/current/child panes, kept Enter
+on a highlighted file inside the picker, previewed and opened a magenta directory
+link, switched to the two-column directory-only view, and retained folder focus
+when switching back. Narrowing to 40 cells retained the same selected entry;
+expanding and choosing a directory symlink changed zsh to its logical path with
+exit status zero. The fixture included ordinary files, file links, a broken link,
+and 30 additional folders. These were interaction/protocol checks; screenshot
+review across themes, Linux runtime testing, hosted CI, and publication were not
+performed. No dependencies changed.

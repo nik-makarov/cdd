@@ -84,41 +84,72 @@ func TestTerminalStyles(t *testing.T) {
 }
 
 func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
-	for _, size := range [][2]int{{120, 30}, {80, 24}, {73, 12}, {60, 18}, {56, 8}, {55, 8}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
-		for _, mode := range []string{"normal", "filter", "help", "error"} {
-			t.Run(fmt.Sprintf("%dx%d/%s", size[0], size[1], mode), func(t *testing.T) {
-				m := browser{path: "/long/parent/projects", width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
-				for i := range 60 {
-					m.visible = append(m.visible, directory{name: fmt.Sprintf("folder-%02d-\u754c", i) + strings.Repeat("long", 20)})
-				}
-				m.cursor = 59
-				m.filtering = mode == "filter"
-				m.showHelp = mode == "help"
-				if m.filtering {
-					m.query = "folder"
-				}
-				if mode == "error" {
-					m.message = "Permission denied"
-				}
-				view := m.view()
-				plain := plainFrame(view)
-				lines := strings.Split(plain, "\n")
-				if len(lines) > size[1] || !utf8.ValidString(view) {
-					t.Fatalf("invalid frame: %q", view)
-				}
-				for _, line := range lines {
-					if textWidth(line) > max(1, size[0]-1) {
-						t.Fatalf("frame wraps: %q", line)
+	for _, compact := range []bool{false, true} {
+		for _, size := range [][2]int{{120, 30}, {80, 24}, {73, 12}, {60, 18}, {56, 8}, {55, 8}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
+			for _, mode := range []string{"normal", "filter", "help", "error"} {
+				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
+					m := browser{path: "/long/parent/projects", compact: compact, width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
+					for i := range 60 {
+						m.visible = append(m.visible, entry{name: fmt.Sprintf("folder-%02d-\u754c", i) + strings.Repeat("long", 20)})
 					}
-				}
-				if !strings.Contains(plain, ">") || !strings.Contains(view, "\x1b[7m") {
-					t.Fatalf("selection missing: %q", view)
-				}
-				if size[0] >= 40 && !strings.Contains(plain, "folder-59-") {
-					t.Fatalf("selected directory scrolled out of view: %q", view)
-				}
-			})
+					m.parent, m.children = m.visible, m.visible
+					m.cursor = 59
+					m.filtering = mode == "filter"
+					m.showHelp = mode == "help"
+					if m.filtering {
+						m.query = "folder"
+					}
+					if mode == "error" {
+						m.message = "Permission denied"
+					}
+					view := m.view()
+					plain := plainFrame(view)
+					lines := strings.Split(plain, "\n")
+					if len(lines) > size[1] || !utf8.ValidString(view) {
+						t.Fatalf("invalid frame: %q", view)
+					}
+					for _, line := range lines {
+						if textWidth(line) > max(1, size[0]-1) {
+							t.Fatalf("frame wraps: %q", line)
+						}
+					}
+					if !strings.Contains(plain, ">") || !strings.Contains(view, "\x1b[7m") {
+						t.Fatalf("selection missing: %q", view)
+					}
+					if size[0] >= 40 && !strings.Contains(plain, "folder-59-") {
+						t.Fatalf("selected directory scrolled out of view: %q", view)
+					}
+				})
+			}
 		}
+	}
+}
+
+func TestEntryColorsAndMarkers(t *testing.T) {
+	m := browser{styles: terminalStyles(true, "xterm", "")}
+	for _, tt := range []struct {
+		name, marker, color string
+		kind                entryKind
+	}{
+		{"directory", "/", "\x1b[36m", folder},
+		{"file", "", "\x1b[33m", file},
+		{"directory link", "@/", "\x1b[35m", folderLink},
+		{"file link", "@", "\x1b[33m", fileLink},
+		{"broken link", "@!", "\x1b[33m", brokenLink},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			item := entry{name: "name", kind: tt.kind}
+			line := m.itemLine(item, 40, false, false).render(40)
+			if !strings.Contains(line, tt.color) || plainFrame(line) != "  name"+tt.marker {
+				t.Fatalf("entry is not distinguishable: %q", line)
+			}
+			m := m
+			m.styles = terminalStyles(true, "xterm", "1")
+			line = m.itemLine(item, 40, true, false).render(40)
+			if strings.Contains(line, "\x1b[3") || !strings.Contains(line, "\x1b[7m") || !strings.Contains(plainFrame(line), "name"+tt.marker) {
+				t.Fatalf("NO_COLOR lost the entry marker or added color: %q", line)
+			}
+		})
 	}
 }
 
@@ -126,11 +157,12 @@ func TestStyledViewSanitizesDynamicText(t *testing.T) {
 	m := browser{
 		path: "/tmp/\x1b[31munsafe\n", query: "\x1b[2Jquery", message: "\x1b]2;title\a",
 		width: 60, height: 18, styles: terminalStyles(true, "xterm", ""),
-		visible: []directory{{name: "."}, {name: "\x1b[7mfolder\r\t"}}, cursor: 1,
+		visible: []entry{{name: "."}, {name: "\x1b[7mfolder\r\t"}}, cursor: 1,
 	}
 	for range 30 {
-		m.visible = append(m.visible, directory{name: "\x1b]2;name\a\n\t"})
+		m.visible = append(m.visible, entry{name: "\x1b]2;name\a\n\t"})
 	}
+	m.parent, m.children = m.visible, m.visible
 	view := m.view()
 	plain := plainFrame(view)
 	if strings.ContainsAny(plain, "\x1b\a\r\t") || len(strings.Split(plain, "\n")) != m.height {
@@ -142,10 +174,10 @@ func TestStyledViewSanitizesDynamicText(t *testing.T) {
 }
 
 func TestTwoColumnListing(t *testing.T) {
-	m := browser{path: "/projects", width: 80, height: 12}
-	m.visible = []directory{{name: "."}}
+	m := browser{path: "/projects", compact: true, width: 80, height: 12}
+	m.visible = []entry{{name: "."}}
 	for i := 1; i <= 20; i++ {
-		m.visible = append(m.visible, directory{name: fmt.Sprintf("dir-%02d", i)})
+		m.visible = append(m.visible, entry{name: fmt.Sprintf("dir-%02d", i)})
 	}
 	rows := m.pageRows()
 	if m.columns() != 2 || m.pageSize() != rows*2 {
@@ -178,9 +210,9 @@ func TestTwoColumnListing(t *testing.T) {
 }
 
 func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
-	m := browser{path: "/projects", width: 80, height: 12, styles: terminalStyles(true, "xterm", "")}
+	m := browser{path: "/projects", compact: true, width: 80, height: 12, styles: terminalStyles(true, "xterm", "")}
 	for i := range 30 {
-		m.visible = append(m.visible, directory{name: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439-\u754c-" + strconv.Itoa(i)})
+		m.visible = append(m.visible, entry{name: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439-\u754c-" + strconv.Itoa(i)})
 	}
 	m.cursor = 1
 	view := m.view()
@@ -208,7 +240,7 @@ func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
 }
 
 func TestViewStatusAndHelp(t *testing.T) {
-	m := browser{path: "/projects/0go", width: 100, height: 24, visible: []directory{{name: "."}, {name: "docs"}}}
+	m := browser{path: "/projects/0go", width: 100, height: 24, visible: []entry{{name: "."}, {name: "docs"}}}
 	plain := m.view()
 	if !strings.Contains(plain, "1 directory") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
 		t.Fatalf("default view is not compact: %q", plain)

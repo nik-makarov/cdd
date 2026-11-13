@@ -34,12 +34,15 @@ func loadBrowser(t *testing.T, root string) browser {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Existing directory-only cases exercise the compact list mode.
+	m.compact = true
+	m.refilter()
 	return m
 }
 
 func focus(t *testing.T, m browser, name string) browser {
 	t.Helper()
-	i := slices.IndexFunc(m.visible, func(d directory) bool { return d.name == name })
+	i := slices.IndexFunc(m.visible, func(d entry) bool { return d.name == name })
 	if i < 0 {
 		t.Fatalf("directory %q missing from %v", name, m.visible)
 	}
@@ -245,5 +248,101 @@ func TestColumnNavigation(t *testing.T) {
 	m = press(m, "tab", "")
 	if m.cursor != before {
 		t.Fatal("Tab in a single column should keep selection")
+	}
+}
+
+func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
+	root := fixture(t)
+	m, err := newBrowser(root, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.compact {
+		t.Fatal("tree must be the default view")
+	}
+	m = focus(t, m, "regular-file")
+	for _, key := range []string{"right", "l", "enter"} {
+		t.Run("file/"+key, func(t *testing.T) {
+			copy := m
+			if copy.handle(keyEvent{name: key}) || copy.path != root || copy.selected != "" || copy.message == "" {
+				t.Fatalf("file must remain highlighted without navigation or selection: %+v", copy)
+			}
+			copy = press(copy, "/", "/")
+			if copy.message != "" {
+				t.Fatal("a new filter should clear the previous file-action message")
+			}
+		})
+	}
+	m = press(m, "v", "v")
+	if !m.compact || m.visible[m.cursor].path != root {
+		t.Fatal("switching from a file should focus current directory in compact mode")
+	}
+	for _, item := range m.visible {
+		if !item.isDir() {
+			t.Fatal("compact mode must retain directory-only behavior")
+		}
+	}
+	m = focus(t, m, "Alpha")
+	m = press(m, "v", "v")
+	if m.compact || m.visible[m.cursor].name != "Alpha" {
+		t.Fatal("mode switch lost directory focus")
+	}
+	m = press(m, "tab", "")
+	if m.visible[m.cursor].name != "Alpha" {
+		t.Fatal("tree view must keep the middle column active")
+	}
+	m = press(m, "/", "/")
+	m = press(m, "v", "v")
+	if m.compact || m.query != "v" || !m.filtering {
+		t.Fatal("v must remain literal while filtering")
+	}
+}
+
+func TestTreeContextAndSymlinkNavigation(t *testing.T) {
+	root := fixture(t)
+	if err := os.Symlink("Alpha", filepath.Join(root, "link")); err != nil {
+		t.Fatal(err)
+	}
+	m, err := newBrowser(root, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m = focus(t, m, "link")
+	m.refreshPreview(false)
+	if len(m.children) != 1 || m.children[0].name != "nested" || m.preview != filepath.Join(root, "link") {
+		t.Fatalf("link preview missing: %+v", m.children)
+	}
+	selected := press(m, "enter", "")
+	if selected.selected != filepath.Join(root, "link") {
+		t.Fatal("directory symlink must be selectable using its logical path")
+	}
+	m = press(m, "right", "")
+	if m.path != filepath.Join(root, "link") {
+		t.Fatal("directory symlink was not opened")
+	}
+	if !slices.ContainsFunc(m.parent, func(item entry) bool { return item.path == m.path }) {
+		t.Fatal("parent pane lost the current directory")
+	}
+	m = press(m, "left", "")
+	if m.path != root || m.visible[m.cursor].name != "link" {
+		t.Fatal("logical parent or focus was not preserved")
+	}
+	m = focus(t, m, "regular-file")
+	m.refreshPreview(false)
+	if len(m.children) != 0 || m.childErr == "" {
+		t.Fatal("files must not expose a directory preview")
+	}
+	m = focus(t, m, "Alpha")
+	m.refreshPreview(false)
+	if err := os.RemoveAll(filepath.Join(root, "Alpha")); err != nil {
+		t.Fatal(err)
+	}
+	m.refreshPreview(true)
+	if m.childErr == "" || m.path != root || m.selected != "" {
+		t.Fatal("preview failure must stay in the side pane without changing location")
+	}
+	m = press(m, "ctrl+r", "")
+	if slices.ContainsFunc(m.visible, func(item entry) bool { return item.name == "Alpha" }) {
+		t.Fatal("refresh retained a removed directory")
 	}
 }

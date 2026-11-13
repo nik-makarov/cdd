@@ -8,7 +8,7 @@ import (
 )
 
 type viewStyles struct {
-	muted, strong, accent, directory, failure, selected string
+	muted, strong, accent, directory, file, link, failure, selected string
 }
 
 // Use the terminal's own palette so light and dark themes keep their contrast.
@@ -22,12 +22,15 @@ func terminalStyles(tty bool, terminal, noColor string) viewStyles {
 	if noColor == "" {
 		s.accent, s.failure = "\x1b[1;36m", "\x1b[1;31m"
 		s.directory = "\x1b[36m"
+		s.file, s.link = "\x1b[33m", "\x1b[35m"
 	}
 	return s
 }
 
 type span struct{ text, style string }
 type viewLine []span
+
+func columnPosition(column int) string { return "\x1b[" + strconv.Itoa(column) + "G" }
 
 // Clip printable text before applying trusted SGR sequences. Never truncate ANSI
 // bytes or allow a filename to inject terminal controls into the styled frame.
@@ -62,6 +65,7 @@ var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "parent"},
 	{"Enter", "select"}, {"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"Tab / Shift+Tab", "switch column"},
+	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
 	{"Esc / q / Ctrl+C / Ctrl+D", "cancel"},
 }
@@ -81,9 +85,9 @@ func (m browser) shortHelp(width int) viewLine {
 	if m.filtering {
 		return m.hints([]keyHint{{"Enter / Esc", "finish filter"}, {"↑↓", "move"}})
 	}
-	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", "parent"}, {"Enter", "select"}, {"/", "filter"}, {"?", "help"}, {"Esc", "cancel"}}
+	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", "parent"}, {"Enter", "select"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
 	// Preserve selection, help and exit, then opening a directory when space allows.
-	for _, key := range []string{"↑↓", "←", "→", "/"} {
+	for _, key := range []string{"↑↓", "←", "→", "/", "v"} {
 		if textWidth(hintText(hints)) <= width {
 			break
 		}
@@ -118,6 +122,9 @@ func (m browser) helpLines(width int) []viewLine {
 	}
 	if len(row) > 0 {
 		lines = append(lines, m.hints(row))
+	}
+	if !m.compact {
+		lines = append(lines, viewLine{{"folder/  ", m.styles.directory}, {"file  ", m.styles.file}, {"directory-link@/", m.styles.link}})
 	}
 	return append(lines, m.hints([]keyHint{{"? / Esc", "close help"}}))
 }
@@ -185,7 +192,7 @@ func (m browser) pageRows() int {
 func (m browser) columns() int {
 	width, _ := m.viewWidth()
 	// Leave at least 24 cells per column and three cells for the divider.
-	if width >= 2*24+3 && len(m.visible) > m.pageRows() {
+	if m.compact && width >= 2*24+3 && len(m.visible) > m.pageRows() {
 		return 2
 	}
 	return 1
@@ -193,20 +200,33 @@ func (m browser) columns() int {
 
 func (m browser) pageSize() int { return m.pageRows() * m.columns() }
 
-func (m browser) directoryLine(index, width int) viewLine {
+func (m browser) entryLine(index, width int) viewLine {
 	if index >= len(m.visible) {
 		return nil
 	}
-	label := m.visible[index].name + "/"
-	row := viewLine{{"  " + m.visible[index].name, ""}, {"/", m.styles.directory}}
-	if index == 0 {
+	return m.itemLine(m.visible[index], width, index == m.cursor, false)
+}
+
+func (m browser) itemLine(item entry, width int, selected, focus bool) viewLine {
+	label := item.label()
+	style := m.styles.directory
+	if !item.isDir() {
+		style = m.styles.file
+	} else if item.kind == folderLink {
+		style = m.styles.link
+	}
+	if focus {
+		style += m.styles.strong
+	}
+	row := viewLine{{"  " + label, style}}
+	if item.name == "." {
 		label = ".  current directory"
 		row = viewLine{{"  .", ""}, {"  current directory", m.styles.muted}}
 	}
-	if index == m.cursor {
+	if selected {
 		text := truncate("> "+display(label), width)
 		text += strings.Repeat(" ", max(0, width-textWidth(text)))
-		row = viewLine{{text, m.styles.selected}}
+		row = viewLine{{text, m.styles.selected + style}}
 	}
 	return row
 }
@@ -217,10 +237,17 @@ func (m browser) view() string {
 	rows, columns := m.pageRows(), m.columns()
 	capacity := rows * columns
 	start := max(0, m.cursor-rows+1)
+	mode := "tree"
+	if m.compact {
+		mode = "list"
+	}
+	if m.height >= 8 {
+		header[0] = viewLine{{"0go  " + mode, m.styles.muted}, {"   v", m.styles.strong}, {" view", m.styles.muted}}
+	}
 	if columns == 2 {
 		start = m.cursor / capacity * capacity
 		if m.height >= 8 {
-			header[0] = viewLine{{"0go", m.styles.muted}, {"   Tab", m.styles.strong}, {" switch column", m.styles.muted}}
+			header[0] = append(header[0], span{"   Tab", m.styles.strong}, span{" switch column", m.styles.muted})
 		}
 	}
 	end := min(len(m.visible), start+capacity)
@@ -230,17 +257,23 @@ func (m browser) view() string {
 	for _, line := range header {
 		lines = append(lines, render(line))
 	}
-	for row := range min(rows, end-start) {
+	if !m.compact {
+		if m.height >= 8 {
+			lines[2] = m.treeHeading(width, margin)
+		}
+		lines = append(lines, m.treeLines(rows, width, margin)...)
+	}
+	for row := 0; m.compact && row < min(rows, end-start); row++ {
 		if columns == 1 {
-			lines = append(lines, render(m.directoryLine(start+row, width)))
+			lines = append(lines, render(m.entryLine(start+row, width)))
 			continue
 		}
 		leftWidth := (width - 3) / 2
 		rightWidth := width - 3 - leftWidth
-		left := m.directoryLine(start+row, leftWidth).render(leftWidth)
-		right := m.directoryLine(start+rows+row, rightWidth).render(rightWidth)
+		left := m.entryLine(start+row, leftWidth).render(leftWidth)
+		right := m.entryLine(start+rows+row, rightWidth).render(rightWidth)
 		// Anchor the second column independently of ambiguous Unicode glyph widths.
-		divider := "\x1b[" + strconv.Itoa(margin+leftWidth+1) + "G" + (viewLine{{" | ", m.styles.muted}}).render(3)
+		divider := columnPosition(margin+leftWidth+1) + (viewLine{{" | ", m.styles.muted}}).render(3)
 		lines = append(lines, prefix+left+divider+right)
 	}
 	if m.height >= 8 {
@@ -251,9 +284,24 @@ func (m browser) view() string {
 		if m.hidden {
 			hidden = "on"
 		}
-		count := strconv.Itoa(len(m.visible)-1) + " directories"
-		if len(m.visible) == 2 {
+		directories, files := 0, 0
+		for _, item := range m.visible[1:] {
+			if item.isDir() {
+				directories++
+			} else {
+				files++
+			}
+		}
+		count := strconv.Itoa(directories) + " directories"
+		if directories == 1 {
 			count = "1 directory"
+		}
+		if !m.compact {
+			if files == 1 {
+				count += " / 1 file"
+			} else {
+				count += " / " + strconv.Itoa(files) + " files"
+			}
 		}
 		if m.query != "" {
 			count = strconv.Itoa(len(m.visible)-1) + " matches"

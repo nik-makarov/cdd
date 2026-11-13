@@ -1,8 +1,9 @@
 # Architecture
 
 0go has one application package and no background service or persistent state.
-Browsing reads one filesystem level at a time. It does not execute external
-commands to list directories or perform recursive indexing.
+Browsing reads directory entries without recursive indexing or file-content
+reads. Tree view caches the current listing, its parent, and one level inside
+the highlighted directory. It does not execute external commands to list entries.
 
 ## Application
 
@@ -12,7 +13,9 @@ commands to list directories or perform recursive indexing.
 | `cli.go` | Options, terminal selection, stdout/stderr contract |
 | `errors.go` | Operation context with an unwrap-compatible error chain |
 | `browser.go` | Directory listing, filtering, navigation, and keyboard help state |
+| `entry.go` | File/directory/link classification and directories-first sorting |
 | `view.go` | Layout, safe text clipping, theme colors, and contextual help |
+| `tree.go` | Parent/current/child panes with one active middle list |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `shell.go` | zsh/bash integration with literal path handling |
 
@@ -47,7 +50,15 @@ The final terminal column is reserved to avoid automatic wrapping. The footer
 stays at the bottom in ordinary windows, and small windows prioritize keeping
 the selected row visible.
 
-When the visible list exceeds the available row count and each column can keep
+Tree view is the default. Only the middle list owns the cursor; parent and child
+panes are read-only context. Navigation and refresh update their cached entries,
+and cursor movement refreshes child context only when its path changes. Files
+can be highlighted but never opened or returned as a selected destination.
+Symlink targets are checked for directory status without resolving their logical
+paths. Colors and suffixes distinguish file and directory-link entries.
+
+The `v` key switches to a directory-only compact list, preserving folder focus.
+In compact view, when the list exceeds the available row count and each column can keep
 at least 24 cells, the renderer uses two columns separated by a three-cell
 divider. Both columns share one ordered list and one cursor. Page navigation
 uses their combined capacity; Tab moves between corresponding rows without

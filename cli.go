@@ -27,6 +27,7 @@ Options:
 Keys:
   ↑/↓, k/j       Move selection
   Tab, Shift+Tab Switch columns in a long list
+  v              Switch tree/list view (tree is the default)
   →, l           Open highlighted directory
   ←, h, Backspace  Go to parent
   Enter          Select highlighted directory and exit
@@ -38,6 +39,7 @@ Keys:
   Esc, q, Ctrl+C Cancel without changing directory
 
 The first row (.) selects the current directory.
+Tree view also lists files; they cannot be opened or selected as a destination.
 Without shell integration, stdout contains only the selected absolute path,
 without a trailing newline. Cancellation produces no output and exits 130.
 Connect the binary to your shell: eval "$(/path/to/0go --init zsh)"

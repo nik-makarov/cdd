@@ -136,3 +136,20 @@ entries, keep private data out, and distinguish local work from publication.
   `browser.go`, `browser_test.go`, `view.go`, `view_test.go`, `terminal.go`,
   `terminal_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T18:33:04Z` — Add default parent/current/child tree browsing and
+  switch to the existing compact directory-only view with v. Keep selection in
+  the middle pane, cache contextual listings without reading file contents, and
+  preserve folder focus across modes and resizing. Show files in yellow and
+  directory symlinks in magenta with distinct suffixes; files can be highlighted
+  but never opened or chosen as a destination. Preserve logical directory-link
+  navigation and isolate preview read failures. Extend mode, entry, layout,
+  color, sanitization, and file-action tests, keeping prior compact navigation
+  coverage. Formatting, vet, race-enabled application/tool tests, host packaging,
+  and four cross-builds passed. A native PTY check verified file rejection,
+  child previews, link navigation, mode switching, 100/40/100-cell resizing, and
+  a successful zsh directory change through a symlink. No dependencies changed.
+  Screenshot review across themes, Linux runtime testing, hosted CI, and
+  publication were not performed. Paths: `entry.go`, `entry_test.go`, `tree.go`,
+  `tree_test.go`, `browser.go`, `browser_test.go`, `view.go`, `view_test.go`,
+  `cli.go`, `README.md`, `CHANGELOG.md`, `AGENTS.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

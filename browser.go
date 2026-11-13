@@ -1,24 +1,17 @@
 package main
 
 import (
-	"cmp"
 	"os"
 	"path/filepath"
-	"slices"
-	"strconv"
 	"strings"
 )
 
-type directory struct {
-	name string
-	path string
-}
-
 type browser struct {
 	path      string
-	dirs      []directory
-	visible   []directory
+	entries   []entry
+	visible   []entry
 	cursor    int
+	compact   bool
 	hidden    bool
 	filtering bool
 	showHelp  bool
@@ -28,6 +21,11 @@ type browser struct {
 	width     int
 	height    int
 	styles    viewStyles
+	parent    []entry
+	children  []entry
+	parentErr string
+	childErr  string
+	preview   string
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
@@ -39,26 +37,11 @@ func newBrowser(path string, hidden bool) (browser, error) {
 }
 
 func (m *browser) open(path, focus string) error {
-	entries, err := os.ReadDir(path)
+	entries, err := readEntries(path)
 	if err != nil {
-		return wrapError("read directory "+strconv.Quote(path), err)
+		return err
 	}
-	dirs := make([]directory, 0, len(entries))
-	for _, entry := range entries {
-		isDir := entry.IsDir()
-		if entry.Type()&os.ModeSymlink != 0 {
-			info, err := os.Stat(filepath.Join(path, entry.Name()))
-			// Broken or inaccessible symlinks are not navigable directories.
-			isDir = err == nil && info.IsDir()
-		}
-		if isDir {
-			dirs = append(dirs, directory{entry.Name(), filepath.Join(path, entry.Name())})
-		}
-	}
-	slices.SortFunc(dirs, func(a, b directory) int {
-		return cmp.Or(strings.Compare(strings.ToLower(a.name), strings.ToLower(b.name)), strings.Compare(a.name, b.name))
-	})
-	m.path, m.dirs = path, dirs
+	m.path, m.entries = path, entries
 	m.query, m.message, m.filtering = "", "", false
 	m.refilter()
 	for i, dir := range m.visible {
@@ -67,12 +50,17 @@ func (m *browser) open(path, focus string) error {
 			break
 		}
 	}
+	m.refreshContext()
 	return nil
 }
 
 func (m *browser) refilter() {
-	m.visible = []directory{{".", m.path}}
-	for _, dir := range m.dirs {
+	m.message = ""
+	m.visible = []entry{{name: ".", path: m.path}}
+	for _, dir := range m.entries {
+		if m.compact && !dir.isDir() {
+			continue
+		}
 		if !m.hidden && strings.HasPrefix(dir.name, ".") {
 			continue
 		}
@@ -91,6 +79,7 @@ func (m *browser) handle(key keyEvent) bool {
 	if key.name == "ctrl+c" || key.name == "ctrl+d" {
 		return true
 	}
+	defer m.refreshPreview(false)
 	if m.filtering {
 		switch key.name {
 		case "esc", "enter":
@@ -121,10 +110,18 @@ func (m *browser) handle(key keyEvent) bool {
 	case "up", "k", "down", "j", "home", "end", "pgup", "pgdown", "tab", "backtab":
 		m.move(key.name)
 	case "right", "l":
-		m.navigate(m.visible[m.cursor].path, "")
+		if m.visible[m.cursor].isDir() {
+			m.navigate(m.visible[m.cursor].path, "")
+		} else {
+			m.message = "Files cannot be opened; choose a directory"
+		}
 	case "left", "h", "backspace":
 		m.navigate(filepath.Dir(m.path), filepath.Base(m.path))
 	case "enter":
+		if !m.visible[m.cursor].isDir() {
+			m.message = "Only directories can be chosen as a destination"
+			break
+		}
 		path := m.visible[m.cursor].path
 		info, err := os.Stat(path)
 		if err != nil {
@@ -156,8 +153,61 @@ func (m *browser) handle(key keyEvent) bool {
 		m.navigate(m.path, m.visible[m.cursor].name)
 	case "?":
 		m.showHelp = !m.showHelp
+	case "v":
+		focus := m.visible[m.cursor].path
+		m.compact = !m.compact
+		m.refilter()
+		for i, item := range m.visible {
+			if item.path == focus {
+				m.cursor = i
+				break
+			}
+		}
+		m.message = ""
+		m.refreshContext()
 	}
 	return false
+}
+
+func (m *browser) refreshContext() {
+	if m.compact {
+		return
+	}
+	m.parent, m.parentErr = nil, ""
+	if parent := filepath.Dir(m.path); parent != m.path {
+		var err error
+		m.parent, err = readEntries(parent)
+		if err != nil {
+			m.parentErr = err.Error()
+		}
+	} else {
+		m.parentErr = "Filesystem root"
+	}
+	m.refreshPreview(true)
+}
+
+func (m *browser) refreshPreview(force bool) {
+	if m.compact || len(m.visible) == 0 {
+		return
+	}
+	item := m.visible[m.cursor]
+	if !force && m.preview == item.path {
+		return
+	}
+	m.preview, m.children, m.childErr = item.path, nil, ""
+	if !item.isDir() {
+		m.childErr = "File"
+		return
+	}
+	if item.path == m.path {
+		m.children = m.entries
+		return
+	}
+	var err error
+	m.children, err = readEntries(item.path)
+	if err != nil {
+		m.childErr = err.Error()
+	}
 }
 
 func (m *browser) navigate(path, focus string) {
@@ -167,6 +217,7 @@ func (m *browser) navigate(path, focus string) {
 }
 
 func (m *browser) move(key string) {
+	m.message = ""
 	switch key {
 	case "up", "k":
 		m.cursor--

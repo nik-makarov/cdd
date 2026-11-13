@@ -26,8 +26,10 @@ running its `--init` command again.
 0go --version
 ```
 
-Place options before the starting directory. Only directories and symbolic links
-to directories are listed. Broken symlinks and links to regular files are omitted.
+Place options before the starting directory. The default tree view lists files,
+directories, and symbolic links; only directories and links to directories can
+be opened or chosen as a destination. The compact list view omits files,
+broken symlinks, and links to regular files.
 
 ## Controls
 
@@ -39,7 +41,8 @@ to directories are listed. Broken symlinks and links to regular files are omitte
 | Enter | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
-| Tab / Shift+Tab | Switch columns in a long list |
+| `v` | Switch between tree view (default) and compact list view |
+| Tab / Shift+Tab | Switch columns in the compact list view |
 | `/` | Filter names, ignoring case |
 | Enter / Esc while filtering | Finish editing and keep the filter |
 | `.` | Toggle hidden directories |
@@ -64,17 +67,44 @@ browsing location. Continue navigating or cancel to return to your shell.
 
 ## Appearance
 
+### Tree view (default)
+
+The middle pane is always active and lists the current directory's folders and
+files. The left pane shows its parent's entries, emphasizing the current folder
+without making that pane active. The right pane previews the entries inside the
+highlighted directory, including directory symlinks. Highlighting a file shows
+no directory preview. File contents are never read or opened.
+
+Folders are cyan, files are yellow, and directory symlinks are magenta. Suffixes
+also distinguish entries without color: `/` for folders, `@/` for directory
+links, `@` for file links, and `@!` for broken or inaccessible links. A file may
+be highlighted, but Enter and Right cannot choose or open it. Preview read errors
+stay in their side pane without preventing navigation in the middle.
+
+The center has more width than either side pane. Below 59 terminal cells, the
+side panes are hidden while the active list and tree-mode file display remain.
+Expanding the terminal restores the panes without changing the selected entry.
+
+### Compact list view
+
+Press `v` to switch to the previous directory-only list. A selected folder stays
+highlighted across switches. When switching from a file, selection returns to
+the `.` row. The mode lasts for the current run; each new run starts in tree view.
+While editing a filter, `v` is literal input; finish editing before switching.
+
+### Shared styling and controls
+
 The path highlights the directory currently being viewed; long paths are
 shortened from the left. A reverse-video bar and a `>` marker identify the
-selected row. Directory suffixes use the terminal's cyan, errors use its red,
-and secondary labels use dim text. The interface uses the terminal's own
+selected row. Errors use the terminal's red and secondary labels use dim text.
+The interface uses the terminal's own
 background, foreground, and palette instead of fixed RGB colors or custom fonts.
 
 The footer keeps essential controls visible, with more shortcuts available via
 `?`. Counts exclude the selectable `.` row. Filtered lists show a match count;
 long lists indicate when more rows are above or below the visible page.
 
-Lists that exceed the available height automatically use two columns when the
+In compact view, lists that exceed the available height use two columns when the
 terminal is at least 56 cells wide. Entries run down the left column, then down
 the right. `Tab` or Shift+Tab switches to the corresponding row in the other
 column, or its last entry if that row is absent. Up/Down continues through the
@@ -82,9 +112,10 @@ ordered list; Page Up/Down moves a full page of both columns. Right still opens
 the selected directory and Left still goes to its parent.
 Switching to an empty column leaves selection unchanged.
 
-Short lists and narrow windows use one column, where Tab leaves selection
+Short compact lists and narrow windows use one column, where Tab leaves selection
 unchanged. Filtering, help, and terminal resizing adjust the layout automatically
 while retaining the current selection unless the filter itself resets it.
+In tree view, Tab leaves the middle pane active.
 
 Set a non-empty `NO_COLOR` value to disable added colors:
 

@@ -23,6 +23,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Start in a three-pane tree view with an active middle list, parent/child
+  context, colored files, and distinctly marked directory symlinks. Press `v`
+  to switch to the previous compact directory-only list.
 - Reduce executable size with a small compatible argument parser and simpler
   message formatting, preserving error causes and shell integration.
 

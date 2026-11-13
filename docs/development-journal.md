@@ -273,3 +273,17 @@ entries, keep private data out, and distinguish local work from publication.
   remote synchronization, and no push, hosted CI, or publication ran. Paths:
   `tree.go`, `tree_test.go`, `view.go`, `view_test.go`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T21:18:36Z` — Focus the current-directory row before leaving the
+  directory with Left, h, or Backspace; only navigate to the parent when . is
+  already selected. Preserve completed filters on the first press, clear stale
+  errors/preview state, and retain prior parent-focus behavior on the second.
+  Update CLI help, dynamic footer hints, README controls, usage, and release
+  notes. A regression test reproduced the old behavior before the fix.
+  Formatting, vet, shuffled race-enabled application/tool tests, and host build
+  passed. Cases include both views, files, links, compact second-column focus,
+  filters, current selection, and logical symlink navigation. A native
+  100-column PTY check verified both arrow presses, footer actions, parent
+  focus, and successful directory selection. No dependencies changed; GitHub
+  DNS blocked synchronization, and no push, hosted CI, or publication ran.
+  Paths: `browser.go`, `browser_test.go`, `cli.go`, `view.go`, `README.md`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.

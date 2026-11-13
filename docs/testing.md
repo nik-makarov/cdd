@@ -393,3 +393,21 @@ A color-enabled native 120-column PTY check confirmed muted labels and both side
 panes, a normal current path prefix with a bold cyan basename, unchanged central
 selection styling, and successful absolute-directory selection. No dependency
 versions changed or hosted CI/publication ran during local verification.
+
+## Focus current before parent navigation, 2026-11-13
+
+A regression test reproduced Left leaving the directory when a child was
+highlighted. The updated handler passed `make check build`, including shuffled
+race-enabled application/tool tests. Navigation cases cover Left/h/Backspace in
+tree and compact modes, files, directories and directory links, clearing preview
+and error state, preserving completed filters on the first press, parent focus
+on the second press, selecting the current directory with Enter, second-column
+selection, and logical navigation inside a directory symlink. Existing Unicode
+filter Backspace and terminal-size/help tests also passed.
+
+A native 100-column PTY check used arrow-key sequences to highlight a nested
+folder, focus . with the first Left while retaining the current path, then open
+the parent with the second Left and retain focus on the previous directory. The
+footer changed between current and parent actions, and Enter returned the
+expected directory with status zero. No dependencies changed or hosted
+CI/publication ran during local verification.

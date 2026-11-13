@@ -37,7 +37,7 @@ broken symlinks, and links to regular files.
 | --- | --- |
 | Up / Down, `k` / `j` | Move selection |
 | Right, `l` | Open the highlighted directory |
-| Left, `h`, Backspace | Go to the parent directory |
+| Left, `h`, Backspace | Focus `.` first; from `.` go to the parent directory |
 | Enter | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
@@ -52,8 +52,10 @@ broken symlinks, and links to regular files.
 | Esc, `q`, Ctrl+C / Ctrl+D | Cancel |
 
 The first row, `.`, selects the directory currently being viewed. Enter selects
-a directory; Right opens it for further browsing. When returning to a parent,
-the cursor stays on the directory you came from.
+a directory; Right opens it for further browsing. Left, `h`, or Backspace first
+focuses `.` without leaving the directory or clearing a completed filter.
+Pressing it from `.` opens the parent, clears the filter, and focuses the
+directory you came from. While editing a filter, Backspace still deletes text.
 
 Press `/` again to clear the current filter. The `.` row remains available even
 when no child names match. While editing a filter, the first Enter or Esc finishes
@@ -125,7 +127,8 @@ path because they split the same listing. Entries run down the left column, then
 the right. `Tab` or Shift+Tab switches to the corresponding row in the other
 column, or its last entry if that row is absent. Up/Down continues through the
 ordered list; Page Up/Down moves a full page of both columns. Right still opens
-the selected directory and Left still goes to its parent.
+the selected directory. Left first focuses `.`, then opens the parent on a
+second press.
 Switching to an empty column leaves selection unchanged.
 
 Short compact lists and narrow windows use one column, where Tab leaves selection

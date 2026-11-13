@@ -35,10 +35,10 @@ On Intel macOS or Linux, replace `/opt/homebrew` with the output of
 
 Use an interactive ANSI-compatible terminal.
 
-Use Up/Down to move, Right to open a directory, Left to go to its parent, and
-Enter to choose the highlighted directory. The first row, `.`, chooses the
-directory currently being viewed. Esc cancels; `/` filters names; `?` opens
-keyboard help.
+Use Up/Down to move, Right to open a directory, and Enter to choose it. Left
+first focuses the `.` row; pressing Left from that row opens the parent.
+The `.` row chooses the directory currently being viewed. Esc cancels;
+`/` filters names; `?` opens keyboard help.
 
 ```sh
 cdd ~/projects

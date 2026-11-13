@@ -27,6 +27,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Focus the current-directory row first with Left, `h`, or Backspace; navigate
+  to the parent only when that row is already highlighted.
 - Make the current directory's address more prominent with a bold final name,
   subdued pane labels, and dim side entries that retain their type colors.
 - Skip automatic releases and tap updates for pushes that only change Markdown

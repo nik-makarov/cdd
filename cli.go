@@ -29,7 +29,7 @@ Keys:
   Tab, Shift+Tab Switch columns in a long list
   v              Switch tree/list view (tree is the default)
   →, l           Open highlighted directory
-  ←, h, Backspace  Go to parent
+  ←, h, Backspace  Focus . first; from . go to parent
   Enter          Select highlighted directory and exit
   /              Filter directory names (Enter/Esc finishes filtering)
   .              Toggle hidden directories

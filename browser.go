@@ -116,6 +116,10 @@ func (m *browser) handle(key keyEvent) bool {
 			m.message = "Files cannot be opened; choose a directory"
 		}
 	case "left", "h", "backspace":
+		if m.cursor != 0 {
+			m.move("home")
+			break
+		}
 		m.navigate(filepath.Dir(m.path), filepath.Base(m.path))
 	case "enter":
 		if !m.visible[m.cursor].isDir() {

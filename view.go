@@ -63,7 +63,7 @@ func (line viewLine) render(width int) string {
 type keyHint struct{ key, action string }
 
 var helpHints = []keyHint{
-	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "parent"},
+	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "current, then parent"},
 	{"Enter", "select"}, {"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"Tab / Shift+Tab", "switch column"},
 	{"v", "switch view"},
@@ -86,7 +86,11 @@ func (m browser) shortHelp(width int) viewLine {
 	if m.filtering {
 		return m.hints([]keyHint{{"Enter / Esc", "finish filter"}, {"↑↓", "move"}})
 	}
-	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", "parent"}, {"Enter", "select"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
+	leftAction := "parent"
+	if m.cursor != 0 {
+		leftAction = "current"
+	}
+	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", leftAction}, {"Enter", "select"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
 	// Preserve selection, help and exit, then opening a directory when space allows.
 	for _, key := range []string{"↑↓", "←", "→", "/", "v"} {
 		if textWidth(hintText(hints)) <= width {

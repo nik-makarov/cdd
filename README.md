@@ -12,25 +12,28 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 The scope is directory selection and shell integration. Features must directly
 support that task while keeping the program and its dependency graph small.
 
-## Requirements
+## Install with Homebrew
 
-Use the latest stable Go release matching the minimum in [go.mod](go.mod), Make,
-and an interactive ANSI-compatible terminal. No globally installed development
-tools are required.
-
-## Quick start
+Homebrew is the recommended installation method. For zsh on Apple Silicon macOS:
 
 ```sh
-git clone https://github.com/nik-makarov/cdd.git
-cd cdd
-make build
-eval "$(./bin/cdd --init zsh)"
+brew install nik-makarov/tap/cdd
+echo 'eval "$(/opt/homebrew/bin/cdd --init zsh)"' >> ~/.zshrc
+source ~/.zshrc
 cdd
 ```
 
-For bash, replace `zsh` with `bash`. This works without installation or changes
-to `PATH` or shell configuration. The function lasts for the current shell and
-records the absolute binary path, so it keeps working after changing directory.
+The configuration line enables cdd in future zsh sessions; `source` activates it
+in the current terminal. Run the `echo` command once. Homebrew installs the build
+dependencies automatically.
+
+On Intel macOS or Linux, replace `/opt/homebrew` with the output of
+`brew --prefix`. For bash, use `--init bash` in `~/.bashrc`. See
+[installation and shell integration](docs/usage.md#installation) for details.
+
+## Usage
+
+Use an interactive ANSI-compatible terminal.
 
 Use Up/Down to move, Right to open a directory, Left to go to its parent, and
 Enter to choose the highlighted directory. The first row, `.`, chooses the
@@ -47,29 +50,26 @@ The binary cannot change its parent shell's directory on its own. The generated
 shell function receives the chosen path and executes `cd` in the current shell.
 See [usage and shell integration](docs/usage.md) for all controls and options.
 
-## Install
+## Other installation methods
 
-Once the first release is published, install from the source-built Homebrew tap:
-
-```sh
-brew install nik-makarov/tap/cdd
-eval "$("$(brew --prefix)/bin/cdd" --init zsh)"
-```
-
-Add the `eval` line to `~/.zshrc`, or use `--init bash` in `~/.bashrc`. Homebrew
-installs Go as a build dependency. See [Homebrew details](docs/releases.md#homebrew).
+### Prebuilt archives
 
 Prebuilt archives are prepared for Linux x64/arm64 and macOS Intel/Apple Silicon.
-Once a version is published, download the matching archive from
+Download the matching archive from
 [GitHub Releases](https://github.com/nik-makarov/cdd/releases). Each archive includes
 the executable, installation instructions, licenses, and release notes. See
 [release installation](docs/releases.md#use-an-archive).
 
-To install from a source checkout:
+### Build from source
+
+Use the latest stable Go release matching the minimum in [go.mod](go.mod) and Make.
 
 ```sh
+git clone https://github.com/nik-makarov/cdd.git
+cd cdd
 make install
 eval "$("$HOME/.local/bin/cdd" --init zsh)"
+cdd
 ```
 
 The default binary location is `~/.local/bin/cdd`; license files are installed

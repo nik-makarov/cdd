@@ -238,3 +238,13 @@ entries, keep private data out, and distinguish local work from publication.
   remote synchronization; no branch was pushed or hosted workflow run. Paths:
   `.github/workflows/release.yml`, `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
   `README.md`, `docs/releases.md`, `docs/development-journal.md`.
+- `2026-11-13T20:40:39Z` — Make Homebrew the first and recommended README
+  installation route, followed by persistent zsh setup using the requested
+  literal echo command and source ~/.zshrc. Identify the Apple Silicon prefix,
+  retain guidance for other prefixes and bash, and move archives/source builds
+  below usage as alternatives. Move Go/Make requirements into the source-build
+  section. All README shell snippets passed bash/zsh syntax checks; local link
+  targets, heading anchors, and the diff were reviewed. No shell configuration
+  was modified or installation performed. Only Markdown files changed, so this
+  change does not trigger Release. No remote push or hosted check ran. Paths:
+  `README.md`, `docs/development-journal.md`.

@@ -229,3 +229,12 @@ entries, keep private data out, and distinguish local work from publication.
   assets changed, and no hosted rerun occurred during local verification. Paths:
   `tools/release/automatic.go`, `CHANGELOG.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-13T20:27:59Z` — Skip the main-branch Release workflow when every
+  changed path is Markdown or under docs/. Preserve releases for mixed changes,
+  pull-request CI, and scheduled audits; deferred documentation is included in
+  the next eligible release. Update release, contributor, and project guidance.
+  Workflow YAML parsing, decoded branch/path filters, shell syntax, and diff
+  checks passed locally. No Go code or dependencies changed. GitHub DNS blocked
+  remote synchronization; no branch was pushed or hosted workflow run. Paths:
+  `.github/workflows/release.yml`, `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
+  `README.md`, `docs/releases.md`, `docs/development-journal.md`.

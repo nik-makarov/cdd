@@ -11,6 +11,8 @@ Use concise imperative commit subjects describing the concrete change, without
 Conventional Commits prefixes. Keep unrelated changes in separate commits.
 Successful pushes to main publish a release automatically. Write commit subjects
 that describe resulting behavior, since incremental release notes use them.
+Pushes changing only Markdown files or docs/ skip releases; pull-request checks
+still run.
 
 ## Development
 

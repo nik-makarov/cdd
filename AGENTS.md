@@ -38,7 +38,8 @@ it in the same commit. Do not record plans or imply publication from local
 checks. Keep the README concise and detailed documentation under docs/.
 Keep CHANGELOG.md user-facing, with Unreleased changes and dated version sections.
 Automatic releases start from VERSION and increment patch on successful main
-pushes. CI owns release tags; never create or publish them locally. Prefer a
+pushes, except changes limited to Markdown files or docs/. Mixed changes release
+normally. CI owns release tags; never create or publish them locally. Prefer a
 curated CHANGELOG section for a known release, otherwise use clear English
 commit subjects for incremental automatic notes. Release archives target only
 Linux amd64/arm64 and macOS amd64/arm64; publishing belongs to GitHub Actions.

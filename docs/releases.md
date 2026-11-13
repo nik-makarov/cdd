@@ -2,10 +2,16 @@
 
 ## Automatic versions
 
-Every push to `main` runs Linux/macOS checks and the vulnerability audit. Only
-successful checks allow publication. One push releases its final commit, even
-when it contains several commits. Pull requests, weekly audits, dependency-update
-branches, and tag pushes do not publish releases.
+Pushes to `main` run Linux/macOS checks and the vulnerability audit before
+publication, except when every changed path is a Markdown file (`**/*.md`) or
+under `docs/`. Such documentation-only pushes skip the Release workflow entirely
+and create no tag, release, or tap update. Documentation is included in the next
+release that changes another path. A mixed code/documentation push still releases.
+Pull-request CI and scheduled audits are unaffected.
+
+Only successful checks allow publication. One eligible push releases its final
+commit, even when it contains several commits. Pull requests, weekly audits,
+dependency-update branches, and tag pushes do not publish releases.
 
 The first release is `v0.1.0`, from the base in [VERSION](../VERSION). Later pushes
 increment the highest stable tag's patch number: `v0.1.1`, `v0.1.2`, and so on.

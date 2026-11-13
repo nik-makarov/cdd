@@ -96,8 +96,9 @@ The audit needs access to the Go vulnerability database.
 standalone executable. Generated output is not committed.
 
 GitHub Actions checks Linux and macOS and runs a weekly vulnerability audit.
-Every successful push to `main` publishes a release and updates the Homebrew tap,
-starting at `v0.1.0` and increasing the patch version automatically.
+Successful pushes to `main` publish a release and update the Homebrew tap,
+starting at `v0.1.0` and increasing the patch version automatically. Pushes that
+only change Markdown files or `docs/` skip publication.
 Hosted CI execution and GitHub security settings require a published repository;
 local validation does not establish that they have run. See
 [testing](docs/testing.md) for verification commands, evidence, and limits.

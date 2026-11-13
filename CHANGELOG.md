@@ -25,6 +25,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Skip automatic releases and tap updates for pushes that only change Markdown
+  files or docs/; include those changes in the next release.
 - Rename the command, shell function, executables, archives, and Go modules to
   `cdd`, using `github.com/nik-makarov/cdd` as the repository path.
 - Use dim theme-aware text for files so directory entries remain more prominent.

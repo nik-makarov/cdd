@@ -61,6 +61,7 @@ type keyHint struct{ key, action string }
 var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "parent"},
 	{"Enter", "select"}, {"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
+	{"Tab / Shift+Tab", "switch column"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
 	{"Esc / q / Ctrl+C / Ctrl+D", "cancel"},
 }
@@ -172,7 +173,7 @@ func (m browser) frame() (header, footer []viewLine) {
 	return header, footer
 }
 
-func (m browser) pageSize() int {
+func (m browser) pageRows() int {
 	header, footer := m.frame()
 	extra := 0
 	if m.height >= 8 {
@@ -181,29 +182,70 @@ func (m browser) pageSize() int {
 	return max(1, m.height-len(header)-len(footer)-extra)
 }
 
+func (m browser) columns() int {
+	width, _ := m.viewWidth()
+	// Leave at least 24 cells per column and three cells for the divider.
+	if width >= 2*24+3 && len(m.visible) > m.pageRows() {
+		return 2
+	}
+	return 1
+}
+
+func (m browser) pageSize() int { return m.pageRows() * m.columns() }
+
+func (m browser) directoryLine(index, width int) viewLine {
+	if index >= len(m.visible) {
+		return nil
+	}
+	label := m.visible[index].name + "/"
+	row := viewLine{{"  " + m.visible[index].name, ""}, {"/", m.styles.directory}}
+	if index == 0 {
+		label = ".  current directory"
+		row = viewLine{{"  .", ""}, {"  current directory", m.styles.muted}}
+	}
+	if index == m.cursor {
+		text := truncate("> "+display(label), width)
+		text += strings.Repeat(" ", max(0, width-textWidth(text)))
+		row = viewLine{{text, m.styles.selected}}
+	}
+	return row
+}
+
 func (m browser) view() string {
 	width, margin := m.viewWidth()
 	header, footer := m.frame()
-	start := max(0, m.cursor-m.pageSize()+1)
-	end := min(len(m.visible), start+m.pageSize())
-	lines := append([]viewLine(nil), header...)
-	for i := start; i < end; i++ {
-		label := m.visible[i].name + "/"
-		row := viewLine{{"  " + m.visible[i].name, ""}, {"/", m.styles.directory}}
-		if i == 0 {
-			label = ".  current directory"
-			row = viewLine{{"  .", ""}, {"  current directory", m.styles.muted}}
+	rows, columns := m.pageRows(), m.columns()
+	capacity := rows * columns
+	start := max(0, m.cursor-rows+1)
+	if columns == 2 {
+		start = m.cursor / capacity * capacity
+		if m.height >= 8 {
+			header[0] = viewLine{{"0go", m.styles.muted}, {"   Tab", m.styles.strong}, {" switch column", m.styles.muted}}
 		}
-		if i == m.cursor {
-			text := truncate("> "+display(label), width)
-			text += strings.Repeat(" ", max(0, width-textWidth(text)))
-			row = viewLine{{text, m.styles.selected}}
+	}
+	end := min(len(m.visible), start+capacity)
+	prefix := strings.Repeat(" ", margin)
+	render := func(line viewLine) string { return prefix + line.render(width) }
+	var lines []string
+	for _, line := range header {
+		lines = append(lines, render(line))
+	}
+	for row := range min(rows, end-start) {
+		if columns == 1 {
+			lines = append(lines, render(m.directoryLine(start+row, width)))
+			continue
 		}
-		lines = append(lines, row)
+		leftWidth := (width - 3) / 2
+		rightWidth := width - 3 - leftWidth
+		left := m.directoryLine(start+row, leftWidth).render(leftWidth)
+		right := m.directoryLine(start+rows+row, rightWidth).render(rightWidth)
+		// Anchor the second column independently of ambiguous Unicode glyph widths.
+		divider := "\x1b[" + strconv.Itoa(margin+leftWidth+1) + "G" + (viewLine{{" | ", m.styles.muted}}).render(3)
+		lines = append(lines, prefix+left+divider+right)
 	}
 	if m.height >= 8 {
 		for len(lines) < m.height-len(footer)-3 {
-			lines = append(lines, nil)
+			lines = append(lines, render(nil))
 		}
 		hidden := "off"
 		if m.hidden {
@@ -225,21 +267,19 @@ func (m browser) view() string {
 		if end < len(m.visible) {
 			count += "  |  more below"
 		}
-		lines = append(lines, nil, viewLine{{count + "  |  hidden " + hidden, m.styles.muted}})
+		lines = append(lines, render(nil), render(viewLine{{count + "  |  hidden " + hidden, m.styles.muted}}))
 	}
-	lines = append(lines, footer...)
+	for _, line := range footer {
+		lines = append(lines, render(line))
+	}
 	if m.height >= 8 {
-		lines = append(lines, nil)
+		lines = append(lines, render(nil))
 	}
 	// In a one-line terminal the selection is more useful than the path header.
 	if m.height <= 1 {
 		lines = lines[len(header):]
 	}
-	var rendered []string
-	for _, line := range lines[:min(len(lines), max(1, m.height))] {
-		rendered = append(rendered, strings.Repeat(" ", margin)+line.render(width))
-	}
-	return strings.Join(rendered, "\n")
+	return strings.Join(lines[:min(len(lines), max(1, m.height))], "\n")
 }
 
 // Reserve two cells for every non-ASCII rune. This conservative bound avoids

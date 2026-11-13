@@ -121,3 +121,18 @@ entries, keep private data out, and distinguish local work from publication.
   message, directory change, and zero exit status. No dependencies changed;
   hosted CI and publication did not run. Paths: `shell.go`, `shell_test.go`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T18:15:08Z` — Display long directory lists in two columns when each
+  has at least 24 cells, retaining a single column for short lists and narrow
+  windows. Keep one ordered list/cursor, use Tab or Shift+Tab to switch columns,
+  and page through their combined capacity. Preserve Right/Left directory
+  navigation, filtering, parent focus, and selection through resize. Anchor the
+  divider independently of Unicode widths and keep clipping/style boundaries
+  safe. Formatting, vet, race-enabled application/tool tests, host packaging,
+  four cross-builds, and 2,859,871 decoder fuzz cases passed. A native PTY check
+  browsed 40 synthetic directories, switched columns, paged, resized 60/40/60
+  cells without losing selection, and selected a right-column directory through
+  zsh with exit status zero. No dependencies changed. Theme screenshot review,
+  Linux runtime testing, hosted CI, and publication were not performed. Paths:
+  `browser.go`, `browser_test.go`, `view.go`, `view_test.go`, `terminal.go`,
+  `terminal_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

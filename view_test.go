@@ -3,12 +3,37 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"unicode/utf8"
 )
 
 var sgrPattern = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+var columnPattern = regexp.MustCompile(`\x1b\[([0-9]+)G`)
+
+// Expand trusted horizontal cursor positions so assertions see the screen grid,
+// not the byte length of its ANSI protocol. Other control sequences remain visible.
+func plainFrame(view string) string {
+	lines := strings.Split(sgrPattern.ReplaceAllString(view, ""), "\n")
+	for i, line := range lines {
+		var out strings.Builder
+		start, cells := 0, 0
+		for _, match := range columnPattern.FindAllStringSubmatchIndex(line, -1) {
+			text := line[start:match[0]]
+			out.WriteString(text)
+			cells += textWidth(text)
+			column, _ := strconv.Atoi(line[match[2]:match[3]])
+			padding := max(0, column-1-cells)
+			out.WriteString(strings.Repeat(" ", padding))
+			cells += padding
+			start = match[1]
+		}
+		out.WriteString(line[start:])
+		lines[i] = out.String()
+	}
+	return strings.Join(lines, "\n")
+}
 
 func TestStyledLineClipsBeforeStyling(t *testing.T) {
 	line := viewLine{{"a", "\x1b[2m"}, {"\u754c", "\x1b[36m"}, {"/", "\x1b[1m"}}
@@ -59,12 +84,12 @@ func TestTerminalStyles(t *testing.T) {
 }
 
 func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
-	for _, size := range [][2]int{{80, 24}, {60, 18}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
+	for _, size := range [][2]int{{120, 30}, {80, 24}, {73, 12}, {60, 18}, {56, 8}, {55, 8}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
 		for _, mode := range []string{"normal", "filter", "help", "error"} {
 			t.Run(fmt.Sprintf("%dx%d/%s", size[0], size[1], mode), func(t *testing.T) {
 				m := browser{path: "/long/parent/projects", width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
 				for i := range 60 {
-					m.visible = append(m.visible, directory{name: fmt.Sprintf("folder-%02d-\u754c", i)})
+					m.visible = append(m.visible, directory{name: fmt.Sprintf("folder-%02d-\u754c", i) + strings.Repeat("long", 20)})
 				}
 				m.cursor = 59
 				m.filtering = mode == "filter"
@@ -76,7 +101,7 @@ func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
 					m.message = "Permission denied"
 				}
 				view := m.view()
-				plain := sgrPattern.ReplaceAllString(view, "")
+				plain := plainFrame(view)
 				lines := strings.Split(plain, "\n")
 				if len(lines) > size[1] || !utf8.ValidString(view) {
 					t.Fatalf("invalid frame: %q", view)
@@ -103,13 +128,82 @@ func TestStyledViewSanitizesDynamicText(t *testing.T) {
 		width: 60, height: 18, styles: terminalStyles(true, "xterm", ""),
 		visible: []directory{{name: "."}, {name: "\x1b[7mfolder\r\t"}}, cursor: 1,
 	}
+	for range 30 {
+		m.visible = append(m.visible, directory{name: "\x1b]2;name\a\n\t"})
+	}
 	view := m.view()
-	plain := sgrPattern.ReplaceAllString(view, "")
+	plain := plainFrame(view)
 	if strings.ContainsAny(plain, "\x1b\a\r\t") || len(strings.Split(plain, "\n")) != m.height {
 		t.Fatalf("terminal controls escaped sanitization: %q", view)
 	}
 	if !strings.Contains(plain, "Error:") || !strings.Contains(plain, "query") {
 		t.Fatalf("error or filter disappeared: %q", plain)
+	}
+}
+
+func TestTwoColumnListing(t *testing.T) {
+	m := browser{path: "/projects", width: 80, height: 12}
+	m.visible = []directory{{name: "."}}
+	for i := 1; i <= 20; i++ {
+		m.visible = append(m.visible, directory{name: fmt.Sprintf("dir-%02d", i)})
+	}
+	rows := m.pageRows()
+	if m.columns() != 2 || m.pageSize() != rows*2 {
+		t.Fatal("long listing should use both columns")
+	}
+	first := strings.Split(plainFrame(m.view()), "\n")[3]
+	if !strings.Contains(first, "current directory") || !strings.Contains(first, fmt.Sprintf("dir-%02d/", rows)) || !strings.Contains(first, " | ") {
+		t.Fatalf("first page is not column-major: %q", first)
+	}
+	m.cursor = rows
+	first = strings.Split(plainFrame(m.view()), "\n")[3]
+	if strings.Count(first, ">") != 1 || !strings.Contains(first, fmt.Sprintf("> dir-%02d/", rows)) {
+		t.Fatalf("right column selection missing: %q", first)
+	}
+	m.cursor = rows * 2
+	view := plainFrame(m.view())
+	if !strings.Contains(view, fmt.Sprintf("> dir-%02d/", m.cursor)) || strings.Contains(view, "dir-01/") || !strings.Contains(view, "more above") {
+		t.Fatalf("next page did not advance both columns: %q", view)
+	}
+	m.width = 55
+	if m.columns() != 1 || columnPattern.MatchString(m.view()) {
+		t.Fatal("narrow windows should use a single column")
+	}
+	m.width = 80
+	m.cursor = 0
+	m.visible = m.visible[:rows]
+	if m.columns() != 1 || strings.Contains(m.view(), "switch column") {
+		t.Fatal("short listings should use a single column")
+	}
+}
+
+func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
+	m := browser{path: "/projects", width: 80, height: 12, styles: terminalStyles(true, "xterm", "")}
+	for i := range 30 {
+		m.visible = append(m.visible, directory{name: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439-\u754c-" + strconv.Itoa(i)})
+	}
+	m.cursor = 1
+	view := m.view()
+	rows := strings.Split(view, "\n")[3 : 3+m.pageRows()]
+	wantColumn := -1
+	for _, row := range rows {
+		positions := columnPattern.FindAllStringSubmatch(row, -1)
+		if len(positions) != 1 {
+			t.Fatalf("each row must anchor its divider once: %q", row)
+		}
+		column, _ := strconv.Atoi(positions[0][1])
+		if wantColumn < 0 {
+			wantColumn = column
+		}
+		if column != wantColumn {
+			t.Fatal("Unicode names shifted the column divider")
+		}
+		if strings.Contains(row, "\x1b[7m") {
+			left := strings.SplitN(row, positions[0][0], 2)[0]
+			if !strings.HasSuffix(left, "\x1b[0m") {
+				t.Fatal("selection style leaked into the second column")
+			}
+		}
 	}
 }
 

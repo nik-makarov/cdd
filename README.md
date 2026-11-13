@@ -4,6 +4,7 @@ Browse directories in your terminal, choose one, and `cd` into it in your curren
 shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 
 - Keyboard navigation, filtering, hidden directories, and directory symlinks.
+- Automatic two-column layout for long lists, adapting to the terminal width.
 - Reads one directory at a time without recursively scanning the filesystem.
 - Two application dependencies, both maintained within the Go project.
 

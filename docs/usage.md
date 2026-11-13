@@ -39,6 +39,7 @@ to directories are listed. Broken symlinks and links to regular files are omitte
 | Enter | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
+| Tab / Shift+Tab | Switch columns in a long list |
 | `/` | Filter names, ignoring case |
 | Enter / Esc while filtering | Finish editing and keep the filter |
 | `.` | Toggle hidden directories |
@@ -72,6 +73,18 @@ background, foreground, and palette instead of fixed RGB colors or custom fonts.
 The footer keeps essential controls visible, with more shortcuts available via
 `?`. Counts exclude the selectable `.` row. Filtered lists show a match count;
 long lists indicate when more rows are above or below the visible page.
+
+Lists that exceed the available height automatically use two columns when the
+terminal is at least 56 cells wide. Entries run down the left column, then down
+the right. `Tab` or Shift+Tab switches to the corresponding row in the other
+column, or its last entry if that row is absent. Up/Down continues through the
+ordered list; Page Up/Down moves a full page of both columns. Right still opens
+the selected directory and Left still goes to its parent.
+Switching to an empty column leaves selection unchanged.
+
+Short lists and narrow windows use one column, where Tab leaves selection
+unchanged. Filtering, help, and terminal resizing adjust the layout automatically
+while retaining the current selection unless the filter itself resets it.
 
 Set a non-empty `NO_COLOR` value to disable added colors:
 

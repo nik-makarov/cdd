@@ -26,6 +26,7 @@ Options:
 
 Keys:
   ↑/↓, k/j       Move selection
+  Tab, Shift+Tab Switch columns in a long list
   →, l           Open highlighted directory
   ←, h, Backspace  Go to parent
   Enter          Select highlighted directory and exit

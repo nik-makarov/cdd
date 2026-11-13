@@ -47,6 +47,14 @@ The final terminal column is reserved to avoid automatic wrapping. The footer
 stays at the bottom in ordinary windows, and small windows prioritize keeping
 the selected row visible.
 
+When the visible list exceeds the available row count and each column can keep
+at least 24 cells, the renderer uses two columns separated by a three-cell
+divider. Both columns share one ordered list and one cursor. Page navigation
+uses their combined capacity; Tab moves between corresponding rows without
+changing directory navigation keys. Short lists and narrow terminals keep one
+column. Horizontal terminal positioning anchors the divider independently of
+Unicode glyph widths. Dynamic text still passes through sanitization and clipping.
+
 Color detection uses the actual UI terminal, not stdout: stdout is commonly
 captured by shell integration. Standard ANSI cyan and red inherit the terminal
 theme. The design follows [CLI Guidelines](https://clig.dev/#output) for stream

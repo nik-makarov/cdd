@@ -21,6 +21,9 @@ hidden directories, symlinks, removed directories, cancellation, narrow views,
 and display sanitization. Styled-view tests cover terminal color policy,
 non-empty `NO_COLOR` (including `0`), tiny windows, scrolling with expanded help,
 literal `?` filter input, and sanitization of dynamic text before styling.
+Column tests cover ordered two-column pages, automatic fallback for short/narrow
+lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
+filter-mode switching, full-page navigation, and selection/opening from the right.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough. Separate stdout/stderr assertions verify move
@@ -76,6 +79,8 @@ Use a disposable directory tree and a real interactive terminal:
 4. Toggle hidden directories, open a directory symlink, and remove a selected
    directory from another shell to check recovery after an error.
 5. Resize the terminal while browsing. Check narrow windows and long names.
+   Use a long listing to check automatic two-column layout, Tab/Shift+Tab, and
+   Page Up/Down. Verify that Right opens a directory selected in either column.
    Open help with `?`, navigate with it expanded, and close it with Esc. Check
    that the selected row stays visible and the help does not cancel the picker.
    Compare dark and light terminal themes, then try `NO_COLOR=1 0go` and confirm
@@ -235,3 +240,20 @@ A native PTY check loaded the rebuilt binary's shell function and selected a
 different directory. The notification showed the original and resulting shell
 paths, the directory changed, and the function returned zero. No dependencies
 changed; hosted CI and publication were not performed.
+
+## Two-column listing validation, 2026-11-13
+
+`make check build cross-build` passed on macOS arm64 with Go 1.27.4, including
+vet, shuffled race-enabled application/tool tests, and all four target builds.
+Tests covered column-major ordering, selection in either column, partial and
+empty second columns, full-page navigation, filter-mode Tab handling, narrow and
+short-list fallback, Unicode positioning, clipping, and terminal-control safety.
+The key decoder passed 2,859,871 fuzz cases over about 11 seconds.
+
+A native PTY session browsed 40 synthetic directories, switched columns with
+Tab/Shift+Tab, advanced a full page, and selected from the right column. Resizing
+from 60 to 40 cells and back automatically changed column count while retaining
+selection. The zsh function changed to the selected directory and returned zero.
+This verifies interaction and terminal protocol; screenshot review across themes,
+Linux runtime testing, hosted CI, and publication were not performed. No new
+dependencies or module-version changes were introduced.

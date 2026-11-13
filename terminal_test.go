@@ -16,6 +16,7 @@ func TestDecodeKeys(t *testing.T) {
 		{"\r", "enter", ""}, {"\x03", "ctrl+c", ""},
 		{"\x04", "ctrl+d", ""}, {"\x12", "ctrl+r", ""},
 		{"\x7f", "backspace", ""}, {"\u044f", "\u044f", "\u044f"},
+		{"\t", "tab", ""}, {"\x1b[Z", "backtab", ""},
 		{"\u754c", "\u754c", "\u754c"}, {"/", "/", "/"},
 		{"\x1b[999~", "", ""}, {"\x00", "", ""},
 	} {

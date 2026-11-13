@@ -101,7 +101,7 @@ func (m *browser) handle(key keyEvent) bool {
 				m.query = string(runes[:len(runes)-1])
 			}
 			m.refilter()
-		case "down", "up":
+		case "down", "up", "tab", "backtab":
 			m.move(key.name)
 		default:
 			if key.text != "" {
@@ -118,7 +118,7 @@ func (m *browser) handle(key keyEvent) bool {
 	switch key.name {
 	case "esc", "q":
 		return true
-	case "up", "k", "down", "j", "home", "end", "pgup", "pgdown":
+	case "up", "k", "down", "j", "home", "end", "pgup", "pgdown", "tab", "backtab":
 		m.move(key.name)
 	case "right", "l":
 		m.navigate(m.visible[m.cursor].path, "")
@@ -180,6 +180,18 @@ func (m *browser) move(key string) {
 		m.cursor -= m.pageSize()
 	case "pgdown":
 		m.cursor += m.pageSize()
+	case "tab", "backtab":
+		if m.columns() == 2 {
+			rows := m.pageRows()
+			pageStart := m.cursor / (rows * 2) * (rows * 2)
+			if m.cursor-pageStart < rows {
+				if pageStart+rows < len(m.visible) {
+					m.cursor = min(m.cursor+rows, len(m.visible)-1)
+				}
+			} else {
+				m.cursor -= rows
+			}
+		}
 	}
 	m.cursor = max(0, min(m.cursor, len(m.visible)-1))
 }

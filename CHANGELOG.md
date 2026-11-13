@@ -17,6 +17,8 @@ version is published on GitHub. Development history is recorded separately in
 - Use a theme-aware directory picker with a full-row selection bar, highlighted
   current path, compact controls, and expandable keyboard help via `?`.
 - Disable added UI colors with `NO_COLOR` while retaining a visible selection.
+- View long lists in two automatic columns, switch columns with Tab, and page
+  through both together; short lists and narrow windows keep one column.
 - Install from portable archives for Linux x64/arm64 and macOS Intel/Apple Silicon.
 
 ### Changed

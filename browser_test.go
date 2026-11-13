@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -172,5 +173,77 @@ func TestKeyboardHelpPreservesNavigationAndFilterInput(t *testing.T) {
 	m = press(m, "?", "?")
 	if m.showHelp || m.query != "?" || !m.filtering {
 		t.Fatal("question mark must remain literal input in filter mode")
+	}
+}
+
+func TestColumnNavigation(t *testing.T) {
+	root := fixture(t)
+	for i := range 40 {
+		if err := os.Mkdir(filepath.Join(root, "dir-"+strconv.Itoa(i)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m := loadBrowser(t, root)
+	m.width, m.height = 80, 12
+	rows, page := m.pageRows(), m.pageSize()
+	for _, tt := range []struct {
+		name, key   string
+		start, want int
+	}{
+		{"switch right", "tab", 2, rows + 2},
+		{"switch left", "tab", rows + 2, 2},
+		{"reverse switch", "backtab", 2, rows + 2},
+		{"reverse return", "backtab", rows + 2, 2},
+		{"down enters second column", "down", rows - 1, rows},
+		{"up returns to first column", "up", rows, rows - 1},
+		{"next page", "pgdown", 2, page + 2},
+		{"previous page", "pgup", page + 2, 2},
+		{"first entry", "home", page + 2, 0},
+		{"last entry", "end", 0, len(m.visible) - 1},
+		{"empty other column", "tab", (len(m.visible) - 1) / page * page, (len(m.visible) - 1) / page * page},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			m := m
+			m.cursor = tt.start
+			m = press(m, tt.key, "")
+			if m.cursor != tt.want || m.path != root {
+				t.Fatalf("cursor %d, path %q; want cursor %d in %q", m.cursor, m.path, tt.want, root)
+			}
+		})
+	}
+	partial := m
+	partial.visible = partial.visible[:page+rows+2]
+	partial.cursor = page + rows - 1
+	partial = press(partial, "tab", "")
+	if partial.cursor != len(partial.visible)-1 {
+		t.Fatal("switching to a shorter column should select its last entry")
+	}
+	m.cursor = 2
+	m = press(m, "tab", "")
+	wantPath := m.visible[m.cursor].path
+	selected := press(m, "enter", "")
+	if selected.selected != wantPath {
+		t.Fatal("right column selected the wrong directory")
+	}
+	m = press(m, "right", "")
+	if m.path != wantPath {
+		t.Fatal("Right must still open the directory")
+	}
+	m = press(m, "left", "")
+	if m.path != root || m.visible[m.cursor].path != wantPath {
+		t.Fatal("Left must restore parent focus")
+	}
+	m = press(m, "/", "/")
+	m = press(m, "dir-", "dir-")
+	before, query := m.cursor, m.query
+	m = press(m, "tab", "")
+	if m.cursor != before+m.pageRows() || m.query != query || !m.filtering {
+		t.Fatal("filter-mode Tab should switch columns without changing the query")
+	}
+	m.width = 40
+	before = m.cursor
+	m = press(m, "tab", "")
+	if m.cursor != before {
+		t.Fatal("Tab in a single column should keep selection")
 	}
 }

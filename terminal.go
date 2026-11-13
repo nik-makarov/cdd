@@ -155,6 +155,8 @@ func decodeKey(data []byte, expired bool) (keyEvent, int) {
 					name = "pgup"
 				case "6~":
 					name = "pgdown"
+				case "Z":
+					name = "backtab"
 				}
 				return keyEvent{name: name}, i + 1
 			}
@@ -175,6 +177,8 @@ func decodeKey(data []byte, expired bool) (keyEvent, int) {
 		return keyEvent{name: "enter"}, 1
 	case '\b', 127:
 		return keyEvent{name: "backspace"}, 1
+	case '\t':
+		return keyEvent{name: "tab"}, 1
 	}
 	if !utf8.FullRune(data) && !expired {
 		return keyEvent{}, 0

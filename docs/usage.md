@@ -77,8 +77,9 @@ leaves Children blank, including immediately after entering a directory.
 Highlighting a file shows no directory preview. File contents are never read or
 opened.
 
-Folders are cyan, files are yellow, and directory symlinks are magenta. Suffixes
-also distinguish entries without color: `/` for folders, `@/` for directory
+Folders are cyan, files use the theme's dim foreground, and directory symlinks
+are magenta. Suffixes also distinguish entries without color: `/` for folders,
+`@/` for directory
 links, `@` for file links, and `@!` for broken or inaccessible links. A file may
 be highlighted, but Enter and Right cannot choose or open it. Preview read errors
 stay in their side pane without preventing navigation in the middle.

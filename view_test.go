@@ -132,10 +132,10 @@ func TestEntryColorsAndMarkers(t *testing.T) {
 		kind                entryKind
 	}{
 		{"directory", "/", "\x1b[36m", folder},
-		{"file", "", "\x1b[33m", file},
+		{"file", "", "\x1b[2m", file},
 		{"directory link", "@/", "\x1b[35m", folderLink},
-		{"file link", "@", "\x1b[33m", fileLink},
-		{"broken link", "@!", "\x1b[33m", brokenLink},
+		{"file link", "@", "\x1b[2m", fileLink},
+		{"broken link", "@!", "\x1b[2m", brokenLink},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			item := entry{name: "name", kind: tt.kind}

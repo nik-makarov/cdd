@@ -18,11 +18,12 @@ func terminalStyles(tty bool, terminal, noColor string) viewStyles {
 		return viewStyles{}
 	}
 	s := viewStyles{muted: "\x1b[2m", strong: "\x1b[1m", selected: "\x1b[7m"}
+	s.file = s.muted
 	s.accent, s.failure = s.strong, s.strong
 	if noColor == "" {
 		s.accent, s.failure = "\x1b[1;36m", "\x1b[1;31m"
 		s.directory = "\x1b[36m"
-		s.file, s.link = "\x1b[33m", "\x1b[35m"
+		s.link = "\x1b[35m"
 	}
 	return s
 }

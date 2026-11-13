@@ -164,3 +164,11 @@ entries, keep private data out, and distinguish local work from publication.
   CI and publication were not performed. Paths: `browser.go`, `browser_test.go`,
   `tree.go`, `tree_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-13T18:42:02Z` — Render files and non-directory links in the theme's
+  dim foreground instead of yellow, keeping folders cyan and directory links
+  magenta. Preserve reverse selection, link markers, and non-color emphasis
+  under NO_COLOR. Update existing style assertions and usage/release notes.
+  Formatting, vet, race-enabled application/tool tests, and host packaging
+  passed. No dependencies changed or hosted CI/publication ran. Visual review
+  across terminal themes was not performed. Paths: `view.go`, `view_test.go`,
+  `docs/usage.md`, `CHANGELOG.md`, `docs/development-journal.md`.

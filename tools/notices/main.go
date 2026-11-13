@@ -102,7 +102,7 @@ func collect(ctx context.Context, root string, platforms []target) (string, erro
 	}
 	slices.Sort(names)
 	var out strings.Builder
-	out.WriteString("Third-party licenses for 0go\n\n")
+	out.WriteString("Third-party licenses for cdd\n\n")
 	for _, name := range names {
 		m := modules[name]
 		text, err := licenseText(m.Dir)

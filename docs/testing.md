@@ -75,7 +75,7 @@ known reachable vulnerabilities only and does not establish overall safety.
 Use a disposable directory tree and a real interactive terminal:
 
 1. Run the quick start in both shells and select a child directory. Check `pwd`
-   after the picker exits, then run `0go` from the new directory.
+   after the picker exits, then run `cdd` from the new directory.
 2. Open several levels, return to a parent, and confirm the previous child remains
    selected. Select the `.` row in an empty directory.
 3. Filter a Unicode name, edit the filter with Backspace, and finish editing with
@@ -87,7 +87,7 @@ Use a disposable directory tree and a real interactive terminal:
    Page Up/Down. Verify that Right opens a directory selected in either column.
    Open help with `?`, navigate with it expanded, and close it with Esc. Check
    that the selected row stays visible and the help does not cancel the picker.
-   Compare dark and light terminal themes, then try `NO_COLOR=1 0go` and confirm
+   Compare dark and light terminal themes, then try `NO_COLOR=1 cdd` and confirm
    that the selection remains visible without added colors.
 6. Cancel with Esc, `q`, and Ctrl+C. Confirm the working directory is unchanged,
    normal input and echo return, and the cursor is visible.
@@ -154,8 +154,8 @@ tests covered versioned notes, invalid dates and versions, required archive file
 executable permissions, checksums, reproducibility, and missing-license failures.
 
 All three real preview archives passed SHA-256 verification. The macOS arm64
-archive was extracted and its executable reported `0go dev`; its generated shell
-function performed a real `cd` in a terminal. Linux archives were cross-built,
+archive was extracted and its executable reported its development version; its
+generated shell function performed a real `cd` in a terminal. Linux archives were cross-built,
 not runtime-tested here. Plain `make` in a directory containing only the Makefile
 printed help and created no build output.
 
@@ -294,3 +294,20 @@ concrete empty child directory retains its `(empty)` preview label. Targeted
 tests passed after tightening that assertion. A native 80-cell PTY check showed
 a populated child preview before navigation and a blank Children pane immediately
 after entering that folder. No dependencies changed or hosted CI ran.
+
+## Project rename validation, 2026-11-13
+
+After renaming the source directory and both Go modules to cdd, module tidying,
+`make check build dist`, and both module-checksum checks passed. All four renamed
+preview archives passed SHA-256 verification and contain the `cdd` executable,
+instructions, release notes, and license files. The host binary reported `cdd dev`.
+Installation into a disposable prefix placed the executable and matching licenses
+under the new names; no user installation was changed.
+
+Both generated shell functions passed shell syntax checks, and the real zsh/bash
+integration tests used the renamed function and helper variables. A native PTY
+check loaded `cdd`, changed the shell's directory, printed the renamed move
+notification, and returned zero. A search of maintained source and documentation
+found no previous command/module spelling. No dependency versions changed.
+The owner reported completing the GitHub repository rename; the local SSH origin
+was updated accordingly. No Git push, hosted CI, or release publication ran.

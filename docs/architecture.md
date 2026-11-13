@@ -1,6 +1,6 @@
 # Architecture
 
-0go has one application package and no background service or persistent state.
+cdd has one application package and no background service or persistent state.
 Browsing reads directory entries without recursive indexing or file-content
 reads. Tree view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.

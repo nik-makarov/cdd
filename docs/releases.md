@@ -9,7 +9,7 @@
 | macOS | Intel / amd64 | `darwin_amd64.tar.gz` |
 | macOS | Apple Silicon / arm64 | `darwin_arm64.tar.gz` |
 
-Each archive contains `0go`, `README.md` with standalone instructions, the MIT
+Each archive contains `cdd`, `README.md` with standalone instructions, the MIT
 `LICENSE`, `THIRD_PARTY_LICENSES.txt`, and version-specific `RELEASE_NOTES.md`.
 `SHA256SUMS` accompanies the archives on GitHub. No Go installation is needed
 to use a prebuilt executable. The workflow does not sign or notarize binaries.
@@ -20,16 +20,16 @@ Download the archive for your machine and the SHA256SUMS file from the same
 GitHub Release. For example, after substituting an available version:
 
 ```sh
-shasum -a 256 0go_vX.Y.Z_linux_amd64.tar.gz
+shasum -a 256 cdd_vX.Y.Z_linux_amd64.tar.gz
 ```
 
 Compare the result with the entry for that exact filename in SHA256SUMS.
 Extract into an empty directory, then initialize the shell function:
 
 ```sh
-tar -xzf 0go_vX.Y.Z_linux_amd64.tar.gz
-eval "$(./0go --init zsh)"
-0go
+tar -xzf cdd_vX.Y.Z_linux_amd64.tar.gz
+eval "$(./cdd --init zsh)"
+cdd
 ```
 
 For bash, use `--init bash`. The function lasts for the current shell and records

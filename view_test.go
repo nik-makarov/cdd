@@ -240,7 +240,7 @@ func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
 }
 
 func TestViewStatusAndHelp(t *testing.T) {
-	m := browser{path: "/projects/0go", width: 100, height: 24, visible: []entry{{name: "."}, {name: "docs"}}}
+	m := browser{path: "/projects/cdd", width: 100, height: 24, visible: []entry{{name: "."}, {name: "docs"}}}
 	plain := m.view()
 	if !strings.Contains(plain, "1 directory") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
 		t.Fatalf("default view is not compact: %q", plain)

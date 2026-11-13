@@ -5,8 +5,8 @@ describes a logical change, affected paths, and verified scope. Preserve previou
 entries, keep private data out, and distinguish local work from publication.
 
 - `2026-11-13T16:00:56Z` — Prepare the initial public source repository under
-  `github.com/nik-makarov/0go`: interactive directory navigation, literal zsh/bash
-  path handling, minimal Go runtime dependencies, MIT license, public English
+  its original GitHub module path: interactive directory navigation, literal
+  zsh/bash path handling, minimal Go runtime dependencies, MIT license, public English
   documentation, and SHA-pinned GitHub checks. Local formatting, vet,
   race-enabled tests, host and Linux builds, module verification, and workflow
   validation passed. The owner's separate audit reported no vulnerabilities;
@@ -172,3 +172,21 @@ entries, keep private data out, and distinguish local work from publication.
   passed. No dependencies changed or hosted CI/publication ran. Visual review
   across terminal themes was not performed. Paths: `view.go`, `view_test.go`,
   `docs/usage.md`, `CHANGELOG.md`, `docs/development-journal.md`.
+- `2026-11-13T18:49:12Z` — Rename the application, source directory, commands,
+  shell function/helper variables, executables, archives, notices, installation
+  paths, release title, and documentation to cdd. Set both Go module paths to
+  github.com/nik-makarov/cdd and its tools submodule; update the local SSH origin
+  after the owner reported renaming the GitHub repository. Rephrase historical
+  identity mentions neutrally without inventing past output under the new name.
+  Remove obsolete generated binaries/archives and regenerate renamed previews.
+  Module tidying, formatting, vet, race-enabled application/tool tests, host and
+  four target builds, archive packaging/checksums, module verification, temporary
+  installation, and both shell syntax checks passed. A native zsh PTY check
+  changed directory through cdd with the renamed notification and zero status.
+  Maintained text contains no previous command/module spelling. Dependency
+  versions are unchanged; no Git push, hosted CI, or release publication ran.
+  Paths: `cli.go`, `cli_test.go`, `view.go`, `view_test.go`, `shell.go`,
+  `shell_test.go`, `Makefile`, `.gitignore`, `.github/workflows/release.yml`,
+  `go.mod`, `tools/go.mod`, `tools/notices/main.go`, `tools/release/`,
+  `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md`,
+  `CHANGELOG.md`, `packaging/README.md`, `docs/`.

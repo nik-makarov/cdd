@@ -13,23 +13,23 @@ import (
 // The test executable doubles as a picker to exercise the real shell function
 // without a TTY. This includes failure after partial output.
 func TestMain(m *testing.M) {
-	if os.Getenv("ZERO_GO_TEST_HELPER") == "1" {
+	if os.Getenv("CDD_TEST_HELPER") == "1" {
 		for _, arg := range os.Args[1:] {
 			if arg == "--help" {
 				fmt.Print("HELP\n")
 				os.Exit(0)
 			}
 		}
-		switch os.Getenv("ZERO_GO_TEST_MODE") {
+		switch os.Getenv("CDD_TEST_MODE") {
 		case "empty":
 			os.Exit(0)
 		case "cancel":
 			os.Exit(130)
 		case "error":
-			fmt.Print(os.Getenv("ZERO_GO_TEST_TARGET"))
+			fmt.Print(os.Getenv("CDD_TEST_TARGET"))
 			os.Exit(1)
 		}
-		fmt.Print(os.Getenv("ZERO_GO_TEST_TARGET"))
+		fmt.Print(os.Getenv("CDD_TEST_TARGET"))
 		os.Exit(0)
 	}
 	os.Exit(m.Run())
@@ -79,13 +79,13 @@ func TestShellIntegration(t *testing.T) {
 							t.Fatal(err)
 						}
 					}
-					script := shellInit(helper) + "\n0go " + tt.args + `
-_0go_test_code=$?
-printf '%s\000%s' "$_0go_test_code" "$PWD"
+					script := shellInit(helper) + "\ncdd " + tt.args + `
+_cdd_test_code=$?
+printf '%s\000%s' "$_cdd_test_code" "$PWD"
 `
 					cmd := exec.Command(binary, "-f", "-c", script)
 					cmd.Dir = base
-					cmd.Env = append(os.Environ(), "ZERO_GO_TEST_HELPER=1", "ZERO_GO_TEST_MODE="+tt.mode, "ZERO_GO_TEST_TARGET="+target)
+					cmd.Env = append(os.Environ(), "CDD_TEST_HELPER=1", "CDD_TEST_MODE="+tt.mode, "CDD_TEST_TARGET="+target)
 					var stderr bytes.Buffer
 					cmd.Stderr = &stderr
 					out, err := cmd.Output()
@@ -103,16 +103,16 @@ printf '%s\000%s' "$_0go_test_code" "$PWD"
 					message := stderr.String()
 					moved := wantPath != base
 					if moved {
-						if !strings.HasPrefix(message, "0go: "+base+" -> ") || !strings.HasSuffix(message, "\n") || strings.Count(message, "\n") != 1 || strings.ContainsAny(message, "\x1b\r\t") {
+						if !strings.HasPrefix(message, "cdd: "+base+" -> ") || !strings.HasSuffix(message, "\n") || strings.Count(message, "\n") != 1 || strings.ContainsAny(message, "\x1b\r\t") {
 							t.Fatalf("missing or unsafe move message: %q", message)
 						}
 						if tt.name == "plain" || tt.name == "trailing dot" {
-							if want := "0go: " + base + " -> " + target + "\n"; message != want {
+							if want := "cdd: " + base + " -> " + target + "\n"; message != want {
 								t.Fatalf("move message = %q, want %q", message, want)
 							}
 						}
 					} else if tt.mode == "missing" {
-						if message == "" || strings.HasPrefix(message, "0go: ") {
+						if message == "" || strings.HasPrefix(message, "cdd: ") {
 							t.Fatalf("failed cd must report its error without a success message: %q", message)
 						}
 					} else if message != "" {

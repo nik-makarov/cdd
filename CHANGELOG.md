@@ -23,6 +23,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Rename the command, shell function, executables, archives, and Go modules to
+  `cdd`, using `github.com/nik-makarov/cdd` as the repository path.
 - Use dim theme-aware text for files so directory entries remain more prominent.
 - Start in a three-pane tree view with an active middle list, parent/child
   context, colored files, and distinctly marked directory symlinks. Press `v`

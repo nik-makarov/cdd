@@ -13,10 +13,10 @@ import (
 
 var version = "dev"
 
-const help = `0go — interactively choose a directory
+const help = `cdd — interactively choose a directory
 
-Usage: 0go [--hidden] [START_DIRECTORY]
-       0go --init zsh|bash
+Usage: cdd [--hidden] [START_DIRECTORY]
+       cdd --init zsh|bash
 
 Options:
   --hidden       Show hidden directories initially
@@ -42,7 +42,7 @@ The first row (.) selects the current directory.
 Tree view also lists files; they cannot be opened or selected as a destination.
 Without shell integration, stdout contains only the selected absolute path,
 without a trailing newline. Cancellation produces no output and exits 130.
-Connect the binary to your shell: eval "$(/path/to/0go --init zsh)"
+Connect the binary to your shell: eval "$(/path/to/cdd --init zsh)"
 `
 
 type options struct {
@@ -113,23 +113,23 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if len(opts.args) > 1 {
-		io.WriteString(stderr, "0go: expected at most one starting directory\n")
+		io.WriteString(stderr, "cdd: expected at most one starting directory\n")
 		return 2
 	}
 	if opts.initShell != "" {
 		if opts.initShell != "zsh" && opts.initShell != "bash" {
-			io.WriteString(stderr, "0go: --init supports zsh and bash\n")
+			io.WriteString(stderr, "cdd: --init supports zsh and bash\n")
 			return 2
 		}
 		executable, err := os.Executable()
 		if err != nil {
-			io.WriteString(stderr, "0go: locate executable: "+err.Error()+"\n")
+			io.WriteString(stderr, "cdd: locate executable: "+err.Error()+"\n")
 			return 1
 		}
 		return writeResult(stdout, stderr, shellInit(executable))
 	}
 	if opts.showVersion {
-		return writeResult(stdout, stderr, "0go "+version+"\n")
+		return writeResult(stdout, stderr, "cdd "+version+"\n")
 	}
 	start := "."
 	if len(opts.args) == 1 {
@@ -137,12 +137,12 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	abs, err := filepath.Abs(start)
 	if err != nil {
-		io.WriteString(stderr, "0go: resolve starting directory: "+err.Error()+"\n")
+		io.WriteString(stderr, "cdd: resolve starting directory: "+err.Error()+"\n")
 		return 1
 	}
 	m, err := newBrowser(abs, opts.hidden)
 	if err != nil {
-		io.WriteString(stderr, "0go: "+err.Error()+"\n")
+		io.WriteString(stderr, "cdd: "+err.Error()+"\n")
 		return 1
 	}
 	// Command substitution redirects stdout, but normally leaves stdin and
@@ -151,7 +151,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if !term.IsTerminal(int(input.Fd())) || !term.IsTerminal(int(output.Fd())) {
 		tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 		if err != nil {
-			io.WriteString(stderr, "0go: an interactive terminal is required: "+err.Error()+"\n")
+			io.WriteString(stderr, "cdd: an interactive terminal is required: "+err.Error()+"\n")
 			return 1
 		}
 		defer tty.Close()
@@ -161,7 +161,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		if errors.Is(err, errCancelled) {
 			return 130
 		}
-		io.WriteString(stderr, "0go: terminal session: "+err.Error()+"\n")
+		io.WriteString(stderr, "cdd: terminal session: "+err.Error()+"\n")
 		return 1
 	}
 	selected := m.selected
@@ -173,7 +173,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 func writeResult(stdout, stderr io.Writer, value string) int {
 	if _, err := io.WriteString(stdout, value); err != nil {
-		io.WriteString(stderr, "0go: write output: "+err.Error()+"\n")
+		io.WriteString(stderr, "cdd: write output: "+err.Error()+"\n")
 		return 1
 	}
 	return 0

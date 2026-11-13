@@ -62,16 +62,16 @@ func packageRelease(root, version string) error {
 	archives := make([]file, 0, len(platforms))
 	var sums strings.Builder
 	for _, platform := range platforms {
-		binary, err := readNonempty(filepath.Join(root, "bin", "0go-"+platform))
+		binary, err := readNonempty(filepath.Join(root, "bin", "cdd-"+platform))
 		if err != nil {
 			return err
 		}
-		entries := append([]file{{"0go", binary, 0o755}}, common...)
+		entries := append([]file{{"cdd", binary, 0o755}}, common...)
 		data, err := archive(entries)
 		if err != nil {
 			return fmt.Errorf("archive %s: %w", platform, err)
 		}
-		name := "0go_" + version + "_" + strings.ReplaceAll(platform, "-", "_") + ".tar.gz"
+		name := "cdd_" + version + "_" + strings.ReplaceAll(platform, "-", "_") + ".tar.gz"
 		archives = append(archives, file{name, data, 0o644})
 		fmt.Fprintf(&sums, "%x  %s\n", sha256.Sum256(data), name)
 	}
@@ -171,5 +171,5 @@ func releaseNotes(changelog, version string) (string, error) {
 	if !hasContent {
 		return "", fmt.Errorf("empty %s release notes", wanted)
 	}
-	return "# 0go " + version + "\n\n" + body + "\n", nil
+	return "# cdd " + version + "\n\n" + body + "\n", nil
 }

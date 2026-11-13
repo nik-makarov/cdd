@@ -40,7 +40,7 @@ containing whitespace, quotes, shell metacharacters, or newlines.
 
 ## Project scope
 
-0go exists to navigate directories, choose one, and enter it in the current shell.
+cdd exists to navigate directories, choose one, and enter it in the current shell.
 Filtering, keyboard navigation, and robust path handling support that task.
 Keep the application small and its dependencies minimal. File management,
 background indexing, network services, plugins, and unrelated utility commands

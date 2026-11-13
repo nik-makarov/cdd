@@ -150,7 +150,7 @@ func (m browser) frame() (header, footer []viewLine) {
 	}
 	header = []viewLine{pathLine}
 	if m.height >= 8 {
-		header = []viewLine{{{"0go", m.styles.muted}}, pathLine, nil}
+		header = []viewLine{{{"cdd", m.styles.muted}}, pathLine, nil}
 	}
 	footer = []viewLine{m.shortHelp(width)}
 	if m.showHelp {
@@ -243,7 +243,7 @@ func (m browser) view() string {
 		mode = "list"
 	}
 	if m.height >= 8 {
-		header[0] = viewLine{{"0go  " + mode, m.styles.muted}, {"   v", m.styles.strong}, {" view", m.styles.muted}}
+		header[0] = viewLine{{"cdd  " + mode, m.styles.muted}, {"   v", m.styles.strong}, {" view", m.styles.muted}}
 	}
 	if columns == 2 {
 		start = m.cursor / capacity * capacity

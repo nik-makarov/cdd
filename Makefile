@@ -3,13 +3,13 @@
 VERSION ?= dev
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
-LICENSEDIR ?= $(PREFIX)/share/licenses/0go
+LICENSEDIR ?= $(PREFIX)/share/licenses/cdd
 
 .PHONY: help build notices cross-build dist fmt fmt-check test check audit install clean
 
 help:
 	@printf '%s\n' \
-		'0go development commands (run from the source root):' \
+		'cdd development commands (run from the source root):' \
 		'  make build        Build the host binary and license files' \
 		'  make cross-build  Build Linux and macOS amd64/arm64 binaries' \
 		'  make dist         Package local preview archives under dist/dev/' \
@@ -24,7 +24,7 @@ help:
 		'Use VERSION=vX.Y.Z for a versioned build or archive with matching CHANGELOG notes.'
 
 build: notices
-	go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o bin/0go .
+	go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o bin/cdd .
 
 notices:
 	go -C tools run ./notices -root ..
@@ -33,7 +33,7 @@ notices:
 cross-build: notices
 	@set -eu; for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do \
 		CGO_ENABLED=0 GOOS="$${target%/*}" GOARCH="$${target#*/}" go build -trimpath \
-			-ldflags "-s -w -X main.version=$(VERSION)" -o "bin/0go-$${target%/*}-$${target#*/}" .; \
+			-ldflags "-s -w -X main.version=$(VERSION)" -o "bin/cdd-$${target%/*}-$${target#*/}" .; \
 	done
 
 dist: cross-build
@@ -64,12 +64,12 @@ audit:
 
 install: build
 	install -d "$(BINDIR)"
-	install -m 755 bin/0go "$(BINDIR)/0go"
+	install -m 755 bin/cdd "$(BINDIR)/cdd"
 	install -d "$(LICENSEDIR)"
 	install -m 644 bin/LICENSE bin/THIRD_PARTY_LICENSES.txt "$(LICENSEDIR)/"
 
 clean:
-	rm -f bin/0go
-	rm -f bin/0go-darwin-amd64 bin/0go-darwin-arm64 bin/0go-linux-amd64 bin/0go-linux-arm64
+	rm -f bin/cdd
+	rm -f bin/cdd-darwin-amd64 bin/cdd-darwin-arm64 bin/cdd-linux-amd64 bin/cdd-linux-arm64
 	rm -f bin/LICENSE bin/THIRD_PARTY_LICENSES.txt
 	rm -rf dist

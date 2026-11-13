@@ -6,8 +6,8 @@ From the source checkout:
 
 ```sh
 make build
-eval "$(./bin/0go --init zsh)"
-0go
+eval "$(./bin/cdd --init zsh)"
+cdd
 ```
 
 Use `--init bash` for bash. This defines a function for the current shell only.
@@ -18,12 +18,12 @@ running its `--init` command again.
 ## Options
 
 ```sh
-0go                         # Start in the current directory
-0go ~/projects              # Start in another directory
-0go --hidden /tmp           # Include hidden directories initially
-0go -- --directory-name     # A starting path beginning with a dash
-0go --help
-0go --version
+cdd                         # Start in the current directory
+cdd ~/projects              # Start in another directory
+cdd --hidden /tmp           # Include hidden directories initially
+cdd -- --directory-name     # A starting path beginning with a dash
+cdd --help
+cdd --version
 ```
 
 Place options before the starting directory. The default tree view lists files,
@@ -123,7 +123,7 @@ In tree view, Tab leaves the middle pane active.
 Set a non-empty `NO_COLOR` value to disable added colors:
 
 ```sh
-NO_COLOR=1 0go
+NO_COLOR=1 cdd
 ```
 
 Bold, dim text, and reverse selection remain available in this mode. `TERM=dumb`
@@ -148,7 +148,7 @@ Defaults:
 | --- | --- | --- |
 | `PREFIX` | `$HOME/.local` | Installation prefix |
 | `BINDIR` | `$(PREFIX)/bin` | Executable directory |
-| `LICENSEDIR` | `$(PREFIX)/share/licenses/0go` | Installed license directory |
+| `LICENSEDIR` | `$(PREFIX)/share/licenses/cdd` | Installed license directory |
 
 For example, `make install PREFIX=/your/prefix` installs the executable and
 licenses beneath that prefix. `BINDIR` remains independently configurable.
@@ -157,7 +157,7 @@ The invoking user needs write access to the selected directories.
 For persistent zsh integration, add this line to `~/.zshrc`:
 
 ```sh
-eval "$("$HOME/.local/bin/0go" --init zsh)"
+eval "$("$HOME/.local/bin/cdd" --init zsh)"
 ```
 
 For bash, use `--init bash` in `~/.bashrc`. Adjust the binary path for a custom
@@ -167,8 +167,8 @@ absolute binary path, so adding the installation directory to `PATH` is optional
 The published source repository can also be installed with Go:
 
 ```sh
-go install github.com/nik-makarov/0go@latest
-eval "$("$(go env GOPATH)/bin/0go" --init zsh)"
+go install github.com/nik-makarov/cdd@latest
+eval "$("$(go env GOPATH)/bin/cdd" --init zsh)"
 ```
 
 If `GOBIN` is set, use that directory instead of `$(go env GOPATH)/bin`.
@@ -178,7 +178,7 @@ If `GOBIN` is set, use that directory instead of `$(go env GOPATH)/bin`.
 ## Shell integration contract
 
 A child process cannot change the parent shell's working directory. `--init`
-prints a function named `0go` that runs the binary, captures its selected absolute
+prints a function named `cdd` that runs the binary, captures its selected absolute
 path, and executes `builtin cd -- "$path"` in the current shell.
 
 The initial `eval` defines that function. Selected paths never pass through
@@ -191,7 +191,7 @@ After a successful directory change, the function prints the original and
 resulting shell directories to stderr:
 
 ```text
-0go: /old/path -> /new/path
+cdd: /old/path -> /new/path
 ```
 
 Paths are shell-escaped so spaces, newlines, and terminal control characters
@@ -215,7 +215,7 @@ an interactive terminal.
 
 ## Build output
 
-`make build` creates `bin/0go`, `bin/LICENSE`, and
+`make build` creates `bin/cdd`, `bin/LICENSE`, and
 `bin/THIRD_PARTY_LICENSES.txt`. `make cross-build` creates binaries for Linux
 amd64/arm64 and macOS amd64/arm64, sharing the same license files. Keep both license
 files with any redistributed executable.

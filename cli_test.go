@@ -14,7 +14,7 @@ import (
 // Keep flag as a test oracle only: compatibility must not cost binary size.
 func standardArgs(args []string) (options, error) {
 	var opts options
-	flags := flag.NewFlagSet("0go", flag.ContinueOnError)
+	flags := flag.NewFlagSet("cdd", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.BoolVar(&opts.hidden, "hidden", false, "")
 	flags.BoolVar(&opts.showVersion, "version", false, "")
@@ -128,7 +128,7 @@ func TestCLIWithoutTerminal(t *testing.T) {
 			if tt.name == "help" && (!strings.Contains(errOut.String(), "Usage:") || out.Len() != 0) {
 				t.Fatal("help missing or leaked into stdout")
 			}
-			if tt.name == "version" && out.String() != "0go "+version+"\n" {
+			if tt.name == "version" && out.String() != "cdd "+version+"\n" {
 				t.Fatalf("version output: %q", &out)
 			}
 		})
@@ -137,7 +137,7 @@ func TestCLIWithoutTerminal(t *testing.T) {
 
 func TestWriteResultFailure(t *testing.T) {
 	var stderr bytes.Buffer
-	if code := writeResult(failingWriter{}, &stderr, "chosen path"); code != 1 || !strings.Contains(stderr.String(), "0go: write output:") {
+	if code := writeResult(failingWriter{}, &stderr, "chosen path"); code != 1 || !strings.Contains(stderr.String(), "cdd: write output:") {
 		t.Fatalf("write failure not reported: exit %d, stderr %q", code, stderr.String())
 	}
 }

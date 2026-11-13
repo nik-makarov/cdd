@@ -4,7 +4,7 @@ Security fixes target the latest commit on `main`. There are no separately
 maintained release branches yet.
 
 Please report suspected vulnerabilities through
-[GitHub private vulnerability reporting](https://github.com/nik-makarov/0go/security/advisories/new).
+[GitHub private vulnerability reporting](https://github.com/nik-makarov/cdd/security/advisories/new).
 If private reporting is unavailable, open an issue asking for a private contact
 channel, without including exploit details or sensitive information.
 

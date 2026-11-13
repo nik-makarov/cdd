@@ -52,7 +52,7 @@ func releaseFixture(t *testing.T) string {
 		"packaging/README.md":          "Run with shell integration.\n",
 	}
 	for _, platform := range platforms {
-		inputs["bin/0go-"+platform] = "binary for " + platform
+		inputs["bin/cdd-"+platform] = "binary for " + platform
 	}
 	for path, text := range inputs {
 		if err := os.WriteFile(filepath.Join(root, path), []byte(text), 0o644); err != nil {
@@ -76,7 +76,7 @@ func TestPackageContentsAndChecksums(t *testing.T) {
 		t.Fatal("expected exactly four release archive checksums")
 	}
 	for _, platform := range platforms {
-		name := "0go_v0.1.0_" + strings.ReplaceAll(platform, "-", "_") + ".tar.gz"
+		name := "cdd_v0.1.0_" + strings.ReplaceAll(platform, "-", "_") + ".tar.gz"
 		data, err := os.ReadFile(filepath.Join(output, name))
 		if err != nil {
 			t.Fatal(err)
@@ -103,14 +103,14 @@ func TestPackageContentsAndChecksums(t *testing.T) {
 				t.Fatal(err)
 			}
 			seen[header.Name] = true
-			if header.Name == "0go" && (header.Mode != 0o755 || string(body) != "binary for "+platform) {
+			if header.Name == "cdd" && (header.Mode != 0o755 || string(body) != "binary for "+platform) {
 				t.Fatalf("wrong executable or mode in %s", name)
 			}
 		}
 		if err := gz.Close(); err != nil {
 			t.Fatal(err)
 		}
-		for _, required := range []string{"0go", "LICENSE", "THIRD_PARTY_LICENSES.txt", "README.md", "RELEASE_NOTES.md"} {
+		for _, required := range []string{"cdd", "LICENSE", "THIRD_PARTY_LICENSES.txt", "README.md", "RELEASE_NOTES.md"} {
 			if !seen[required] {
 				t.Errorf("missing %s from %s", required, name)
 			}

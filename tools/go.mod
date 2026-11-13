@@ -1,4 +1,4 @@
-module github.com/nik-makarov/0go/tools
+module github.com/nik-makarov/cdd/tools
 
 go 1.27.4
 

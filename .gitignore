@@ -1,6 +1,6 @@
 /bin/
 /coverage.out
-/0go
+/cdd
 /dist/
 .env
 .env.*

@@ -1,4 +1,4 @@
-# 0go
+# cdd
 
 Browse directories in your terminal, choose one, and `cd` into it in your current
 shell. A small Go CLI for macOS and Linux with zsh and bash integration.
@@ -21,11 +21,11 @@ tools are required.
 ## Quick start
 
 ```sh
-git clone https://github.com/nik-makarov/0go.git
-cd 0go
+git clone https://github.com/nik-makarov/cdd.git
+cd cdd
 make build
-eval "$(./bin/0go --init zsh)"
-0go
+eval "$(./bin/cdd --init zsh)"
+cdd
 ```
 
 For bash, replace `zsh` with `bash`. This works without installation or changes
@@ -38,9 +38,9 @@ directory currently being viewed. Esc cancels; `/` filters names; `?` opens
 keyboard help.
 
 ```sh
-0go ~/projects
-0go --hidden /tmp
-0go --help
+cdd ~/projects
+cdd --hidden /tmp
+cdd --help
 ```
 
 The binary cannot change its parent shell's directory on its own. The generated
@@ -51,7 +51,7 @@ See [usage and shell integration](docs/usage.md) for all controls and options.
 
 Prebuilt archives are prepared for Linux x64/arm64 and macOS Intel/Apple Silicon.
 Once a version is published, download the matching archive from
-[GitHub Releases](https://github.com/nik-makarov/0go/releases). Each archive includes
+[GitHub Releases](https://github.com/nik-makarov/cdd/releases). Each archive includes
 the executable, installation instructions, licenses, and release notes. See
 [release installation](docs/releases.md#use-an-archive).
 
@@ -59,11 +59,11 @@ To install from a source checkout:
 
 ```sh
 make install
-eval "$("$HOME/.local/bin/0go" --init zsh)"
+eval "$("$HOME/.local/bin/cdd" --init zsh)"
 ```
 
-The default binary location is `~/.local/bin/0go`; license files are installed
-under `~/.local/share/licenses/0go`. Set `PREFIX` to choose another installation
+The default binary location is `~/.local/bin/cdd`; license files are installed
+under `~/.local/share/licenses/cdd`. Set `PREFIX` to choose another installation
 prefix. Add the `eval` line to `~/.zshrc` for future shells, or use `--init bash`
 in `~/.bashrc`. Full installation and `go install` instructions are in
 [usage](docs/usage.md#installation).

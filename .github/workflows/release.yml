@@ -50,6 +50,6 @@ jobs:
         run: |
           gh release create "$RELEASE_TAG" "dist/$RELEASE_TAG/"*.tar.gz \
             "dist/$RELEASE_TAG/SHA256SUMS" \
-            --verify-tag --draft --title "0go $RELEASE_TAG" \
+            --verify-tag --draft --title "cdd $RELEASE_TAG" \
             --notes-file "dist/$RELEASE_TAG/RELEASE_NOTES.md"
           gh release edit "$RELEASE_TAG" --draft=false

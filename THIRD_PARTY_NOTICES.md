@@ -1,6 +1,6 @@
 # Third-party notices
 
-0go uses the [MIT license](LICENSE). Its dependencies and the Go standard library
+cdd uses the [MIT license](LICENSE). Its dependencies and the Go standard library
 retain their upstream licenses.
 
 `make notices`, `make build`, and `make cross-build` generate one
@@ -21,7 +21,7 @@ Builds also copy the project's own MIT license to `bin/LICENSE`. Keep it and
 `make dist` includes both files in every release archive alongside its executable,
 instructions, and user-facing release notes.
 `make install` places license files under
-`$(PREFIX)/share/licenses/0go` by default; `LICENSEDIR` can override that location.
+`$(PREFIX)/share/licenses/cdd` by default; `LICENSEDIR` can override that location.
 
 After changing runtime dependencies, Go toolchains, or build targets, regenerate
 and review the notices and run the relevant checks. These files do not relicense

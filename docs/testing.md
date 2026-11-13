@@ -349,3 +349,15 @@ tap CI trusts only each formula being checked and runs style, source installatio
 tests, and auditing on macOS. This preparation did not run hosted Actions,
 create repository secrets, push branches/tags, or publish a release. Application
 and tool module dependency versions are unchanged.
+
+## Homebrew version inference correction, 2026-11-13
+
+The owner's macOS CI log confirms source installation with Homebrew Go 1.27.4,
+formula style checks, and version/help/zsh/bash initialization tests passed for
+v0.1.0. Strict audit then reported the explicit version as redundant with the
+source URL. The generator now omits that stanza and retains the versioned URL,
+checksum, and interpolated build/test version. `make check build` passed locally,
+including shuffled race-enabled application/tool tests. The corrected current
+tap formula passed Ruby syntax checking. A new hosted audit was not run as part
+of these local checks; dependency versions and existing release assets did not
+change.

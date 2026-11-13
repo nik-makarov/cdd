@@ -219,3 +219,13 @@ entries, keep private data out, and distinguish local work from publication.
   `tools/README.md`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
   `docs/releases.md`, `docs/maintenance.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-13T20:04:58Z` — Infer the Homebrew version from the source archive
+  URL instead of emitting a redundant version stanza. The owner-provided hosted
+  log showed successful style, Go 1.27.4 source installation, and formula tests
+  before strict audit rejected the duplicate version. Update the generator and
+  user-facing notes. Formatting, vet, shuffled race-enabled application/tool
+  tests, and host build passed locally; the corrected current tap formula also
+  passed Ruby syntax checking. No dependency versions or published release
+  assets changed, and no hosted rerun occurred during local verification. Paths:
+  `tools/release/automatic.go`, `CHANGELOG.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

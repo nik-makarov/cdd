@@ -199,7 +199,6 @@ func formula(version, sum string) string {
   desc "Interactive directory picker with shell integration"
   homepage "https://github.com/nik-makarov/cdd"
   url "https://github.com/nik-makarov/cdd/releases/download/%s/cdd_%s_source.tar.gz"
-  version "%s"
   sha256 "%s"
   license "MIT"
 
@@ -227,5 +226,5 @@ func formula(version, sum string) string {
     assert_match "Usage:", shell_output("#{bin}/cdd --help 2>&1")
   end
 end
-`, version, version, strings.TrimPrefix(version, "v"), sum)
+`, version, version, sum)
 }

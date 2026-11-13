@@ -36,6 +36,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Fixed
 
+- Pass strict Homebrew package validation by inferring the version from the
+  source archive URL.
 - Relay informational output through shell integration for every supported flag
   spelling, including `--version=true`, instead of attempting to `cd` into it.
 - Clear Children when the current-directory (`.`) row is highlighted, including

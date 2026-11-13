@@ -4,6 +4,10 @@ Bug reports and focused pull requests are welcome. Include your operating
 system, shell, terminal emulator, Go version, and steps to reproduce the issue.
 Replace private directory names and paths before posting terminal output.
 
+Use English for documentation, comments, user-facing messages, issues, pull
+requests, and commits. Write non-ASCII test fixture data using Go Unicode
+escapes to preserve Unicode coverage while keeping source text in English.
+
 ## Development
 
 Use the latest stable Go release. The minimum required version is in `go.mod`.

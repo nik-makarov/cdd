@@ -1,5 +1,9 @@
 # Project instructions
 
+The repository language is English only: documentation, comments, user-facing
+messages, issue and pull request text, and commit messages. Use Go Unicode
+escapes for non-ASCII test fixtures so Unicode behavior remains covered.
+
 Use idiomatic Go. If the `golang-how-to` skill is available, load it for Go
 coding, review, debugging, and setup work. The project must remain usable
 without any personal agent skills or local tooling configuration.

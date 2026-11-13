@@ -11,7 +11,7 @@ import (
 func fixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, name := range []string{"Alpha/nested", "beta", ".hidden", "Русский", "with spaces"} {
+	for _, name := range []string{"Alpha/nested", "beta", ".hidden", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439", "with spaces"} {
 		if err := os.MkdirAll(filepath.Join(root, name), 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -79,19 +79,19 @@ func TestFilterHiddenAndSymlinks(t *testing.T) {
 	for _, d := range m.visible {
 		names = append(names, d.name)
 	}
-	want := []string{".", "Alpha", "beta", "link", "with spaces", "Русский"}
+	want := []string{".", "Alpha", "beta", "link", "with spaces", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439"}
 	if !slices.Equal(names, want) {
 		t.Fatalf("directories = %v, want %v", names, want)
 	}
 	m = press(m, ".", ".")
 	m = focus(t, m, ".hidden")
 	m = press(m, "/", "/")
-	m = press(m, "РУС", "РУС")
-	if len(m.visible) != 2 || m.visible[m.cursor].name != "Русский" {
+	m = press(m, "\u0420\u0423\u0421", "\u0420\u0423\u0421")
+	if len(m.visible) != 2 || m.visible[m.cursor].name != "\u0420\u0443\u0441\u0441\u043a\u0438\u0439" {
 		t.Fatalf("unicode filter: %v", m.visible)
 	}
 	m = press(m, "backspace", "")
-	if m.query != "РУ" {
+	if m.query != "\u0420\u0423" {
 		t.Fatalf("backspace split a rune: %q", m.query)
 	}
 	m = press(m, "esc", "")
@@ -99,7 +99,7 @@ func TestFilterHiddenAndSymlinks(t *testing.T) {
 		t.Fatalf("escape should finish filtering: %+v", m)
 	}
 	m = press(m, "enter", "")
-	if m.selected != filepath.Join(root, "Русский") {
+	if m.selected != filepath.Join(root, "\u0420\u0443\u0441\u0441\u043a\u0438\u0439") {
 		t.Fatalf("filtered selection = %q", m.selected)
 	}
 }

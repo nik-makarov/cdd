@@ -15,8 +15,8 @@ func TestDecodeKeys(t *testing.T) {
 		{"\x1b[5~", "pgup", ""}, {"\x1b[6~", "pgdown", ""},
 		{"\r", "enter", ""}, {"\x03", "ctrl+c", ""},
 		{"\x04", "ctrl+d", ""}, {"\x12", "ctrl+r", ""},
-		{"\x7f", "backspace", ""}, {"я", "я", "я"},
-		{"界", "界", "界"}, {"/", "/", "/"},
+		{"\x7f", "backspace", ""}, {"\u044f", "\u044f", "\u044f"},
+		{"\u754c", "\u754c", "\u754c"}, {"/", "/", "/"},
 		{"\x1b[999~", "", ""}, {"\x00", "", ""},
 	} {
 		t.Run(tt.input, func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestEscapeAndMalformedInput(t *testing.T) {
 	if key, consumed := decodeKey([]byte("\x1b"), true); key.name != "esc" || consumed != 1 {
 		t.Fatal("standalone escape did not cancel")
 	}
-	for _, data := range [][]byte{[]byte("\x1b["), {0xd0}, {0xff}, []byte("\x1bя")} {
+	for _, data := range [][]byte{[]byte("\x1b["), {0xd0}, {0xff}, []byte("\x1b\u044f")} {
 		if _, consumed := decodeKey(data, true); consumed < 1 || consumed > len(data) {
 			t.Fatalf("expired input makes no progress: %q", data)
 		}
@@ -54,8 +54,8 @@ func TestTruncateUnicode(t *testing.T) {
 		width int
 		want  string
 	}{
-		{"abcdef", 3, "abc"}, {"Русский", 5, "Ру"},
-		{"a界b", 3, "a界"}, {"x🙂y", 3, "x🙂"},
+		{"abcdef", 3, "abc"}, {"\u0420\u0443\u0441\u0441\u043a\u0438\u0439", 5, "\u0420\u0443"},
+		{"a\u754cb", 3, "a\u754c"}, {"x\U0001f642y", 3, "x\U0001f642"},
 		{"anything", 0, ""},
 	} {
 		if got := truncate(tt.input, tt.width); got != tt.want || !utf8.ValidString(got) {
@@ -66,7 +66,7 @@ func TestTruncateUnicode(t *testing.T) {
 
 func FuzzDecodeKey(f *testing.F) {
 	f.Add([]byte("\x1b[A"), false)
-	f.Add([]byte("я"), true)
+	f.Add([]byte("\u044f"), true)
 	f.Add([]byte("\xff\x1b["), true)
 	f.Fuzz(func(t *testing.T, data []byte, expired bool) {
 		for len(data) > 0 {

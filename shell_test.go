@@ -56,7 +56,7 @@ func TestShellIntegration(t *testing.T) {
 			}{
 				{"spaces", "select", "with spaces", "", "", "0"},
 				{"metacharacters", "select", "quote'\" $() `touch INJECTED` ; * [x]", "", "", "0"},
-				{"unicode", "select", "Русский 日本語", "", "", "0"},
+				{"unicode", "select", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u65e5\u672c\u8a9e", "", "", "0"},
 				{"trailing newlines", "select", "new\nline\n\n", "", "", "0"},
 				{"trailing dot", "select", "trailing.", "", "", "0"},
 				{"cancel", "cancel", "cancelled", "", "", "130"},

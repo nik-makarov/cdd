@@ -82,3 +82,16 @@ entries, keep private data out, and distinguish local work from publication.
   `browser.go`, `browser_test.go`, `view.go`, `view_test.go`, `terminal.go`,
   `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T17:39:06Z` — Add Intel macOS (darwin/amd64) to cross-builds,
+  release archives, checksum tests, and the license inventory alongside Linux
+  amd64/arm64 and Apple Silicon macOS. Align public instructions, project target
+  policy, and dependency-update workflow summaries with the four-target matrix.
+  Formatting, vet, race-enabled application/tool tests, host packaging, all four
+  cross-builds, and preview archive generation passed. All four archive checksums
+  verified; the Intel binary is Mach-O x86_64 with the expected Go platform
+  metadata, and its archive has executable permissions, instructions, notes, and
+  licenses. No dependencies changed. Intel runtime testing, hosted CI, and
+  publication were not performed. Paths: `Makefile`, `tools/release/`,
+  `tools/notices/main.go`, `.github/workflows/update-dependencies.yml`,
+  `AGENTS.md`, `README.md`, `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`,
+  `tools/README.md`, `docs/`.

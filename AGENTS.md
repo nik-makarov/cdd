@@ -36,6 +36,6 @@ it in the same commit. Do not record plans or imply publication from local
 checks. Keep the README concise and detailed documentation under docs/.
 Keep CHANGELOG.md user-facing, with Unreleased changes and dated version sections.
 Tagged releases require matching curated notes. Release archives target only
-Linux amd64/arm64 and macOS arm64; publishing belongs to GitHub Actions.
+Linux amd64/arm64 and macOS amd64/arm64; publishing belongs to GitHub Actions.
 
 Docker images must only be published by repository CI/CD, never locally.

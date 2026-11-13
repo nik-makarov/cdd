@@ -16,7 +16,7 @@ Preview and development Go releases are not selected. An incompatible dependency
 that requires a newer toolchain fails the run instead of silently selecting one.
 
 The candidate must pass formatting, vet, race-enabled tests, host packaging,
-Linux amd64/arm64 and macOS arm64 cross-builds, module verification, and
+Linux amd64/arm64 and macOS amd64/arm64 cross-builds, module verification, and
 vulnerability scans on Ubuntu. An added or removed runtime module path stops the workflow for manual
 review. Generated notices are rebuilt; tool dependency changes remain visible in
 the pull request. These checks do not replace review of maintainers or source.

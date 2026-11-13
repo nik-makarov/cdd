@@ -72,8 +72,8 @@ func TestPackageContentsAndChecksums(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(strings.Split(strings.TrimSpace(string(sums)), "\n")) != 3 {
-		t.Fatal("expected exactly three release archive checksums")
+	if len(strings.Split(strings.TrimSpace(string(sums)), "\n")) != 4 {
+		t.Fatal("expected exactly four release archive checksums")
 	}
 	for _, platform := range platforms {
 		name := "0go_v0.1.0_" + strings.ReplaceAll(platform, "-", "_") + ".tar.gz"

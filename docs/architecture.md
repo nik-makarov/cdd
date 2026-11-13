@@ -73,14 +73,14 @@ The generated notices contain module paths and versions, not local module-cache
 paths. They are build output, not a second maintained license tree.
 
 The standard-library-only `tools/release` command creates portable archives for
-Linux amd64/arm64 and macOS arm64. It bundles licenses, executable permissions,
+Linux amd64/arm64 and macOS amd64/arm64. It bundles licenses, executable permissions,
 standalone instructions, and version-specific notes from CHANGELOG.md, and writes
 a SHA-256 manifest. Runtime directory-selection code does not import build tools.
 
 ## Publication boundary
 
 GitHub Actions validates source and builds. A stable version-tag push can publish
-three release archives after reusable CI passes, using matching curated notes.
+four release archives after reusable CI passes, using matching curated notes.
 The workflow uploads into a draft and publishes only after upload succeeds.
 Repository visibility, private security
 reporting, and branch-protection settings are configured separately on GitHub.

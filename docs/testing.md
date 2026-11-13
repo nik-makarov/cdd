@@ -12,7 +12,7 @@ unavailable shell are skipped locally; CI supplies both shells.
 | `make check` | Formatting, vet, and shuffled race-enabled application and build-tool tests |
 | `make test` | Application and build-tool tests without race instrumentation |
 | `make build` | Host binary and complete redistribution license files |
-| `make cross-build` | Linux amd64/arm64 and macOS arm64 binaries with license files |
+| `make cross-build` | Linux and macOS amd64/arm64 binaries with license files |
 | `make dist` | Three preview archives, SHA-256 checksums, licenses, and curated notes |
 | `make audit` | Checksums for both modules and vulnerability scans of the application and build tools |
 
@@ -34,15 +34,15 @@ go test -run '^$' -fuzz FuzzDecodeKey -fuzztime=10s
 
 Notice-generator tests check complete LICENSE/NOTICE/patent inputs, rejection of
 missing or empty licenses, the Homebrew Go license layout, and exclusion of
-development tools from application notices. `make build` inventories the three
+development tools from application notices. `make build` inventories the four
 distribution targets plus the host when different; a successful cross-compilation
 is not a runtime test on that operating system or architecture.
 
 Release-tool tests verify version-specific notes, required dates, duplicate and
 missing sections, archive contents and executable permissions, SHA-256 sums,
 deterministic packaging, and failure before output for missing license inputs.
-Historical evidence below includes the earlier four-target matrix; the current
-distribution matrix contains only Linux amd64/arm64 and macOS arm64.
+Historical evidence below records the build matrix used at each stage. The
+current distribution matrix contains Linux and macOS amd64/arm64.
 
 `make audit` uses the pinned scanner in [tools/](../tools/README.md). First-time
 tool downloads need access to the Go module proxy; vulnerability queries need
@@ -140,8 +140,8 @@ All workflow Bash blocks passed syntax checks, and actionlint accepted all three
 workflows with ShellCheck disabled. Relative documentation links passed. Both
 module checksum checks passed, while the vulnerability scan failed on unavailable
 database DNS. No tag, hosted CI run, draft release, public release, signature, or
-notarization was created. Current release targets are Linux amd64/arm64 and macOS
-arm64; earlier four-platform records above describe the previous build matrix.
+notarization was created. At this stage the release targets were Linux
+amd64/arm64 and macOS arm64; Intel macOS packaging was added afterward.
 
 ## Interface validation, 2026-11-13
 
@@ -162,3 +162,16 @@ terminal protocol and interaction, not a screenshot-based review across themes.
 No dependencies changed, so a new vulnerability scan was not run for this UI
 change. Light/dark theme appearance, real window resizing, and Linux runtime
 behavior remain manual acceptance checks. No hosted CI or publication ran.
+
+## Intel macOS packaging validation, 2026-11-13
+
+`make check build dist` passed on macOS arm64 with Go 1.27.4, including application
+and build-tool vet/race tests, all four cross-builds, and preview packaging. All
+four archives passed SHA-256 verification. The Intel macOS executable was
+identified as Mach-O x86_64; Go build metadata confirmed GOOS=darwin,
+GOARCH=amd64, and CGO_ENABLED=0. Its archive contains the executable with mode
+0755, installation instructions, release notes, and both required license files.
+
+The notice inventory now includes Intel macOS explicitly. No dependencies
+changed. This establishes cross-compilation and packaging, not runtime testing
+on an Intel Mac. Hosted CI and release publication were not performed.

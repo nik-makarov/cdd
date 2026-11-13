@@ -96,12 +96,12 @@ jobs:
           UPDATED_GO: ${{ steps.update.outputs.go_version }}
         run: |
           timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          printf '\n- `%s` — Update Go to %s and refresh application/tool module versions and checksums. Formatting, vet, race-enabled tests, host packaging, three cross-builds, checksum verification, and vulnerability scans passed on the GitHub Ubuntu runner. Runtime module paths are unchanged; macOS runtime CI remains a separate check. Paths: `go.mod`, `go.sum`, `tools/go.mod`, `tools/go.sum`.\n' \
+          printf '\n- `%s` — Update Go to %s and refresh application/tool module versions and checksums. Formatting, vet, race-enabled tests, host packaging, four cross-builds, checksum verification, and vulnerability scans passed on the GitHub Ubuntu runner. Runtime module paths are unchanged; macOS runtime CI remains a separate check. Paths: `go.mod`, `go.sum`, `tools/go.mod`, `tools/go.sum`.\n' \
             "$timestamp" "${UPDATED_GO#go}" >> docs/development-journal.md
           body="$RUNNER_TEMP/dependency-update-pr.md"
           {
             printf 'Update both Go directives to **%s** and refresh existing application and tool dependencies.\n\n' "$UPDATED_GO"
-            printf 'Passed on Ubuntu: formatting, vet, race-enabled tests, host build, three platform cross-builds, checksum verification, and vulnerability scans. Runtime module paths are unchanged.\n\n'
+            printf 'Passed on Ubuntu: formatting, vet, race-enabled tests, host build, four platform cross-builds, checksum verification, and vulnerability scans. Runtime module paths are unchanged.\n\n'
             printf 'Review the version/checksum changes and regenerated redistribution notices before merging. GitHub may require approval to run the separate pull-request CI.\n\n'
             printf 'Application module changes:\n\n```diff\n'
             diff -u --label before --label after "$RUNNER_TEMP/application-before.txt" "$RUNNER_TEMP/application-after.txt" || test "$?" -eq 1

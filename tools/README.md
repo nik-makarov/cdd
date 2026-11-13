@@ -22,7 +22,7 @@ See [third-party notices](../THIRD_PARTY_NOTICES.md) for the packaging contract.
 
 ## Release packager
 
-`release/` packages the three supported distribution targets, using only the
+`release/` packages the four supported distribution targets, using only the
 standard library. It validates the version and matching dated CHANGELOG section,
 includes licenses and executable permissions, and writes SHA-256 checksums.
 `make dist` previews Unreleased notes with VERSION=dev; tagged publication uses

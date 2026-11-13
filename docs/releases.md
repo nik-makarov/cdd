@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | Linux | x64 / amd64 | `linux_amd64.tar.gz` |
 | Linux | arm64 | `linux_arm64.tar.gz` |
+| macOS | Intel / amd64 | `darwin_amd64.tar.gz` |
 | macOS | Apple Silicon / arm64 | `darwin_arm64.tar.gz` |
 
 Each archive contains `0go`, `README.md` with standalone instructions, the MIT
@@ -41,7 +42,7 @@ the absolute binary path. Place it at a permanent location before adding its
 make dist
 ```
 
-This builds the three targets and writes preview archives under `dist/dev/`,
+This builds the four targets and writes preview archives under `dist/dev/`,
 using the Unreleased section from CHANGELOG.md. It does not publish anything.
 The archive format and checksums are deterministic for identical inputs.
 
@@ -86,7 +87,7 @@ Commit the dated notes and the related source changes first. When the maintainer
 pushes an existing stable `vX.Y.Z` Git tag to GitHub, the Release workflow:
 
 1. Calls the ordinary CI, including Linux/macOS tests and vulnerability auditing.
-2. Builds and packages Linux amd64/arm64 and macOS arm64 binaries.
+2. Builds and packages Linux amd64/arm64 and macOS amd64/arm64 binaries.
 3. Verifies the archive checksums.
 4. Creates a draft GitHub Release with the archives, checksums, and curated notes.
 5. Publishes the draft only after uploads succeed.

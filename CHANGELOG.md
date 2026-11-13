@@ -15,7 +15,7 @@ version is published on GitHub. Development history is recorded separately in
 - Use a theme-aware directory picker with a full-row selection bar, highlighted
   current path, compact controls, and expandable keyboard help via `?`.
 - Disable added UI colors with `NO_COLOR` while retaining a visible selection.
-- Install from portable archives for Linux x64/arm64 and macOS arm64.
+- Install from portable archives for Linux x64/arm64 and macOS Intel/Apple Silicon.
 
 ### Notes
 

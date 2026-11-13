@@ -47,8 +47,8 @@ See [usage and shell integration](docs/usage.md) for all controls and options.
 
 ## Install
 
-Prebuilt archives are prepared for Linux x64/arm64 and macOS arm64. Once a version
-is published, download the matching archive from
+Prebuilt archives are prepared for Linux x64/arm64 and macOS Intel/Apple Silicon.
+Once a version is published, download the matching archive from
 [GitHub Releases](https://github.com/nik-makarov/0go/releases). Each archive includes
 the executable, installation instructions, licenses, and release notes. See
 [release installation](docs/releases.md#use-an-archive).

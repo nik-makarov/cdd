@@ -11,7 +11,7 @@ help:
 	@printf '%s\n' \
 		'0go development commands (run from the source root):' \
 		'  make build        Build the host binary and license files' \
-		'  make cross-build  Build Linux amd64/arm64 and macOS arm64 binaries' \
+		'  make cross-build  Build Linux and macOS amd64/arm64 binaries' \
 		'  make dist         Package local preview archives under dist/dev/' \
 		'  make test         Run application and build-tool tests' \
 		'  make check        Check formatting, vet, and race-enabled tests' \
@@ -31,7 +31,7 @@ notices:
 	cp LICENSE bin/LICENSE
 
 cross-build: notices
-	@set -eu; for target in linux/amd64 linux/arm64 darwin/arm64; do \
+	@set -eu; for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do \
 		CGO_ENABLED=0 GOOS="$${target%/*}" GOARCH="$${target#*/}" go build -trimpath \
 			-ldflags "-s -w -X main.version=$(VERSION)" -o "bin/0go-$${target%/*}-$${target#*/}" .; \
 	done

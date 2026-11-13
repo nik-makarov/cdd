@@ -5,7 +5,7 @@ retain their upstream licenses.
 
 `make notices`, `make build`, and `make cross-build` generate one
 `bin/THIRD_PARTY_LICENSES.txt` from the application packages used on Linux
-amd64/arm64, macOS arm64, and the local build host when different. It includes
+amd64/arm64, macOS amd64/arm64, and the local build host when different. It includes
 module names and versions, complete
 upstream LICENSE, NOTICE, and patent files when present, and the Go standard
 library license. Missing or empty primary license files fail the build.

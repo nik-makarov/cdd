@@ -23,7 +23,7 @@ var errMissingLicense = errors.New("missing primary license")
 type target struct{ os, arch string }
 
 var targets = []target{
-	{"darwin", "arm64"},
+	{"darwin", "amd64"}, {"darwin", "arm64"},
 	{"linux", "amd64"}, {"linux", "arm64"},
 }
 

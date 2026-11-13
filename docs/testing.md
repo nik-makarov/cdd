@@ -1,0 +1,87 @@
+# Verification
+
+Use the latest stable Go release and run commands from the source root. Install
+both zsh and bash to exercise the complete shell integration suite. Tests for an
+unavailable shell are skipped locally; CI supplies both shells.
+
+## Automated checks
+
+| Command | Scope |
+| --- | --- |
+| `make check` | Formatting, vet, and shuffled race-enabled application and notice-generator tests |
+| `make test` | Application and notice-generator tests without race instrumentation |
+| `make build` | Host binary and complete redistribution license files |
+| `make cross-build` | macOS/Linux amd64/arm64 binaries and shared license files |
+| `make audit` | Checksums for both modules and vulnerability scans of the application and notice generator |
+
+Application tests cover browsing, parent selection, case-insensitive filtering,
+hidden directories, symlinks, removed directories, cancellation, narrow views,
+and display sanitization. Real zsh and bash subprocesses verify literal path
+handling, trailing newlines, quotes, metacharacters, cancellation, partial output
+on failure, and help passthrough.
+
+Input-decoder tests cover complete and fragmented terminal sequences, Unicode,
+malformed input, and Esc timeout behavior. For decoder changes, also run:
+
+```sh
+go test -run '^$' -fuzz FuzzDecodeKey -fuzztime=10s
+```
+
+Notice-generator tests check complete LICENSE/NOTICE/patent inputs, rejection of
+missing or empty licenses, the Homebrew Go license layout, and exclusion of
+development tools from application notices. `make build` inventories all four
+cross-build targets; a successful cross-compilation is not a runtime test on
+that operating system or architecture.
+
+`make audit` uses the pinned scanner in [tools/](../tools/README.md). First-time
+tool downloads need access to the Go module proxy; vulnerability queries need
+`vuln.go.dev`. A network error is not a clean audit result. A clean result reports
+known reachable vulnerabilities only and does not establish overall safety.
+
+## Manual terminal acceptance
+
+Use a disposable directory tree and a real interactive terminal:
+
+1. Run the quick start in both shells and select a child directory. Check `pwd`
+   after the picker exits, then run `0go` from the new directory.
+2. Open several levels, return to a parent, and confirm the previous child remains
+   selected. Select the `.` row in an empty directory.
+3. Filter a Unicode name, edit the filter with Backspace, and finish editing with
+   Enter or Esc before selecting or cancelling.
+4. Toggle hidden directories, open a directory symlink, and remove a selected
+   directory from another shell to check recovery after an error.
+5. Resize the terminal while browsing. Check narrow windows and long names.
+6. Cancel with Esc, `q`, and Ctrl+C. Confirm the working directory is unchanged,
+   normal input and echo return, and the cursor is visible.
+7. Check handled termination signals and restore behavior separately from an
+   uncatchable kill. Do not use a production shell for destructive process tests.
+
+Automated model tests do not verify visual layout or real terminal restoration.
+Terminal emulators can differ in key sequences and Unicode display width.
+Use [usage](usage.md) for expected controls and the shell contract.
+
+## Local evidence, 2026-11-13
+
+- `make check build` passed on macOS arm64 with Go 1.27.4, including vet,
+  race-enabled application tests, notice-generator tests, and host packaging.
+- `make cross-build` produced macOS/Linux amd64/arm64 binaries. Build metadata
+  showed only `golang.org/x/term` and `golang.org/x/sys` as external application
+  modules. Generated notices include both modules' license and patent text and
+  the effective Go standard library license.
+- Installation into a temporary prefix passed. Installed license files matched
+  the generated files, the binary reported its version, and both generated shell
+  functions passed shell syntax checks. No user installation was performed.
+- Relative documentation links passed a local check. Actionlint 1.7.12 accepted
+  the workflow; ShellCheck was unavailable and was explicitly disabled for that
+  local workflow check. Hosted Actions execution was not performed.
+- Both module checksum checks passed. The pinned scanner started for the
+  application and the notice generator, but both scans failed on DNS access to
+  `vuln.go.dev`. Neither scan is recorded as clean. The owner's earlier audit of
+  the unchanged application dependencies reported no vulnerabilities.
+- Earlier manual native-terminal checks in this development session verified
+  real shell directory changes, navigation/filtering, cancellation, and terminal
+  restoration. They were not repeated for this documentation and packaging
+  change. Cross-built binaries were not runtime-tested on other platforms.
+
+GitHub security settings, publication, and hosted CI remain unverified. These
+results describe local preparation, not a release or deployment.

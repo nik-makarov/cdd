@@ -1,41 +1,25 @@
 # Third-party notices
 
-0go is licensed under MIT. The following dependencies are maintained by the Go
-project and retain their original BSD-style license:
+0go uses the [MIT license](LICENSE). Its dependencies and the Go standard library
+retain their upstream licenses.
 
-- `golang.org/x/term`: <https://go.googlesource.com/term/>
-- `golang.org/x/sys`: <https://go.googlesource.com/sys/>
+`make notices`, `make build`, and `make cross-build` generate one
+`bin/THIRD_PARTY_LICENSES.txt` from the application packages used on macOS and
+Linux, on amd64 and arm64. It includes module names and versions, complete
+upstream LICENSE, NOTICE, and patent files when present, and the Go standard
+library license. Missing or empty primary license files fail the build.
 
-Both modules use the license reproduced below. Versions and checksums are
-recorded in `go.mod` and `go.sum`. Include this notice when distributing compiled
-binaries of 0go.
+The inventory excludes test-only and development-tool dependencies unless the
+application actually imports them. The generator does not vendor source code or
+maintain a second copy of upstream licenses in the repository. Generated notices
+and binaries are excluded from Git; versions and checksums remain in the module
+files. Module replacements require licensing review before packaging.
 
-```text
-Copyright 2009 The Go Authors.
+Builds also copy the project's own MIT license to `bin/LICENSE`. Keep it and
+`bin/THIRD_PARTY_LICENSES.txt` with any redistributed standalone executable.
+`make install` places license files under
+`$(PREFIX)/share/licenses/0go` by default; `LICENSEDIR` can override that location.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google LLC nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-```
+After changing runtime dependencies, Go toolchains, or build targets, regenerate
+and review the notices and run the relevant checks. These files do not relicense
+third-party code under MIT.

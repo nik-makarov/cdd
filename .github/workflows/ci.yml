@@ -32,19 +32,28 @@ jobs:
         with:
           go-version: stable
           check-latest: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
       - name: Install zsh for shell integration tests
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y zsh
       - name: Verify dependency checksums
-        run: go mod verify
+        run: |
+          go mod verify
+          go -C tools mod verify
       - name: Check module files
         run: |
           go mod tidy
-          git diff --exit-code -- go.mod go.sum
+          go -C tools mod tidy
+          git diff --exit-code -- go.mod go.sum tools/go.mod tools/go.sum
       - name: Check formatting, vet, tests, and build
         run: make check build
+      - name: Cross-compile supported platforms
+        if: runner.os == 'Linux'
+        run: make cross-build
 
   audit:
     name: Vulnerability audit
@@ -58,4 +67,7 @@ jobs:
         with:
           go-version: stable
           check-latest: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
       - run: make audit

@@ -28,22 +28,52 @@ type file struct {
 func main() {
 	root := flag.String("root", "..", "application source directory")
 	version := flag.String("version", "dev", "dev or a stable vX.Y.Z version")
+	next := flag.Bool("next-version", false, "print the next automatic release version")
+	automatic := flag.Bool("automatic", false, "include source, formula, and automatic release notes")
 	flag.Parse()
-	if err := packageRelease(*root, *version); err != nil {
+	if *next {
+		tag, err := nextVersion(*root)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "release: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(tag)
+		return
+	}
+	if err := packageReleaseMode(*root, *version, *automatic); err != nil {
 		fmt.Fprintf(os.Stderr, "release: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 func packageRelease(root, version string) error {
+	return packageReleaseMode(root, version, false)
+}
+
+func packageReleaseMode(root, version string, automatic bool) error {
 	if version != "dev" && !versionPattern.MatchString(version) {
 		return fmt.Errorf("invalid version %q: expected dev or stable vX.Y.Z", version)
+	}
+	if automatic {
+		if !versionPattern.MatchString(version) {
+			return fmt.Errorf("automatic packaging requires a stable version")
+		}
+		status, err := git(root, "status", "--porcelain")
+		if err != nil {
+			return err
+		}
+		if status != "" {
+			return fmt.Errorf("automatic packaging requires a clean committed source tree")
+		}
 	}
 	changelog, err := os.ReadFile(filepath.Join(root, "CHANGELOG.md"))
 	if err != nil {
 		return fmt.Errorf("read release notes: %w", err)
 	}
 	notes, err := releaseNotes(string(changelog), version)
+	if automatic && versionPattern.MatchString(version) {
+		notes, err = automaticNotes(root, version, string(changelog))
+	}
 	if err != nil {
 		return err
 	}
@@ -80,9 +110,19 @@ func packageRelease(root, version string) error {
 		return fmt.Errorf("create archive directory: %w", err)
 	}
 	outputs := append(archives,
-		file{"SHA256SUMS", []byte(sums.String()), 0o644},
 		file{"RELEASE_NOTES.md", []byte(notes), 0o644},
 	)
+	if automatic {
+		source, err := sourceArchive(root, version)
+		if err != nil {
+			return err
+		}
+		name := "cdd_" + version + "_source.tar.gz"
+		sum := fmt.Sprintf("%x", sha256.Sum256(source))
+		fmt.Fprintf(&sums, "%s  %s\n", sum, name)
+		outputs = append(outputs, file{name, source, 0o644}, file{"cdd.rb", []byte(formula(version, sum)), 0o644})
+	}
+	outputs = append(outputs, file{"SHA256SUMS", []byte(sums.String()), 0o644})
 	for _, item := range outputs {
 		if err := os.WriteFile(filepath.Join(output, item.name), item.data, os.FileMode(item.mode)); err != nil {
 			return fmt.Errorf("write %s: %w", item.name, err)

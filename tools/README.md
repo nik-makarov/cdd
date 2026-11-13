@@ -23,10 +23,13 @@ See [third-party notices](../THIRD_PARTY_NOTICES.md) for the packaging contract.
 ## Release packager
 
 `release/` packages the four supported distribution targets, using only the
-standard library. It validates the version and matching dated CHANGELOG section,
-includes licenses and executable permissions, and writes SHA-256 checksums.
-`make dist` previews Unreleased notes with VERSION=dev; tagged publication uses
-a stable vX.Y.Z version. See [releases](../docs/releases.md).
+standard library. It validates versions and curated notes, includes licenses
+and executable permissions, and writes SHA-256 checksums. `make dist` previews
+Unreleased notes with VERSION=dev. `-next-version` computes the next automatic
+version from VERSION and Git tags; `-automatic` also packages committed source,
+generates the source-built Homebrew formula, and selects curated or incremental
+release notes. Automatic packaging requires a clean committed checkout and
+never publishes anything itself. See [releases](../docs/releases.md).
 
 ## Dependency updates
 

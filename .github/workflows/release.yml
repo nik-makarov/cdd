@@ -2,31 +2,31 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-release-${{ github.ref }}
+  group: publish-release-main
   cancel-in-progress: false
+  queue: max
 
 jobs:
   checks:
     uses: ./.github/workflows/ci.yml
 
   publish:
-    name: Package and publish release
+    name: Publish release and update Homebrew tap
     needs: checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: write
-    env:
-      RELEASE_TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -35,21 +35,81 @@ jobs:
           cache-dependency-path: |
             go.sum
             tools/go.sum
-      - name: Validate version and package archives
+      - name: Check tap credentials before publication
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            printf 'Expected a stable vX.Y.Z tag, got: %s\n' "$RELEASE_TAG" >&2
+          if [ -z "$GH_TOKEN" ]; then
+            printf 'Set HOMEBREW_TAP_TOKEN with Contents: read/write on nik-makarov/homebrew-tap.\n' >&2
             exit 1
           fi
-          make dist VERSION="$RELEASE_TAG"
-          (cd "dist/$RELEASE_TAG" && sha256sum --check SHA256SUMS)
-      - name: Publish the completed release
+          gh api repos/nik-makarov/homebrew-tap --silent
+      - name: Choose release version
+        id: version
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create "$RELEASE_TAG" "dist/$RELEASE_TAG/"*.tar.gz \
-            "dist/$RELEASE_TAG/SHA256SUMS" \
-            --verify-tag --draft --title "cdd $RELEASE_TAG" \
+          tag="$(go -C tools run ./release -root .. -next-version)"
+          printf 'tag=%s\n' "$tag" >> "$GITHUB_OUTPUT"
+          if draft="$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null)" && [ "$draft" = false ]; then
+            printf 'published=true\n' >> "$GITHUB_OUTPUT"
+          else
+            printf 'published=false\n' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build binary archives, source archive, notes, and formula
+        if: steps.version.outputs.published != 'true'
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          make dist VERSION="$RELEASE_TAG" RELEASE_FLAGS=-automatic
+          (cd "dist/$RELEASE_TAG" && sha256sum --check SHA256SUMS)
+      - name: Publish the completed release
+        if: steps.version.outputs.published != 'true'
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          gh auth setup-git --hostname github.com
+          if ! git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            git tag "$RELEASE_TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$RELEASE_TAG"
+          fi
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --draft \
+              --title "cdd $RELEASE_TAG" --notes-file "dist/$RELEASE_TAG/RELEASE_NOTES.md"
+          fi
+          gh release upload "$RELEASE_TAG" "dist/$RELEASE_TAG/"*.tar.gz \
+            "dist/$RELEASE_TAG/SHA256SUMS" "dist/$RELEASE_TAG/cdd.rb" --clobber
+          gh release edit "$RELEASE_TAG" --draft=false \
             --notes-file "dist/$RELEASE_TAG/RELEASE_NOTES.md"
-          gh release edit "$RELEASE_TAG" --draft=false
+      - name: Download the published formula
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          formula_dir="$RUNNER_TEMP/cdd-formula"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern cdd.rb --dir "$formula_dir"
+      - name: Update the source formula in the Homebrew tap
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          gh auth setup-git --hostname github.com
+          tap_dir="$RUNNER_TEMP/homebrew-tap"
+          git clone --branch main https://github.com/nik-makarov/homebrew-tap.git "$tap_dir"
+          mkdir -p "$tap_dir/Formula"
+          cp "$RUNNER_TEMP/cdd-formula/cdd.rb" "$tap_dir/Formula/cdd.rb"
+          git -C "$tap_dir" config user.name 'github-actions[bot]'
+          git -C "$tap_dir" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C "$tap_dir" add Formula/cdd.rb
+          git -C "$tap_dir" diff --cached --check
+          if ! git -C "$tap_dir" diff --cached --quiet; then
+            git -C "$tap_dir" commit -m "Update cdd to $RELEASE_TAG"
+            git -C "$tap_dir" push origin HEAD:main
+          fi
+          printf 'Published cdd %s and updated nik-makarov/tap.\n' "$RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"

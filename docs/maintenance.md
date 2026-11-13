@@ -23,7 +23,9 @@ the pull request. These checks do not replace review of maintainers or source.
 
 If versions changed, the workflow appends a UTC development-journal entry and creates
 a pull request titled **Update Go and dependencies**. Review it and merge it using
-the normal repository process. The workflow does not merge or release anything.
+the normal repository process. The update workflow itself does not merge or
+release anything; merging its PR into main triggers the ordinary automatic
+release and Homebrew tap update.
 If an update PR is already open, the run links to it and stops. If nothing changed,
 it reports that the project is up to date without creating a commit or PR.
 Each new PR uses a new branch; remote history is never force-pushed or rewritten.

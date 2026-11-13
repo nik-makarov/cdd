@@ -200,3 +200,22 @@ entries, keep private data out, and distinguish local work from publication.
   selection with --version=false passed. No dependencies changed; no hosted CI,
   Git push, or publication ran. Paths: `shell.go`, `shell_test.go`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T19:35:01Z` — Publish automatically after checked main pushes,
+  starting from VERSION=0.1.0 and incrementing stable patch tags. Queue releases,
+  refuse out-of-order history, resume drafts, and reuse published assets on
+  retry. Generate deterministic committed-source archives and source-built
+  Homebrew formulae with matching SHA-256; update only Formula/cdd.rb in the
+  separate tap using its scoped token. Use curated first-release notes and
+  optional dated sections, otherwise incremental English commit subjects.
+  Formatting, vet, shuffled race-enabled application/tool tests, and host build
+  passed. An isolated committed snapshot passed automatic four-target/source
+  packaging, archive checksums, extracted-source build/version checks, and both
+  shell syntax checks. Workflow YAML/shell syntax and formula Ruby syntax
+  passed. A disposable Homebrew copy loaded formula metadata before GitHub DNS
+  blocked dependency lookup; complete brew installation/style/tests/audit were
+  not run. Dependency versions are unchanged. No hosted CI ran; no secrets were
+  set or remote branches/tags/releases published. Paths: `.github/workflows/ci.yml`,
+  `.github/workflows/release.yml`, `VERSION`, `Makefile`, `tools/release/`,
+  `tools/README.md`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
+  `docs/releases.md`, `docs/maintenance.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

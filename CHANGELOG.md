@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Install through the source-built `nik-makarov/tap` Homebrew tap, with automatic
+  versioned releases and formula updates after successful pushes to main.
 - Browse directories with arrow keys or `hjkl`, then choose one with Enter.
 - Filter directory names, show hidden directories, and follow directory symlinks.
 - Change the current shell's directory through zsh or bash integration.

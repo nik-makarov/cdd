@@ -49,6 +49,16 @@ See [usage and shell integration](docs/usage.md) for all controls and options.
 
 ## Install
 
+Once the first release is published, install from the source-built Homebrew tap:
+
+```sh
+brew install nik-makarov/tap/cdd
+eval "$("$(brew --prefix)/bin/cdd" --init zsh)"
+```
+
+Add the `eval` line to `~/.zshrc`, or use `--init bash` in `~/.bashrc`. Homebrew
+installs Go as a build dependency. See [Homebrew details](docs/releases.md#homebrew).
+
 Prebuilt archives are prepared for Linux x64/arm64 and macOS Intel/Apple Silicon.
 Once a version is published, download the matching archive from
 [GitHub Releases](https://github.com/nik-makarov/cdd/releases). Each archive includes
@@ -86,6 +96,8 @@ The audit needs access to the Go vulnerability database.
 standalone executable. Generated output is not committed.
 
 GitHub Actions checks Linux and macOS and runs a weekly vulnerability audit.
+Every successful push to `main` publishes a release and updates the Homebrew tap,
+starting at `v0.1.0` and increasing the patch version automatically.
 Hosted CI execution and GitHub security settings require a published repository;
 local validation does not establish that they have run. See
 [testing](docs/testing.md) for verification commands, evidence, and limits.

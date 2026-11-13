@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := help
 
 VERSION ?= dev
+RELEASE_FLAGS ?=
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
 LICENSEDIR ?= $(PREFIX)/share/licenses/cdd
@@ -37,7 +38,7 @@ cross-build: notices
 	done
 
 dist: cross-build
-	go -C tools run ./release -root .. -version "$(VERSION)"
+	go -C tools run ./release -root .. -version "$(VERSION)" $(RELEASE_FLAGS)
 
 test:
 	go test ./...

@@ -9,6 +9,8 @@ requests, and commits. Write non-ASCII test fixture data using Go Unicode
 escapes to preserve Unicode coverage while keeping source text in English.
 Use concise imperative commit subjects describing the concrete change, without
 Conventional Commits prefixes. Keep unrelated changes in separate commits.
+Successful pushes to main publish a release automatically. Write commit subjects
+that describe resulting behavior, since incremental release notes use them.
 
 ## Development
 

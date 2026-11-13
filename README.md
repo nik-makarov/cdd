@@ -7,6 +7,9 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 - Reads one directory at a time without recursively scanning the filesystem.
 - Two application dependencies, both maintained within the Go project.
 
+The scope is directory selection and shell integration. Features must directly
+support that task while keeping the program and its dependency graph small.
+
 ## Requirements
 
 Use the latest stable Go release matching the minimum in [go.mod](go.mod), Make,
@@ -42,6 +45,14 @@ shell function receives the chosen path and executes `cd` in the current shell.
 See [usage and shell integration](docs/usage.md) for all controls and options.
 
 ## Install
+
+Prebuilt archives are prepared for Linux x64/arm64 and macOS arm64. Once a version
+is published, download the matching archive from
+[GitHub Releases](https://github.com/nik-makarov/0go/releases). Each archive includes
+the executable, installation instructions, licenses, and release notes. See
+[release installation](docs/releases.md#use-an-archive).
+
+To install from a source checkout:
 
 ```sh
 make install
@@ -79,11 +90,13 @@ local validation does not establish that they have run. See
 ## Documentation
 
 - [Update Go and dependencies with a button](docs/maintenance.md)
+- [Release notes](CHANGELOG.md) and [release packaging](docs/releases.md)
 - [Usage, installation, and shell integration](docs/usage.md)
 - [Architecture and dependency boundaries](docs/architecture.md)
 - [Verification and manual acceptance](docs/testing.md)
 - [Pinned development tools](tools/README.md)
-- [Contributing](CONTRIBUTING.md), [security reporting](SECURITY.md), and [change journal](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md), [security reporting](SECURITY.md), and [development journal](docs/development-journal.md)
+- [Planned work](TODO.md)
 - [Redistribution notices](THIRD_PARTY_NOTICES.md)
 
 ## License

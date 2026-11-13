@@ -38,6 +38,15 @@ Keep changes small and add tests for meaningful behavior. Preserve cancellation,
 terminal restoration, stdout isolation, and literal handling of directory names
 containing whitespace, quotes, shell metacharacters, or newlines.
 
+## Project scope
+
+0go exists to navigate directories, choose one, and enter it in the current shell.
+Filtering, keyboard navigation, and robust path handling support that task.
+Keep the application small and its dependencies minimal. File management,
+background indexing, network services, plugins, and unrelated utility commands
+are outside its scope. Explain how a proposed feature directly improves directory
+selection before adding code or dependencies.
+
 ## Dependencies
 
 Prefer the standard library. New dependencies need a concrete justification,
@@ -51,12 +60,18 @@ the generated redistribution file; missing licenses must fail the build.
 
 ## Change journal
 
-Append an English entry to [CHANGELOG.md](CHANGELOG.md) for each logical lasting
-change, including documentation, tests, dependencies, agent instructions, and
-tooling. Use the actual UTC timestamp in `YYYY-MM-DDTHH:MM:SSZ`, affected paths,
+Append an English entry to [the development journal](docs/development-journal.md)
+for each logical lasting change, including documentation, tests, dependencies,
+agent instructions, and tooling. Use the actual UTC timestamp in
+`YYYY-MM-DDTHH:MM:SSZ`, affected paths,
 and verified scope. Preserve earlier entries and include the journal update in
 the same commit. Distinguish local validation from publication or hosted CI.
 Do not record plans, read-only findings, or routine checks without a lasting
 change. Documentation changes need a link and command review.
+
+Keep [CHANGELOG.md](CHANGELOG.md) for concise user-facing changes under Unreleased
+and dated release versions. Explain resulting behavior, fixes, and compatibility
+changes rather than internal file lists or verification logs. See
+[releases](docs/releases.md) for packaging and publication.
 
 Contributions are licensed under the project's [MIT license](LICENSE).

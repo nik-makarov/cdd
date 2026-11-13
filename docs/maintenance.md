@@ -16,12 +16,12 @@ Preview and development Go releases are not selected. An incompatible dependency
 that requires a newer toolchain fails the run instead of silently selecting one.
 
 The candidate must pass formatting, vet, race-enabled tests, host packaging,
-macOS/Linux amd64/arm64 cross-builds, module verification, and vulnerability scans
-on Ubuntu. An added or removed runtime module path stops the workflow for manual
+Linux amd64/arm64 and macOS arm64 cross-builds, module verification, and
+vulnerability scans on Ubuntu. An added or removed runtime module path stops the workflow for manual
 review. Generated notices are rebuilt; tool dependency changes remain visible in
 the pull request. These checks do not replace review of maintainers or source.
 
-If versions changed, the workflow appends a UTC change-journal entry and creates
+If versions changed, the workflow appends a UTC development-journal entry and creates
 a pull request titled **Update Go and dependencies**. Review it and merge it using
 the normal repository process. The workflow does not merge or release anything.
 If an update PR is already open, the run links to it and stops. If nothing changed,

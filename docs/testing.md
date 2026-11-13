@@ -8,11 +8,13 @@ unavailable shell are skipped locally; CI supplies both shells.
 
 | Command | Scope |
 | --- | --- |
-| `make check` | Formatting, vet, and shuffled race-enabled application and notice-generator tests |
-| `make test` | Application and notice-generator tests without race instrumentation |
+| `make` / `make help` | Print available commands without building or installing |
+| `make check` | Formatting, vet, and shuffled race-enabled application and build-tool tests |
+| `make test` | Application and build-tool tests without race instrumentation |
 | `make build` | Host binary and complete redistribution license files |
-| `make cross-build` | macOS/Linux amd64/arm64 binaries and shared license files |
-| `make audit` | Checksums for both modules and vulnerability scans of the application and notice generator |
+| `make cross-build` | Linux amd64/arm64 and macOS arm64 binaries with license files |
+| `make dist` | Three preview archives, SHA-256 checksums, licenses, and curated notes |
+| `make audit` | Checksums for both modules and vulnerability scans of the application and build tools |
 
 Application tests cover browsing, parent selection, case-insensitive filtering,
 hidden directories, symlinks, removed directories, cancellation, narrow views,
@@ -29,9 +31,15 @@ go test -run '^$' -fuzz FuzzDecodeKey -fuzztime=10s
 
 Notice-generator tests check complete LICENSE/NOTICE/patent inputs, rejection of
 missing or empty licenses, the Homebrew Go license layout, and exclusion of
-development tools from application notices. `make build` inventories all four
-cross-build targets; a successful cross-compilation is not a runtime test on
-that operating system or architecture.
+development tools from application notices. `make build` inventories the three
+distribution targets plus the host when different; a successful cross-compilation
+is not a runtime test on that operating system or architecture.
+
+Release-tool tests verify version-specific notes, required dates, duplicate and
+missing sections, archive contents and executable permissions, SHA-256 sums,
+deterministic packaging, and failure before output for missing license inputs.
+Historical evidence below includes the earlier four-target matrix; the current
+distribution matrix contains only Linux amd64/arm64 and macOS arm64.
 
 `make audit` uses the pinned scanner in [tools/](../tools/README.md). First-time
 tool downloads need access to the Go module proxy; vulnerability queries need
@@ -107,3 +115,23 @@ creation was executed. The working repository's module files were not updated
 by the fixture. GitHub authentication, permission checks, and PR CI approval
 behavior require the published workflow and repository settings described in
 [maintenance](maintenance.md).
+
+## Release packaging validation, 2026-11-13
+
+`make check build dist` passed on macOS arm64 with Go 1.27.4, including vet,
+race-enabled application and build-tool tests, and the three cross-builds. Release
+tests covered versioned notes, invalid dates and versions, required archive files,
+executable permissions, checksums, reproducibility, and missing-license failures.
+
+All three real preview archives passed SHA-256 verification. The macOS arm64
+archive was extracted and its executable reported `0go dev`; its generated shell
+function performed a real `cd` in a terminal. Linux archives were cross-built,
+not runtime-tested here. Plain `make` in a directory containing only the Makefile
+printed help and created no build output.
+
+All workflow Bash blocks passed syntax checks, and actionlint accepted all three
+workflows with ShellCheck disabled. Relative documentation links passed. Both
+module checksum checks passed, while the vulnerability scan failed on unavailable
+database DNS. No tag, hosted CI run, draft release, public release, signature, or
+notarization was created. Current release targets are Linux amd64/arm64 and macOS
+arm64; earlier four-platform records above describe the previous build matrix.

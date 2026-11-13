@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -22,7 +23,7 @@ var errMissingLicense = errors.New("missing primary license")
 type target struct{ os, arch string }
 
 var targets = []target{
-	{"darwin", "amd64"}, {"darwin", "arm64"},
+	{"darwin", "arm64"},
 	{"linux", "amd64"}, {"linux", "arm64"},
 }
 
@@ -48,7 +49,12 @@ func generate(ctx context.Context, root string) error {
 	if err != nil {
 		return fmt.Errorf("resolve application directory: %w", err)
 	}
-	text, err := collect(ctx, root, targets)
+	platforms := slices.Clone(targets)
+	host := target{runtime.GOOS, runtime.GOARCH}
+	if !slices.Contains(platforms, host) {
+		platforms = append(platforms, host)
+	}
+	text, err := collect(ctx, root, platforms)
 	if err != nil {
 		return err
 	}

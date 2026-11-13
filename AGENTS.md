@@ -13,6 +13,9 @@ without any personal agent skills or local tooling configuration.
 Keep this small CLI simple. UI and diagnostics go to the terminal/stderr;
 stdout is reserved for the selected path. Preserve shell integration tests,
 especially cancellation and filenames containing shell metacharacters.
+The application's scope is directory navigation and selection plus shell
+integration for cd. Do not add file management, background services, networking,
+or unrelated capabilities. Features must directly support choosing a directory.
 
 Minimize dependencies. Prefer the standard library; remaining external modules
 must have a clear purpose and verifiable maintainers. Currently only the Go
@@ -27,9 +30,12 @@ Run `make check build` before committing code changes. Run `make audit` when
 dependencies change; report network failures instead of claiming a clean audit.
 Keep documentation and examples free of machine-specific paths.
 
-Append a chronological English CHANGELOG.md entry with actual UTC time,
-affected paths, and verified scope for every lasting logical change. Include
+Append a chronological English docs/development-journal.md entry with actual UTC
+time, affected paths, and verified scope for every lasting logical change. Include
 it in the same commit. Do not record plans or imply publication from local
 checks. Keep the README concise and detailed documentation under docs/.
+Keep CHANGELOG.md user-facing, with Unreleased changes and dated version sections.
+Tagged releases require matching curated notes. Release archives target only
+Linux amd64/arm64 and macOS arm64; publishing belongs to GitHub Actions.
 
 Docker images must only be published by repository CI/CD, never locally.

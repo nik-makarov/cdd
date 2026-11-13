@@ -59,6 +59,10 @@ browsing location. Continue navigating or cancel to return to your shell.
 
 ## Installation
 
+Prebuilt archives target Linux amd64/arm64 and macOS arm64. They can be used
+without Go or Make; see [archive installation](releases.md#use-an-archive).
+The commands below build and install from a source checkout.
+
 ```sh
 make install
 ```
@@ -123,8 +127,14 @@ an interactive terminal.
 ## Build output
 
 `make build` creates `bin/0go`, `bin/LICENSE`, and
-`bin/THIRD_PARTY_LICENSES.txt`. `make cross-build` creates binaries for macOS and
-Linux on amd64 and arm64, sharing the same license files. Keep both license files
+`bin/THIRD_PARTY_LICENSES.txt`. `make cross-build` creates binaries for Linux
+amd64/arm64 and macOS arm64, sharing the same license files. Keep both license files
 with any redistributed executable.
+
+`make dist` packages local previews under `dist/dev/`, including release notes,
+licenses, archive instructions, and SHA-256 checksums. Versioned packaging requires
+a matching dated section in CHANGELOG.md; see [releases](releases.md).
+
+Running plain `make` prints a command summary without building or installing.
 
 `make clean` removes those generated files. Build output is excluded from Git.

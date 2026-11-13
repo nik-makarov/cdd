@@ -6,8 +6,8 @@ requirements, and checksums. Dependabot proposes updates for this module.
 
 Use `make audit` from the repository root. It verifies both modules, then runs
 the scanner against the application and the standard-library-only notice
-generator. No global executable or `PATH` change is needed. Go downloads tools
-into its cache as necessary; vulnerability data is queried over the network.
+and release tools. No global executable or `PATH` change is needed. Go downloads
+tools into its cache as necessary; vulnerability data is queried over the network.
 
 The application module retains only its two runtime dependencies. Tool
 dependencies are not application imports and are excluded from redistribution
@@ -19,6 +19,14 @@ notices unless application code actually imports them.
 It uses only the Go standard library. `make notices`, `make build`, and
 `make cross-build` run it to create one `bin/THIRD_PARTY_LICENSES.txt`.
 See [third-party notices](../THIRD_PARTY_NOTICES.md) for the packaging contract.
+
+## Release packager
+
+`release/` packages the three supported distribution targets, using only the
+standard library. It validates the version and matching dated CHANGELOG section,
+includes licenses and executable permissions, and writes SHA-256 checksums.
+`make dist` previews Unreleased notes with VERSION=dev; tagged publication uses
+a stable vX.Y.Z version. See [releases](../docs/releases.md).
 
 ## Dependency updates
 

@@ -77,6 +77,12 @@ leaves Children blank, including immediately after entering a directory.
 Highlighting a file shows no directory preview. File contents are never read or
 opened.
 
+Each pane shows its directory's absolute path above its entries: the parent on
+the left, the current directory in the middle, and the highlighted directory
+on the right. The right path is blank for files and the `.` row; the parent
+path is blank at the filesystem root. Long paths are shortened from the left
+within their own column, preserving the directory name when space permits.
+
 Folders are cyan, files use the theme's dim foreground, and directory symlinks
 are magenta. Suffixes also distinguish entries without color: `/` for folders,
 `@/` for directory
@@ -108,7 +114,8 @@ The footer keeps essential controls visible, with more shortcuts available via
 long lists indicate when more rows are above or below the visible page.
 
 In compact view, lists that exceed the available height use two columns when the
-terminal is at least 56 cells wide. Entries run down the left column, then down
+terminal is at least 56 cells wide. Both columns display the current directory's
+path because they split the same listing. Entries run down the left column, then down
 the right. `Tab` or Shift+Tab switches to the corresponding row in the other
 column, or its last entry if that row is absent. Up/Down continues through the
 ordered list; Page Up/Down moves a full page of both columns. Right still opens

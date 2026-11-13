@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Show each column's directory path in tree and compact views, with clipped
+  paths that follow navigation and the highlighted directory preview.
 - Install through the source-built `nik-makarov/tap` Homebrew tap, with automatic
   versioned releases and formula updates after successful pushes to main.
 - Browse directories with arrow keys or `hjkl`, then choose one with Enter.

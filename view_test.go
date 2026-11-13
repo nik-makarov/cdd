@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -122,6 +123,83 @@ func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+func TestPanePathsFollowDisplayedDirectories(t *testing.T) {
+	for _, tt := range []struct {
+		name, current string
+		item          entry
+		compact       bool
+		width, height int
+		want          []string
+	}{
+		{"directory preview", "/work/current", entry{path: "/work/current/child"}, false, 120, 18,
+			[]string{"/work", "/work/current", "/work/current/child"}},
+		{"directory link", "/work/current", entry{path: "/work/current/link", kind: folderLink}, false, 120, 18,
+			[]string{"/work", "/work/current", "/work/current/link"}},
+		{"current row", "/work/current", entry{path: "/work/current"}, false, 120, 18,
+			[]string{"/work", "/work/current", ""}},
+		{"file", "/work/current", entry{path: "/work/current/file", kind: file}, false, 120, 18,
+			[]string{"/work", "/work/current", ""}},
+		{"file link", "/work/current", entry{path: "/work/current/link", kind: fileLink}, false, 120, 18,
+			[]string{"/work", "/work/current", ""}},
+		{"broken link", "/work/current", entry{path: "/work/current/link", kind: brokenLink}, false, 120, 18,
+			[]string{"/work", "/work/current", ""}},
+		{"filesystem root", "/", entry{path: "/child"}, false, 120, 18,
+			[]string{"", "/", "/child"}},
+		{"narrow tree", "/work/current", entry{path: "/work/current/child"}, false, 40, 18,
+			[]string{"/work/current"}},
+		{"short tree", "/work/current", entry{path: "/work/current/child"}, false, 120, 5,
+			[]string{"/work", "/work/current", "/work/current/child"}},
+		{"compact columns", "/work/current", entry{path: "/work/current/child"}, true, 120, 18,
+			[]string{"/work/current", "/work/current"}},
+		{"narrow compact", "/work/current", entry{path: "/work/current/child"}, true, 40, 18,
+			[]string{"/work/current"}},
+		{"short compact", "/work/current", entry{path: "/work/current/child"}, true, 120, 5,
+			[]string{"/work/current", "/work/current"}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			m := browser{path: tt.current, compact: tt.compact, width: tt.width, height: tt.height, cursor: 1}
+			m.visible = []entry{{name: ".", path: tt.current}, tt.item}
+			for range 30 {
+				m.visible = append(m.visible, entry{name: "other"})
+			}
+			row := 0
+			if m.height >= 8 {
+				row = 1
+				if !m.compact {
+					row = 2
+				}
+			}
+			line := strings.Split(plainFrame(m.view()), "\n")[row]
+			got := strings.Split(line, " | ")
+			for i := range got {
+				got[i] = strings.TrimSpace(got[i])
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Fatalf("pane addresses = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPanePathsClipAndSanitize(t *testing.T) {
+	m := browser{
+		path: "/very/long/parent/\x1b[31munsafe\n/current-\u754c", width: 100, height: 18, cursor: 1,
+		styles: terminalStyles(true, "xterm", ""),
+	}
+	m.visible = []entry{{name: ".", path: m.path}, {name: "child", path: m.path + "/\x1b]2;title\a/child-\u754c"}}
+	line := strings.Split(plainFrame(m.view()), "\n")[2]
+	if strings.ContainsAny(line, "\x1b\a\r\t") || textWidth(line) > m.width-1 {
+		t.Fatalf("pane paths injected controls or wrapped: %q", line)
+	}
+	parts := strings.Split(line, " | ")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+	if len(parts) != 3 || !strings.HasSuffix(parts[1], "/current-\u754c") || !strings.HasSuffix(parts[2], "/child-\u754c") || !strings.Contains(parts[2], "...") {
+		t.Fatalf("clipping lost the directory names: %q", line)
 	}
 }
 

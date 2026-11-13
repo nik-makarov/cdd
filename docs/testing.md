@@ -361,3 +361,20 @@ including shuffled race-enabled application/tool tests. The corrected current
 tap formula passed Ruby syntax checking. A new hosted audit was not run as part
 of these local checks; dependency versions and existing release assets did not
 change.
+
+## Directory paths above columns, 2026-11-13
+
+`make check build` passed, including formatting, vet, shuffled race-enabled
+application/tool tests, and the host build. Renderer cases cover parent/current/
+preview paths, logical directory links, blank preview addresses for current-row
+and file selections, filesystem root, compact columns, and narrow/short windows.
+Long Unicode paths and terminal-control characters remain clipped and sanitized;
+existing frame-size, selection, and column-alignment checks also passed.
+
+A native 120-column PTY check showed the parent/current paths at startup, the
+highlighted child path with its preview, updated addresses after entering the
+child, and a blank child address for the new current row. Returning to the parent
+and switching to the compact view displayed its current path over both columns.
+Highlighting a file cleared the right address. Directory selection then returned
+the correct absolute path with exit status zero. No dependencies changed; hosted
+CI and release publication were not run during these local checks.

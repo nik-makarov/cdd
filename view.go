@@ -139,15 +139,22 @@ func (m browser) viewWidth() (width, margin int) {
 	return width - 2*margin, margin
 }
 
+func (m browser) pathLine(path string, width int, active bool) viewLine {
+	text := tail(display(path), width)
+	if !active {
+		return viewLine{{text, m.styles.muted}}
+	}
+	base := display(filepath.Base(path))
+	parent := strings.TrimSuffix(text, base)
+	if parent != text {
+		return viewLine{{parent, m.styles.muted}, {base, m.styles.accent}}
+	}
+	return viewLine{{text, m.styles.accent}}
+}
+
 func (m browser) frame() (header, footer []viewLine) {
 	width, _ := m.viewWidth()
-	path := tail(display(m.path), width)
-	base := filepath.Base(m.path)
-	parent := strings.TrimSuffix(path, display(base))
-	pathLine := viewLine{{path, m.styles.accent}}
-	if parent != path {
-		pathLine = viewLine{{parent, m.styles.muted}, {display(base), m.styles.accent}}
-	}
+	pathLine := m.pathLine(m.path, width, true)
 	header = []viewLine{pathLine}
 	if m.height >= 8 {
 		header = []viewLine{{{"cdd", m.styles.muted}}, pathLine, nil}
@@ -201,6 +208,42 @@ func (m browser) columns() int {
 
 func (m browser) pageSize() int { return m.pageRows() * m.columns() }
 
+func (m browser) paneWidths(width, columns int) []int {
+	if !m.compact {
+		return treeWidths(width)
+	}
+	if columns == 1 {
+		return []int{width}
+	}
+	left := (width - 3) / 2
+	return []int{left, width - 3 - left}
+}
+
+func (m browser) panePaths(widths []int, margin int) string {
+	paths := []string{m.path}
+	if m.compact && len(widths) == 2 {
+		paths = append(paths, m.path)
+	}
+	if !m.compact && len(widths) == 3 {
+		parent, child := "", ""
+		if path := filepath.Dir(m.path); path != m.path {
+			parent = path
+		}
+		if m.cursor >= 0 && m.cursor < len(m.visible) {
+			item := m.visible[m.cursor]
+			if item.isDir() && item.path != m.path {
+				child = item.path
+			}
+		}
+		paths = []string{parent, m.path, child}
+	}
+	parts := make([]viewLine, len(paths))
+	for i, path := range paths {
+		parts[i] = m.pathLine(path, widths[i], path == m.path)
+	}
+	return m.paneRow(parts, widths, margin)
+}
+
 func (m browser) entryLine(index, width int) viewLine {
 	if index >= len(m.visible) {
 		return nil
@@ -236,6 +279,7 @@ func (m browser) view() string {
 	width, margin := m.viewWidth()
 	header, footer := m.frame()
 	rows, columns := m.pageRows(), m.columns()
+	widths := m.paneWidths(width, columns)
 	capacity := rows * columns
 	start := max(0, m.cursor-rows+1)
 	mode := "tree"
@@ -258,10 +302,16 @@ func (m browser) view() string {
 	for _, line := range header {
 		lines = append(lines, render(line))
 	}
-	if !m.compact {
-		if m.height >= 8 {
-			lines[2] = m.treeHeading(width, margin)
+	pathRow := 0
+	if m.height >= 8 {
+		pathRow = 1
+		if !m.compact {
+			lines[1] = m.treeHeading(width, margin)
+			pathRow = 2
 		}
+	}
+	lines[pathRow] = m.panePaths(widths, margin)
+	if !m.compact {
 		lines = append(lines, m.treeLines(rows, width, margin)...)
 	}
 	for row := 0; m.compact && row < min(rows, end-start); row++ {
@@ -269,13 +319,8 @@ func (m browser) view() string {
 			lines = append(lines, render(m.entryLine(start+row, width)))
 			continue
 		}
-		leftWidth := (width - 3) / 2
-		rightWidth := width - 3 - leftWidth
-		left := m.entryLine(start+row, leftWidth).render(leftWidth)
-		right := m.entryLine(start+rows+row, rightWidth).render(rightWidth)
-		// Anchor the second column independently of ambiguous Unicode glyph widths.
-		divider := columnPosition(margin+leftWidth+1) + (viewLine{{" | ", m.styles.muted}}).render(3)
-		lines = append(lines, prefix+left+divider+right)
+		parts := []viewLine{m.entryLine(start+row, widths[0]), m.entryLine(start+rows+row, widths[1])}
+		lines = append(lines, m.paneRow(parts, widths, margin))
 	}
 	if m.height >= 8 {
 		for len(lines) < m.height-len(footer)-3 {

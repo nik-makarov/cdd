@@ -248,3 +248,16 @@ entries, keep private data out, and distinguish local work from publication.
   was modified or installation performed. Only Markdown files changed, so this
   change does not trigger Release. No remote push or hosted check ran. Paths:
   `README.md`, `docs/development-journal.md`.
+- `2026-11-13T20:52:31Z` — Display each column's directory path above its list,
+  using existing header rows. Show parent/current/highlighted-directory paths
+  in tree view and the same current path over both compact columns. Clear the
+  right address for files and the current row, and the left address at root.
+  Clip sanitized paths within each pane and reuse the anchored pane renderer
+  for compact rows. Formatting, vet, shuffled race-enabled application/tool
+  tests, and host build passed. Renderer cases verify path mapping, logical
+  links, empty addresses, compact/narrow/short layouts, and Unicode/control-text
+  clipping. A native 120-column PTY check verified preview paths, navigation,
+  clearing, both compact headings, and a successful absolute-path selection.
+  No dependencies changed; hosted CI and publication were not run. Paths:
+  `view.go`, `view_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

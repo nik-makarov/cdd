@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"unicode"
 )
 
 type directory struct {
@@ -22,11 +21,13 @@ type browser struct {
 	cursor    int
 	hidden    bool
 	filtering bool
+	showHelp  bool
 	query     string
 	message   string
 	selected  string
 	width     int
 	height    int
+	styles    viewStyles
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
@@ -110,6 +111,10 @@ func (m *browser) handle(key keyEvent) bool {
 		}
 		return false
 	}
+	if m.showHelp && key.name == "esc" {
+		m.showHelp = false
+		return false
+	}
 	switch key.name {
 	case "esc", "q":
 		return true
@@ -133,6 +138,7 @@ func (m *browser) handle(key keyEvent) bool {
 		m.selected = path
 		return true
 	case "/":
+		m.showHelp = false
 		m.filtering = true
 		m.query = ""
 		m.refilter()
@@ -148,6 +154,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.navigate(home, "")
 	case "ctrl+r":
 		m.navigate(m.path, m.visible[m.cursor].name)
+	case "?":
+		m.showHelp = !m.showHelp
 	}
 	return false
 }
@@ -174,72 +182,4 @@ func (m *browser) move(key string) {
 		m.cursor += m.pageSize()
 	}
 	m.cursor = max(0, min(m.cursor, len(m.visible)-1))
-}
-
-func (m browser) pageSize() int { return max(1, m.height-8) }
-
-func (m browser) view() string {
-	var lines []string
-	lines = append(lines, "0go  /  choose a directory", "Path: "+display(m.path), "")
-	start := max(0, m.cursor-m.pageSize()+1)
-	end := min(len(m.visible), start+m.pageSize())
-	for i := start; i < end; i++ {
-		label := display(m.visible[i].name) + "/"
-		if i == 0 {
-			label = ".  (current directory)"
-		}
-		prefix := "  "
-		if i == m.cursor {
-			prefix = "> "
-		}
-		lines = append(lines, prefix+label)
-	}
-	hidden := "off"
-	if m.hidden {
-		hidden = "on"
-	}
-	lines = append(lines, "", fmt.Sprintf("%d directories  ·  hidden: %s  ·  %d/%d", len(m.visible)-1, hidden, m.cursor+1, len(m.visible)))
-	if m.filtering || m.query != "" {
-		lines = append(lines, "Filter: /"+display(m.query))
-	} else {
-		lines = append(lines, "↑↓/jk move  →/l open  ←/h parent  Enter select")
-	}
-	if m.message != "" {
-		lines = append(lines, display(m.message))
-	} else {
-		lines = append(lines, "/ filter  . hidden  ~ home  Ctrl+R refresh  Esc/q cancel")
-	}
-	for i, line := range lines {
-		lines[i] = truncate(line, max(1, m.width))
-	}
-	return strings.Join(lines[:min(len(lines), max(1, m.height))], "\n")
-}
-
-// Reserve two cells for every non-ASCII rune. This conservative bound avoids
-// wrapping wide characters without a Unicode-width dependency. Combining marks
-// and emoji sequences can leave unused space, but filenames stay valid UTF-8.
-func truncate(s string, width int) string {
-	cells := 0
-	for i, r := range s {
-		cost := 1
-		if r > 127 {
-			cost = 2
-		}
-		if cells+cost > width {
-			return s[:i]
-		}
-		cells += cost
-	}
-	return s
-}
-
-// Filenames may contain terminal escape sequences. Only render printable text;
-// keep the original bytes in the selected path passed back to the shell.
-func display(s string) string {
-	return strings.Map(func(r rune) rune {
-		if !unicode.IsPrint(r) {
-			return '�'
-		}
-		return r
-	}, s)
 }

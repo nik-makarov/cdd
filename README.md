@@ -32,7 +32,8 @@ records the absolute binary path, so it keeps working after changing directory.
 
 Use Up/Down to move, Right to open a directory, Left to go to its parent, and
 Enter to choose the highlighted directory. The first row, `.`, chooses the
-directory currently being viewed. Esc cancels; `/` filters names.
+directory currently being viewed. Esc cancels; `/` filters names; `?` opens
+keyboard help.
 
 ```sh
 0go ~/projects

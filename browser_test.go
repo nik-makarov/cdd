@@ -149,3 +149,28 @@ func TestEmptyFilterAndSmallTerminal(t *testing.T) {
 		t.Fatalf("control characters leaked into view: %q", got)
 	}
 }
+
+func TestKeyboardHelpPreservesNavigationAndFilterInput(t *testing.T) {
+	m := loadBrowser(t, fixture(t))
+	if m.handle(keyEvent{name: "?", text: "?"}) || !m.showHelp {
+		t.Fatal("help should open without exiting")
+	}
+	m = press(m, "down", "")
+	if m.cursor != 1 {
+		t.Fatal("help should leave navigation available")
+	}
+	if m.handle(keyEvent{name: "esc"}) || m.showHelp || m.selected != "" {
+		t.Fatal("Esc should close help without cancelling or selecting")
+	}
+	m = press(m, "?", "?")
+	m = press(m, "?", "?")
+	if m.showHelp {
+		t.Fatal("question mark should toggle help off")
+	}
+	m = press(m, "?", "?")
+	m = press(m, "/", "/")
+	m = press(m, "?", "?")
+	if m.showHelp || m.query != "?" || !m.filtering {
+		t.Fatal("question mark must remain literal input in filter mode")
+	}
+}

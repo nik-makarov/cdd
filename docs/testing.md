@@ -18,7 +18,10 @@ unavailable shell are skipped locally; CI supplies both shells.
 
 Application tests cover browsing, parent selection, case-insensitive filtering,
 hidden directories, symlinks, removed directories, cancellation, narrow views,
-and display sanitization. Real zsh and bash subprocesses verify literal path
+and display sanitization. Styled-view tests cover terminal color policy,
+non-empty `NO_COLOR` (including `0`), tiny windows, scrolling with expanded help,
+literal `?` filter input, and sanitization of dynamic text before styling.
+Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough.
 
@@ -59,6 +62,10 @@ Use a disposable directory tree and a real interactive terminal:
 4. Toggle hidden directories, open a directory symlink, and remove a selected
    directory from another shell to check recovery after an error.
 5. Resize the terminal while browsing. Check narrow windows and long names.
+   Open help with `?`, navigate with it expanded, and close it with Esc. Check
+   that the selected row stays visible and the help does not cancel the picker.
+   Compare dark and light terminal themes, then try `NO_COLOR=1 0go` and confirm
+   that the selection remains visible without added colors.
 6. Cancel with Esc, `q`, and Ctrl+C. Confirm the working directory is unchanged,
    normal input and echo return, and the cursor is visible.
 7. Check handled termination signals and restore behavior separately from an
@@ -135,3 +142,23 @@ module checksum checks passed, while the vulnerability scan failed on unavailabl
 database DNS. No tag, hosted CI run, draft release, public release, signature, or
 notarization was created. Current release targets are Linux amd64/arm64 and macOS
 arm64; earlier four-platform records above describe the previous build matrix.
+
+## Interface validation, 2026-11-13
+
+`make check build cross-build` passed on macOS arm64 with Go 1.27.4. Renderer
+tests covered colored, non-colored, and unstyled output; valid UTF-8 and complete
+ANSI styles when clipping; dynamic control-character sanitization; visible
+selection with filters, errors, and help; and terminal sizes from 1x1 to 80x24.
+Help-state tests verified that Esc closes help without cancelling, navigation
+remains available, and `?` stays literal while editing a filter.
+
+Native PTY sessions exercised the styled picker at 80x24 and 60x18, expanded help,
+filtering, selection, cancellation, `NO_COLOR`, and `TERM=dumb`. A generated zsh
+function selected a filtered child and changed the current shell's directory
+with exit status zero, confirming that UI styles did not enter the captured path.
+Cancellation returned 130 and restored the cursor and screen. This checked the
+terminal protocol and interaction, not a screenshot-based review across themes.
+
+No dependencies changed, so a new vulnerability scan was not run for this UI
+change. Light/dark theme appearance, real window resizing, and Linux runtime
+behavior remain manual acceptance checks. No hosted CI or publication ran.

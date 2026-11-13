@@ -33,6 +33,7 @@ Keys:
   .              Toggle hidden directories
   ~              Go to home directory
   Ctrl+R         Refresh
+  ?              Toggle keyboard help (Esc closes help)
   Esc, q, Ctrl+C Cancel without changing directory
 
 The first row (.) selects the current directory.

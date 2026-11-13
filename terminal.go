@@ -25,6 +25,7 @@ type keyEvent struct {
 }
 
 func runTerminal(m *browser, input, output *os.File) (err error) {
+	m.styles = terminalStyles(term.IsTerminal(int(output.Fd())), os.Getenv("TERM"), os.Getenv("NO_COLOR"))
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	defer stop()
 	resize := make(chan os.Signal, 1)
@@ -36,7 +37,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		return fmt.Errorf("enable raw terminal mode: %w", err)
 	}
 	defer func() {
-		_, screenErr := io.WriteString(output, "\x1b[?25h\x1b[?1049l")
+		_, screenErr := io.WriteString(output, "\x1b[0m\x1b[?25h\x1b[?1049l")
 		restoreErr := term.Restore(fd, state)
 		err = errors.Join(err, screenErr, restoreErr)
 	}()

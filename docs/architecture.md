@@ -10,7 +10,8 @@ commands to list directories or perform recursive indexing.
 | --- | --- |
 | `main.go` | Process entry point and exit status |
 | `cli.go` | Options, terminal selection, stdout/stderr contract |
-| `browser.go` | Directory listing, filtering, navigation, and plain-text view |
+| `browser.go` | Directory listing, filtering, navigation, and keyboard help state |
+| `view.go` | Layout, safe text clipping, theme colors, and contextual help |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `shell.go` | zsh/bash integration with literal path handling |
 
@@ -24,6 +25,20 @@ terminal settings on normal exit, cancellation, and handled termination signals.
 An uncatchable process kill cannot run cleanup. Dynamic text is stripped of
 non-printable characters before display; selected paths retain their original
 bytes when passed back to the shell.
+
+Text is clipped by terminal-cell budget before trusted ANSI styles are applied,
+so clipping cannot leave an incomplete style sequence. Each styled span resets
+its attributes; terminal cleanup also resets them before returning to the shell.
+The final terminal column is reserved to avoid automatic wrapping. The footer
+stays at the bottom in ordinary windows, and small windows prioritize keeping
+the selected row visible.
+
+Color detection uses the actual UI terminal, not stdout: stdout is commonly
+captured by shell integration. Standard ANSI cyan and red inherit the terminal
+theme. The design follows [CLI Guidelines](https://clig.dev/#output) for stream
+separation and color control, and the [NO_COLOR convention](https://no-color.org/)
+for suppressing added color while retaining non-color emphasis. Selection also
+has a text marker, and errors have an explicit label.
 
 Non-ASCII runes conservatively reserve two terminal cells when truncating lines.
 This avoids a separate Unicode-width dependency, at the cost of unused horizontal

@@ -67,3 +67,18 @@ entries, keep private data out, and distinguish local work from publication.
   Paths: `Makefile`, `.github/`, `tools/release/`, `tools/notices/main.go`,
   `packaging/`, `CHANGELOG.md`, `docs/`, `TODO.md`, `README.md`, `AGENTS.md`,
   `CONTRIBUTING.md`, `THIRD_PARTY_NOTICES.md`, `tools/README.md`.
+- `2026-11-13T17:36:01Z` — Refine the directory picker with a theme-aware current
+  path, reverse-video full-row selection, muted secondary text, cyan directory
+  suffixes, labeled red errors, a stable compact footer, and expandable keyboard
+  help. Preserve literal filter input, stdout path output, and a visible text
+  selection marker. Honor non-empty NO_COLOR values while retaining non-color
+  emphasis; disable styling for TERM=dumb. Clip sanitized text before applying
+  ANSI styles and keep the selected row visible in tiny windows. Add no runtime
+  or build-tool dependencies. Formatting, vet, shuffled race-enabled tests, host
+  packaging, and three cross-builds passed. Native PTY checks exercised help,
+  filtering, selection, cancellation, color suppression, and a real zsh directory
+  change through captured stdout. Theme screenshot review, real window resizing,
+  Linux runtime behavior, hosted CI, and publication were not performed. Paths:
+  `browser.go`, `browser_test.go`, `view.go`, `view_test.go`, `terminal.go`,
+  `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

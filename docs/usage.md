@@ -44,6 +44,7 @@ to directories are listed. Broken symlinks and links to regular files are omitte
 | `.` | Toggle hidden directories |
 | `~` | Go to the home directory |
 | Ctrl+R | Refresh the listing |
+| `?` | Show or hide keyboard help; Esc also closes help |
 | Esc, `q`, Ctrl+C / Ctrl+D | Cancel |
 
 The first row, `.`, selects the directory currently being viewed. Enter selects
@@ -53,9 +54,36 @@ the cursor stays on the directory you came from.
 Press `/` again to clear the current filter. The `.` row remains available even
 when no child names match. While editing a filter, the first Enter or Esc finishes
 editing; a subsequent Enter selects, and a subsequent Esc cancels.
+While editing a filter, `?` is a literal part of the query. Opening a filter
+closes keyboard help. Navigation stays available while help is expanded; the
+first Esc closes help without cancelling selection.
 
 Directory read errors appear inside the interface without changing the current
 browsing location. Continue navigating or cancel to return to your shell.
+
+## Appearance
+
+The path highlights the directory currently being viewed; long paths are
+shortened from the left. A reverse-video bar and a `>` marker identify the
+selected row. Directory suffixes use the terminal's cyan, errors use its red,
+and secondary labels use dim text. The interface uses the terminal's own
+background, foreground, and palette instead of fixed RGB colors or custom fonts.
+
+The footer keeps essential controls visible, with more shortcuts available via
+`?`. Counts exclude the selectable `.` row. Filtered lists show a match count;
+long lists indicate when more rows are above or below the visible page.
+
+Set a non-empty `NO_COLOR` value to disable added colors:
+
+```sh
+NO_COLOR=1 0go
+```
+
+Bold, dim text, and reverse selection remain available in this mode. `TERM=dumb`
+disables all text styling, retaining the `>` marker. Cursor movement and screen
+redrawing still require an ANSI-compatible interactive terminal. The selected
+path on stdout never includes styling, including when shell integration captures
+it through command substitution.
 
 ## Installation
 

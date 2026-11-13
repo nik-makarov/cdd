@@ -200,7 +200,6 @@ func (m *browser) refreshPreview(force bool) {
 		return
 	}
 	if item.path == m.path {
-		m.children = m.entries
 		return
 	}
 	var err error

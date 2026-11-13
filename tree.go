@@ -81,10 +81,14 @@ func (m browser) treeLines(rows, width, margin int) []string {
 	for row := range rows {
 		parts := []viewLine{m.entryLine(start+row, widths[0])}
 		if len(widths) == 3 {
+			var child viewLine
+			if m.visible[m.cursor].path != m.path {
+				child = m.contextLine(children, row, widths[2], m.childErr)
+			}
 			parts = []viewLine{
 				m.contextLine(parent, parentStart+row, widths[0], m.parentErr),
 				m.entryLine(start+row, widths[1]),
-				m.contextLine(children, row, widths[2], m.childErr),
+				child,
 			}
 		}
 		lines = append(lines, m.paneRow(parts, widths, margin))

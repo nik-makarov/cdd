@@ -346,3 +346,42 @@ func TestTreeContextAndSymlinkNavigation(t *testing.T) {
 		t.Fatal("refresh retained a removed directory")
 	}
 }
+
+func TestTreePreviewClearsOnCurrentDirectory(t *testing.T) {
+	root := fixture(t)
+	if err := os.Mkdir(filepath.Join(root, "Alpha", "nested", "leaf"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	m, err := newBrowser(root, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkEmpty := func(name string) {
+		t.Helper()
+		if m.visible[m.cursor].name != "." || len(m.children) != 0 || m.childErr != "" {
+			t.Errorf("%s: current-directory row must clear Children: %+v, %q", name, m.children, m.childErr)
+		}
+	}
+	checkEmpty("startup")
+	m = focus(t, m, "Alpha")
+	m.refreshPreview(false)
+	if len(m.children) != 1 || m.children[0].name != "nested" {
+		t.Fatal("highlighted directory must still show its children")
+	}
+	m = press(m, "right", "")
+	if m.path != filepath.Join(root, "Alpha") {
+		t.Fatal("directory was not opened")
+	}
+	checkEmpty("enter directory")
+	m = press(m, "down", "")
+	if len(m.children) != 1 || m.children[0].name != "leaf" {
+		t.Fatal("highlighting a child directory must populate its preview")
+	}
+	m = press(m, "home", "")
+	checkEmpty("return to current row")
+	m = press(m, "ctrl+r", "")
+	checkEmpty("refresh")
+	m = press(m, "v", "v")
+	m = press(m, "v", "v")
+	checkEmpty("view round trip")
+}

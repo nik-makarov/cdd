@@ -283,3 +283,14 @@ exit status zero. The fixture included ordinary files, file links, a broken link
 and 30 additional folders. These were interaction/protocol checks; screenshot
 review across themes, Linux runtime testing, hosted CI, and publication were not
 performed. No dependencies changed.
+
+## Current-directory preview regression, 2026-11-13
+
+A regression test reproduced Current entries being copied into Children at
+startup, after opening a folder, returning to `.`, refreshing, and switching
+views. The fix passed `make check build`, including shuffled race-enabled tests.
+Renderer assertions verify a completely blank Children pane for `.` while a
+concrete empty child directory retains its `(empty)` preview label. Targeted
+tests passed after tightening that assertion. A native 80-cell PTY check showed
+a populated child preview before navigation and a blank Children pane immediately
+after entering that folder. No dependencies changed or hosted CI ran.

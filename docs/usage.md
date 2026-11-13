@@ -72,8 +72,10 @@ browsing location. Continue navigating or cancel to return to your shell.
 The middle pane is always active and lists the current directory's folders and
 files. The left pane shows its parent's entries, emphasizing the current folder
 without making that pane active. The right pane previews the entries inside the
-highlighted directory, including directory symlinks. Highlighting a file shows
-no directory preview. File contents are never read or opened.
+highlighted directory, including directory symlinks. Highlighting the `.` row
+leaves Children blank, including immediately after entering a directory.
+Highlighting a file shows no directory preview. File contents are never read or
+opened.
 
 Folders are cyan, files are yellow, and directory symlinks are magenta. Suffixes
 also distinguish entries without color: `/` for folders, `@/` for directory

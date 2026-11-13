@@ -29,6 +29,11 @@ version is published on GitHub. Development history is recorded separately in
 - Reduce executable size with a small compatible argument parser and simpler
   message formatting, preserving error causes and shell integration.
 
+### Fixed
+
+- Clear Children when the current-directory (`.`) row is highlighted, including
+  after entering a folder, instead of duplicating the Current listing.
+
 ### Notes
 
 - Shell integration is required to execute `cd` in the current shell.

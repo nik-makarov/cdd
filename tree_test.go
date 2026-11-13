@@ -34,3 +34,22 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 		t.Fatal("narrow tree view must retain the active list without changing view mode")
 	}
 }
+
+func TestCurrentDirectoryLeavesChildrenPaneBlank(t *testing.T) {
+	m := browser{path: "/projects/current", width: 100, height: 18}
+	m.visible = []entry{{name: ".", path: m.path}, {name: "nested", path: m.path + "/nested"}}
+	width, margin := m.viewWidth()
+	widths := treeWidths(width)
+	childStart := margin + widths[0] + widths[1] + 6
+	for _, line := range m.treeLines(m.pageRows(), width, margin) {
+		plain := plainFrame(line)
+		if len(plain) >= childStart && strings.TrimSpace(plain[childStart:]) != "" {
+			t.Fatalf("current-directory row left text in Children: %q", plain)
+		}
+	}
+	m.cursor = 1
+	first := plainFrame(m.treeLines(m.pageRows(), width, margin)[0])
+	if len(first) <= childStart || strings.TrimSpace(first[childStart:]) != "(empty)" {
+		t.Fatal("an empty child directory should still display its empty-preview label")
+	}
+}

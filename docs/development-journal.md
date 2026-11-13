@@ -153,3 +153,14 @@ entries, keep private data out, and distinguish local work from publication.
   `tree_test.go`, `browser.go`, `browser_test.go`, `view.go`, `view_test.go`,
   `cli.go`, `README.md`, `CHANGELOG.md`, `AGENTS.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-13T18:40:49Z` — Clear Children for the current-directory row instead
+  of copying the Current listing into its preview. Keep this pane blank at
+  startup, after entering a folder, returning to `.`, refreshing, and switching
+  views; retain previews for actual highlighted child directories. Regression
+  tests reproduced all five failure paths before the fix. Formatting, vet,
+  race-enabled application/tool tests, host packaging, and targeted rendering
+  checks passed. A native PTY check confirmed preview population before opening
+  a child and clearing immediately afterward. No dependencies changed; hosted
+  CI and publication were not performed. Paths: `browser.go`, `browser_test.go`,
+  `tree.go`, `tree_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

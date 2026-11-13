@@ -95,3 +95,17 @@ entries, keep private data out, and distinguish local work from publication.
   `tools/notices/main.go`, `.github/workflows/update-dependencies.yml`,
   `AGENTS.md`, `README.md`, `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`,
   `tools/README.md`, `docs/`.
+- `2026-11-13T17:46:39Z` — Reduce executable size by replacing the application's
+  direct fmt/flag usage with a small compatible argument parser, io.WriteString,
+  strconv, and contextual errors implementing Unwrap. Preserve option syntax,
+  error messages, sentinel/typed causes, stdout discipline, and shell behavior.
+  At Go 1.27.4 with identical stripped cross-build flags and VCS metadata disabled,
+  executables shrank by 192.00-248.16 KiB across the four targets; fmt remains a
+  transitive import of the unchanged terminal modules. Formatting, vet,
+  race-enabled application/tool tests, four cross-builds, packaging, and archive
+  checksum checks passed. The parser matched standard flag in table tests and
+  4,174,566 fuzz cases; a native PTY zsh integration check changed directory with
+  the existing argument forms. No module versions changed. No hosted CI or
+  publication ran. Paths: `cli.go`, `cli_test.go`, `errors.go`, `errors_test.go`,
+  `browser.go`, `terminal.go`, `view.go`, `CHANGELOG.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

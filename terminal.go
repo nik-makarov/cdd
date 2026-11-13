@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/signal"
@@ -34,7 +33,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 	fd := int(input.Fd())
 	state, err := term.MakeRaw(fd)
 	if err != nil {
-		return fmt.Errorf("enable raw terminal mode: %w", err)
+		return wrapError("enable raw terminal mode", err)
 	}
 	defer func() {
 		_, screenErr := io.WriteString(output, "\x1b[0m\x1b[?25h\x1b[?1049l")
@@ -42,7 +41,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		err = errors.Join(err, screenErr, restoreErr)
 	}()
 	if _, err := io.WriteString(output, "\x1b[?1049h\x1b[?25l"); err != nil {
-		return fmt.Errorf("open terminal screen: %w", err)
+		return wrapError("open terminal screen", err)
 	}
 	redraw := func() error {
 		if width, height, err := term.GetSize(int(output.Fd())); err == nil && width > 0 && height > 0 {
@@ -52,7 +51,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		return err
 	}
 	if err := redraw(); err != nil {
-		return fmt.Errorf("draw terminal: %w", err)
+		return wrapError("draw terminal", err)
 	}
 	var pending []byte
 	var lastInput time.Time
@@ -64,7 +63,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			return errCancelled
 		case <-resize:
 			if err := redraw(); err != nil {
-				return fmt.Errorf("redraw terminal: %w", err)
+				return wrapError("redraw terminal", err)
 			}
 		default:
 		}
@@ -72,7 +71,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			if errors.Is(err, unix.EINTR) {
 				continue
 			}
-			return fmt.Errorf("wait for terminal input: %w", err)
+			return wrapError("wait for terminal input", err)
 		}
 		if poll[0].Revents&(unix.POLLERR|unix.POLLHUP|unix.POLLNVAL) != 0 {
 			return errCancelled
@@ -83,7 +82,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 				if errors.Is(err, unix.EINTR) || errors.Is(err, unix.EAGAIN) {
 					continue
 				}
-				return fmt.Errorf("read terminal: %w", err)
+				return wrapError("read terminal", err)
 			}
 			if n == 0 {
 				return errCancelled
@@ -108,7 +107,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		}
 		if changed {
 			if err := redraw(); err != nil {
-				return fmt.Errorf("redraw terminal: %w", err)
+				return wrapError("redraw terminal", err)
 			}
 		}
 	}

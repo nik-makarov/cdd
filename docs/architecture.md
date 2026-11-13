@@ -10,10 +10,24 @@ commands to list directories or perform recursive indexing.
 | --- | --- |
 | `main.go` | Process entry point and exit status |
 | `cli.go` | Options, terminal selection, stdout/stderr contract |
+| `errors.go` | Operation context with an unwrap-compatible error chain |
 | `browser.go` | Directory listing, filtering, navigation, and keyboard help state |
 | `view.go` | Layout, safe text clipping, theme colors, and contextual help |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `shell.go` | zsh/bash integration with literal path handling |
+
+The application's small argument parser preserves the previous `flag` syntax:
+single or double dashes, `--name=value`, standard boolean values, `--`, and
+stopping at the first positional argument. Tests compare it against `flag`;
+the application itself imports neither `flag` nor `fmt`. It writes messages
+with `io.WriteString` and formats counts and quoted paths with `strconv`.
+Operation errors implement `Unwrap`, preserving `errors.Is` and `errors.As`
+through contextual messages and terminal cleanup errors.
+
+The Go terminal modules still import `fmt` transitively. Avoiding formatting
+calls in the application nevertheless lets the linker remove unused code;
+this does not claim to remove `fmt` from the full package graph. Executable
+size measurements are recorded in [verification](testing.md#executable-size-validation-2026-11-13).
 
 The terminal loop uses `poll` with a bounded wait to process keyboard input,
 terminal resize events, and cancellation. Input decoding accepts fragmented UTF-8

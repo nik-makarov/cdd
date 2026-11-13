@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -209,12 +209,12 @@ func (m browser) view() string {
 		if m.hidden {
 			hidden = "on"
 		}
-		count := fmt.Sprintf("%d directories", len(m.visible)-1)
+		count := strconv.Itoa(len(m.visible)-1) + " directories"
 		if len(m.visible) == 2 {
 			count = "1 directory"
 		}
 		if m.query != "" {
-			count = fmt.Sprintf("%d matches", len(m.visible)-1)
+			count = strconv.Itoa(len(m.visible)-1) + " matches"
 			if len(m.visible) == 2 {
 				count = "1 match"
 			}

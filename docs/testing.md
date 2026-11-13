@@ -32,6 +32,18 @@ malformed input, and Esc timeout behavior. For decoder changes, also run:
 go test -run '^$' -fuzz FuzzDecodeKey -fuzztime=10s
 ```
 
+Argument-parser tests use the previous standard-library `flag` parser as an
+oracle for aliases, boolean syntax, repeated options, missing values, invalid
+options, positional arguments, and `--`. The oracle is compiled only into tests.
+For parser changes, also run:
+
+```sh
+go test -run '^$' -fuzz FuzzParseArgsCompatibility -fuzztime=10s
+```
+
+Error tests verify operation context, quoted directory paths, nil wrapping,
+sentinel and typed causes, and failure to write the selected path.
+
 Notice-generator tests check complete LICENSE/NOTICE/patent inputs, rejection of
 missing or empty licenses, the Homebrew Go license layout, and exclusion of
 development tools from application notices. `make build` inventories the four
@@ -175,3 +187,36 @@ GOARCH=amd64, and CGO_ENABLED=0. Its archive contains the executable with mode
 The notice inventory now includes Intel macOS explicitly. No dependencies
 changed. This establishes cross-compilation and packaging, not runtime testing
 on an Intel Mac. Hosted CI and release publication were not performed.
+
+## Executable size validation, 2026-11-13
+
+Compare source at `f9a09d9` with the argument-parser and message-formatting
+change, using Go 1.27.4 and the same build command for both:
+
+```sh
+GOFLAGS=-buildvcs=false make cross-build
+```
+
+The Makefile uses CGO_ENABLED=0, `-trimpath`, `-s -w`, and VERSION=dev for all
+four platforms. Disabling VCS metadata keeps source-control state out of the
+comparison. Sizes below are executable bytes, excluding archives and licenses.
+
+| Platform | Before (bytes) | After (bytes) | Reduction (KiB) |
+| --- | ---: | ---: | ---: |
+| Linux amd64 | 1,904,800 | 1,671,328 | 228.00 |
+| Linux arm64 | 1,835,168 | 1,638,560 | 192.00 |
+| macOS Intel | 1,912,816 | 1,658,704 | 248.16 |
+| macOS Apple Silicon | 1,841,154 | 1,601,586 | 233.95 |
+
+The application no longer imports `fmt` or `flag` directly. `go list -deps`
+still includes `fmt` through the unchanged Go terminal modules; removing direct
+formatting calls and `flag` lets the linker discard additional unused code.
+These are file-size measurements, not runtime-speed benchmarks.
+
+`make check build dist` passed, including shuffled race-enabled tests, all four
+cross-builds, and release packaging. All four archive checksums verified. The
+parser matched `flag` in table tests and 4,174,566 fuzz executions over about
+11 seconds. Error-chain tests passed for sentinel and typed causes, quoted paths,
+and failed output writes. A native PTY check initialized zsh with `--init=zsh`,
+ran `--hidden=false -- /tmp`, and changed the shell directory with exit status
+zero. No dependency versions changed; hosted CI and publication did not run.

@@ -17,6 +17,11 @@ version is published on GitHub. Development history is recorded separately in
 - Disable added UI colors with `NO_COLOR` while retaining a visible selection.
 - Install from portable archives for Linux x64/arm64 and macOS Intel/Apple Silicon.
 
+### Changed
+
+- Reduce executable size with a small compatible argument parser and simpler
+  message formatting, preserving error causes and shell integration.
+
 ### Notes
 
 - Shell integration is required to execute `cd` in the current shell.

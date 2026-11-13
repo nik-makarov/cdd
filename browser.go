@@ -2,10 +2,10 @@ package main
 
 import (
 	"cmp"
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -41,7 +41,7 @@ func newBrowser(path string, hidden bool) (browser, error) {
 func (m *browser) open(path, focus string) error {
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		return fmt.Errorf("read directory %q: %w", path, err)
+		return wrapError("read directory "+strconv.Quote(path), err)
 	}
 	dirs := make([]directory, 0, len(entries))
 	for _, entry := range entries {

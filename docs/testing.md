@@ -34,6 +34,17 @@ guards. Shifted ASCII keys are covered in legacy and CSI-u input.
 Rename checks cover both modes, literal and hidden names, nonempty dirs, symlinks,
 overwrite refusal, invalid names, replaced-source detection, protected locations,
 button hit testing, cancellation, terminal sanitization, and text-input precedence.
+Trash checks cover exact case/whitespace/Unicode matching, blank initial input,
+frozen immutable targets, refusal of replaced entries, in-flight input locking,
+both views, nonempty dirs, symlinks, and refreshed focus. A fake `gio` moves fixtures
+into an isolated temporary Trash dir; failures, no-op commands, missing support,
+and cancellation preserve source data and require a fresh confirmation. Tests
+also check platform shortcuts, ignored repeat/release events, input precedence,
+button hit testing, tiny confirmation views, and literal native-command arguments.
+The standard suite never touches the user's system Trash. On macOS, opt into
+native verification with `CDD_TEST_NATIVE_TRASH=1 go test -run '^TestNativeTrash$'`.
+This creates disposable entries, checks their identity in Trash, and restores
+only those fixtures before cleanup. It requires access to the user's Trash.
 Mouse tests cover fragmented SGR and legacy reports, invalid coordinates, rendered
 row and button hit testing across layouts and input modes, stable scrolling,
 single/double clicks with small pointer drift, current-directory confirmation

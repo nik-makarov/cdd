@@ -15,6 +15,7 @@ type externalAction struct {
 	kind    string
 	path    string
 	command string
+	target  *entryMutation
 }
 
 func regularFile(path string) error {
@@ -45,6 +46,9 @@ func actionCommand(action externalAction, platform string) (string, []string, er
 	}
 	if action.kind == "editor" {
 		return editorCommand(action.command, action.path)
+	}
+	if action.kind == "trash" {
+		return trashCommand(platform, action.path)
 	}
 	return "", nil, errors.New("Unsupported file action")
 }
@@ -82,10 +86,26 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 		}
 		return fmt.Errorf("%s: %w", program, err)
 	}
+	if action.kind == "trash" {
+		info, err := os.Lstat(action.path)
+		if err == nil && os.SameFile(action.target.info, info) {
+			return errors.New("Trash command left the entry in place; nothing was deleted")
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return wrapError("check trashed entry", err)
+		}
+	}
 	return nil
 }
 
 func validateActionPath(action externalAction) error {
+	if action.kind == "trash" {
+		if action.target == nil || !action.target.busy || action.target.kind != "trash" ||
+			action.path != action.target.resolved || action.target.input != filepath.Base(action.target.path) {
+			return errors.New("Trash requires an exact name confirmation")
+		}
+		return action.target.validate()
+	}
 	if action.kind != "editor" {
 		return regularFile(action.path)
 	}

@@ -14,6 +14,13 @@ func changeShortcut(goos string) string {
 	return "Ctrl+Enter"
 }
 
+func deleteShortcut(goos string) string {
+	if goos == "darwin" {
+		return "Cmd+Backspace"
+	}
+	return "Ctrl+Backspace"
+}
+
 // decodeCSIKey handles the disambiguation subset of the kitty keyboard protocol.
 // Lock modifiers do not change shortcuts; key releases never trigger actions.
 func decodeCSIKey(sequence, goos string) keyEvent {
@@ -76,6 +83,13 @@ func decodeCSIKey(sequence, goos string) keyEvent {
 				return keyEvent{name: "esc"}
 			}
 		case 127:
+			modifier := 4
+			if goos == "darwin" {
+				modifier = 8
+			}
+			if mods == modifier && event == 1 {
+				return keyEvent{name: "trash"}
+			}
 			if mods == 0 {
 				return keyEvent{name: "backspace"}
 			}

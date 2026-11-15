@@ -71,6 +71,7 @@ var helpHints = []keyHint{
 	{"n", "new dir"},
 	{"Shift+N", "new file"},
 	{"r", "rename file/dir"},
+	{deleteShortcut(runtime.GOOS), "move to Trash"},
 	{"Space", "preview file"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
@@ -459,6 +460,9 @@ func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 }
 
 func (m browser) view() string {
+	if m.mutation != nil {
+		return m.mutationView()
+	}
 	if m.filePreview != nil {
 		return m.filePreviewView()
 	}

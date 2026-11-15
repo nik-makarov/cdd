@@ -783,3 +783,27 @@ entries, keep private data out, and distinguish local work from publication.
   `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `docs/configuration.md`,
   `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-15T23:23:32Z` — Add a Delete footer button and Cmd+Backspace on macOS
+  or Ctrl+Backspace on Linux. Require an exact basename in an initially empty
+  confirmation modal; reject mismatches, stale targets, protected locations, and
+  names that cannot be safely confirmed. Freeze an immutable target while the
+  cancellable worker moves it through Foundation's system Trash API on macOS or
+  `gio trash` on Linux. Never fall back to permanent deletion. Refresh listings
+  after completion and clear confirmation after failure. Keep plain Backspace,
+  other text inputs, and selected-path stdout unchanged. Update scope and docs.
+  Fake-CLI tests cover both views, files, nonempty dirs, symlinks, exact matching,
+  cancellation, unavailable/failed/no-op backends, replaced targets, shortcuts,
+  repeat/release suppression, mouse activation, and small modal sizes. Native
+  macOS tests moved disposable files, nonempty dirs, and valid/broken symlinks to
+  Trash, checked identity and untouched link targets, and restored every fixture.
+  The first full run exposed a test fixture the host filesystem refused to create
+  because its name was invalid UTF-8; remove that fixture while retaining the
+  application guard. The corrected `make check build cross-build`, gopls checks,
+  ten-second keyboard fuzz run, and `git diff --check` passed. Builds retained the
+  nonfatal module-cache write warning. Cross-builds cover Linux/macOS amd64/arm64;
+  the Linux backend was exercised with fake CLIs, not a native desktop. No
+  dependencies changed or publication ran. Paths: `trash.go`, `trash_test.go`,
+  `trash_darwin_test.go`, `mutation.go`, `mutation_view.go`, `entry_buttons.go`,
+  `actions.go`, `actions_test.go`, `terminal.go`, `keyboard.go`, `browser.go`,
+  `view.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

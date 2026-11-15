@@ -11,6 +11,7 @@ type entryMutation struct {
 	kind, path, resolved, input string
 	info                        os.FileInfo
 	replace                     bool
+	busy                        bool
 }
 
 func withinPath(parent, path string) bool {
@@ -83,11 +84,18 @@ func (m *browser) beginRename() {
 
 func (m *browser) handleMutationInput(key keyEvent) {
 	edit := m.mutation
+	if edit.busy {
+		return
+	}
 	switch key.name {
 	case "esc":
 		m.mutation, m.message = nil, ""
 	case "enter":
-		m.renameEntry()
+		if edit.kind == "trash" {
+			m.confirmTrash()
+		} else {
+			m.renameEntry()
+		}
 	case "backspace":
 		if edit.replace {
 			edit.input = ""

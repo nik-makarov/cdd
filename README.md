@@ -7,6 +7,8 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 - Create a directory with `n`, then choose it.
 - Create an empty named file in the highlighted folder with Shift+N.
 - Rename a file or folder with `r` or the Rename button.
+- Move an entry to Trash with Cmd+Backspace (macOS), Ctrl+Backspace (Linux), or
+  the Delete button, after typing its exact name. Linux requires `gio` from GLib.
 - Preview a file with Space: Quick Look on macOS, a text viewer on Linux.
 - Open a file in its default application with Enter while keeping cdd open.
 - Open a folder or file in an editor with `z`: Zed, then VS Code. Reuse open

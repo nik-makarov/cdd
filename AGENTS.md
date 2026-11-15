@@ -15,7 +15,8 @@ stdout is reserved for the selected path. Preserve shell integration tests,
 especially cancellation and filenames containing shell metacharacters.
 The application's scope is directory navigation and selection, creating a
 directory as a navigation destination, creating an empty named file, renaming a
-selected file or directory without replacing existing entries, explicit file
+selected file or directory without replacing existing entries, moving a selected
+entry to the system Trash after exact typed-name confirmation, explicit file
 preview/opening, editor project or single-file launching, and shell integration
 for cd. Do not add other file management, background services, networking, or
 unrelated capabilities.
@@ -29,6 +30,9 @@ File creation must be exclusive: never overwrite an existing file, directory, or
 symlink. Never execute a selected file directly, edit existing contents inside
 cdd, or return a file as a selected directory. File actions preserve browsing
 state and the stdout contract.
+Deletion must always use the operating system's recoverable Trash. Require an
+exact basename in an initially empty confirmation field, reject mismatches, and
+never fall back to permanent deletion when Trash is unavailable or fails.
 
 Minimize dependencies. Prefer the standard library; remaining external modules
 must have a clear purpose and verifiable maintainers. Currently only the Go

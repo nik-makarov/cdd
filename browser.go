@@ -270,6 +270,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.newName, m.message = "", ""
 	case "r":
 		m.beginRename()
+	case "trash":
+		m.beginTrash()
 	case ".":
 		m.hidden = !m.hidden
 		m.refilter()

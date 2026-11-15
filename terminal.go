@@ -80,7 +80,9 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		case err := <-actionDone:
 			cancelAction()
 			actionDone, cancelAction = nil, nil
-			if err != nil && !errors.Is(err, context.Canceled) {
+			if activeAction.kind == "trash" {
+				m.finishTrash(activeAction, err)
+			} else if err != nil && !errors.Is(err, context.Canceled) {
 				m.message = err.Error()
 			}
 			if err := redraw(); err != nil {

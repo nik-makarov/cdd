@@ -35,6 +35,8 @@ Keys:
   n              Create a dir in the current location
   Shift+N        Create an empty file in the highlighted dir (or file's parent)
   r              Rename the highlighted file/dir without overwriting
+  Cmd+Backspace  Move to Trash after typing the exact name (macOS)
+  Ctrl+Backspace Move to Trash after typing the exact name (Linux; requires gio)
   Space          Preview file (Quick Look on macOS; text preview on Linux)
   Configured key Open dir/file in editor (Zed, then VS Code)
   /              Filter names (Esc finishes; Enter confirms in tree)
@@ -65,7 +67,8 @@ The last used view is restored on startup; tree is the default.
 Customize editor_dir_command, editor_file_command, and keys.open_in_editor
 in cdd/config.json. Dirs focus an open project; files open in a new window.
 The binding is ignored when none of the configured editor CLIs is installed.
-Modified Enter needs a terminal that supports the kitty keyboard protocol.
+Modified Enter/Backspace need the kitty keyboard protocol; buttons work too.
+Delete always uses the system Trash, with no permanent-deletion fallback.
 Files open in the default application with Enter; they cannot be a cd destination.
 Shell integration is required to choose a dir and change the current shell.
 The binary returns only the selected absolute path, without a trailing newline.

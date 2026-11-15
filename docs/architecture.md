@@ -16,6 +16,17 @@ No overwrite fallback is used. Current/starting locations and ancestors are
 protected. Modal input freezes the target; successful renames invalidate affected
 tree branches and refresh selection. Footer action hit testing shares rendered
 button rows and respects clipped layouts.
+Trash uses the same frozen target and identity checks, with an initially blank
+exact-basename confirmation. The worker receives an immutable snapshot and
+revalidates it before invocation. macOS calls
+[Foundation's Trash API](https://developer.apple.com/documentation/foundation/filemanager/trashitem(at:resultingitemurl:))
+through a fixed JXA script; Linux calls `gio trash -- PATH`, using
+[GLib's recoverable Trash operation](https://gnome.pages.gitlab.gnome.org/gtk/gio/method.File.trash.html).
+Paths are literal
+arguments, and neither backend falls back to permanent deletion. Missing Trash
+support fails visibly. The modal locks during the operation; success refreshes
+the listing and failure clears confirmation for retry. Native calls run through
+the cancellable external-action runner, keeping diagnostics out of stdout.
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 
@@ -34,6 +45,9 @@ the highlighted directory. It does not execute external commands to list entries
 | `preferences.go` | Last-view storage, validation, and startup restoration |
 | `preview.go` | Bounded text preview, scrolling, and platform preview selection |
 | `actions.go` | Direct external CLI invocation with cancellation and bounded diagnostics |
+| `mutation.go`, `rename_*.go` | Frozen targets, exclusive renaming, and listing refresh |
+| `trash.go` | Exact-name confirmation and system Trash commands |
+| `entry_buttons.go`, `mutation_view.go` | Entry action buttons and modal name input |
 | `config.go`, `config/default.json` | Embedded key defaults and validated user overrides |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `keyboard.go` | Extended keyboard decoding and platform confirmation shortcuts |
@@ -60,14 +74,17 @@ from the start of an escape sequence. Unknown sequences are discarded.
 
 The alternate screen pushes the kitty keyboard protocol's disambiguation flag
 and pops it during cleanup. The decoder accepts CSI-u control keys, including
-Cmd+Enter on macOS and Ctrl+Enter on Linux, while retaining legacy UTF-8/CSI/SS3
-input. It ignores release events and confirmation repeats. Lock modifiers do not
+Cmd+Enter/Backspace on macOS and Ctrl+Enter/Backspace on Linux, while retaining
+legacy UTF-8/CSI/SS3 input. It ignores release events and confirmation repeats. Lock modifiers do not
 affect shortcuts. In panes views, plain Enter confirms the current directory
 on the `.` row and opens other directories for browsing. In tree view, Enter
 confirms any highlighted directory, including while filtering. The confirmation shortcut and button
 select the highlighted directory. Legacy ambiguous Enter input follows the same
 rules as plain Enter. While naming a directory, Enter creates it; in panes
 filters, Enter only finishes input.
+Modified Backspace opens Trash confirmation only outside other text input;
+repeats and releases never trigger it. Plain Backspace retains navigation and
+editing behavior. Confirmation modals capture input before navigation or clicks.
 
 Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking),
 with legacy mouse packets consumed as a whole for terminals without SGR support.

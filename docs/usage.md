@@ -75,6 +75,7 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | `n` | Enter a name for a new directory in the current location |
 | Shift+N | Enter a name for an empty file inside the highlighted directory (or beside a highlighted file) |
 | `r` / Rename button | Rename the highlighted file or dir; Enter saves, Esc cancels |
+| Cmd+Backspace (macOS) / Ctrl+Backspace (Linux) / Delete button | Move to Trash after exact name confirmation |
 | Enter / Esc while naming | Create the directory or file / cancel name input |
 | `.` | Toggle hidden directories |
 | `~` | Go to the home directory |
@@ -128,7 +129,7 @@ directory, Enter creates it and modified Enter has no action.
 Small windows omit the entire button if it cannot fit beside the selected row
 and any input/error message.
 
-Cmd+Enter and Ctrl+Enter require a terminal that supports the
+Modified Enter and Backspace require a terminal that supports the
 [kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 cdd enables disambiguated keys for the picker and restores the previous mode on
 exit. A terminal or desktop may intercept the shortcut; in that case free the
@@ -196,6 +197,30 @@ Navigation rows and the current/starting dirs and their ancestors are protected.
 The prompt keeps the original target fixed and rejects an entry replaced while
 input was open. After success, the listing refreshes and selects the renamed
 entry; hidden names become visible. Shell directory selection stays unchanged.
+
+## Move a file or dir to Trash
+
+Highlight an entry and press Cmd+Backspace on macOS, Ctrl+Backspace on Linux, or
+click Delete above the shortcut hints. The prompt shows the target path and name
+with an empty `Confirm name:` field. Type the complete name, including its case
+and any leading or trailing spaces, then press Enter. A mismatch leaves the
+prompt open and moves nothing. Backspace edits; Esc cancels before confirmation.
+Other actions and mouse navigation do not change the target while the prompt is
+open. Finish any active filter or naming input before using this shortcut.
+
+The entry goes to the system Trash and can be restored there. A folder moves
+with its contents; a symlink moves as a link without affecting its target.
+macOS uses the system file manager API. Linux requires the `gio` CLI from GLib
+and a location that supports Trash. Missing support, permissions errors, or
+command failures show an error and require fresh name confirmation. cdd never
+falls back to permanent deletion.
+
+Navigation rows, current/starting dirs, and their ancestors are protected. An
+entry replaced while the prompt was open is rejected. Names containing terminal
+control characters or invalid UTF-8 cannot be confirmed. After success, the
+listing refreshes and tree focus returns to the parent. Cancelling cdd after
+confirmation does not undo a move that has already completed; restore it from
+Trash instead. Plain Backspace keeps its navigation and text-editing behavior.
 
 ## Create an empty file
 

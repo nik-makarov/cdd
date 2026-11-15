@@ -20,6 +20,15 @@ func actionTestHelper() int {
 	}
 	fmt.Print("child stdout must not reach the selected path")
 	switch os.Getenv("CDD_TEST_ACTION") {
+	case "trash":
+		if len(os.Args) != 4 || os.Args[1] != "trash" || os.Args[2] != "--" {
+			return 2
+		}
+		path := os.Args[3]
+		if err := renameExclusive(path, filepath.Join(os.Getenv("CDD_TEST_TRASH_DIR"), filepath.Base(path))); err != nil {
+			fmt.Fprint(os.Stderr, err)
+			return 1
+		}
 	case "fail":
 		fmt.Fprint(os.Stderr, strings.Repeat("diagnostic ", 1000))
 		return 1

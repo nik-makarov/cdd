@@ -8,6 +8,10 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Move a file, folder, or symlink to the system Trash using Cmd+Backspace on
+  macOS, Ctrl+Backspace on Linux, or the Delete button. Require its exact name
+  in a blank confirmation field; refuse mismatches and never permanently delete
+  when Trash is unavailable. Linux uses `gio` from GLib.
 - Rename the highlighted file, folder, or symlink with `r` or the Rename button,
   preserving contents and refusing to overwrite existing entries.
 - Create an empty named file with Shift+N inside the highlighted folder or beside

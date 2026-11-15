@@ -27,7 +27,7 @@ Options:
 Keys:
   ↑/↓, k/j       Move selection
   Tab, Shift+Tab Switch columns in a long list
-  v              Cycle views: panes, tree, list
+  v              Cycle views: tree, panes, list
   Enter          Change dir in tree; open in panes/list (. confirms)
   →, l           Open highlighted dir
   ←, h, Backspace  Focus parent first; press again to go up
@@ -58,7 +58,7 @@ In tree view, n creates inside the highlighted dir (or a file's parent).
 In panes/list, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
 The Change Dir button shows the shortcut and destination; click to confirm.
-The last used view is restored on startup; panes is the fallback default.
+The last used view is restored on startup; tree is the default.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.
 Panes and tree views list files; they cannot be opened or chosen as a destination.
 Shell integration is required to choose a dir and change the current shell.

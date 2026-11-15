@@ -63,7 +63,13 @@ func (m *browser) cycleView() {
 		}
 	}()
 	focus := m.visible[m.cursor]
-	next := (m.mode + 1) % 3
+	next := outlineView
+	switch m.mode {
+	case outlineView:
+		next = panesView
+	case panesView:
+		next = listView
+	}
 	if next == outlineView {
 		if err := m.prepareOutline(focus.path); err != nil {
 			m.message = err.Error()

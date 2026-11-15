@@ -463,9 +463,9 @@ func (m browser) view() string {
 	capacity := rows * columns
 	start := m.pageStart()
 	if m.height >= 8 {
-		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" panes / tree / list", m.styles.muted}}
+		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" tree / panes / list", m.styles.muted}}
 		if m.mode == outlineView && width >= 14 {
-			title := truncate("cdd  tree   v panes / tree / list", width-len(rootButton)-1)
+			title := truncate("cdd  tree   v tree / panes / list", width-len(rootButton)-1)
 			header[0] = viewLine{{title + strings.Repeat(" ", width-len(rootButton)-textWidth(title)), m.styles.muted}, {rootButton, m.styles.accent}}
 		}
 	}

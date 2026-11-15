@@ -18,15 +18,17 @@ func viewPreferencePath() string {
 func readViewPreference(path string) viewMode {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return panesView
+		return outlineView
 	}
 	switch strings.TrimSpace(string(data)) {
 	case "tree":
 		return outlineView
 	case "list":
 		return listView
-	default:
+	case "panes":
 		return panesView
+	default:
+		return outlineView
 	}
 }
 

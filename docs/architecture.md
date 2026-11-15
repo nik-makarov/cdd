@@ -110,7 +110,8 @@ The final terminal column is reserved to avoid automatic wrapping. The footer
 stays at the bottom in ordinary windows, and small windows prioritize keeping
 the selected row visible.
 
-Panes view is the fallback default. Only the middle list owns the cursor; parent and child
+Panes view is second and also an emergency fallback if tree initialization fails.
+Only the middle list owns the cursor; parent and child
 panes are read-only context. Navigation and refresh update their cached entries,
 and cursor movement refreshes child context only when its path changes. Files
 can be highlighted but never opened or returned as a selected destination.
@@ -118,14 +119,14 @@ Symlink targets are checked for directory status without resolving their logical
 paths. Colors distinguish entry types; suffixes mark symlinks. Folder labels
 have no trailing slash.
 
-The `v` key cycles panes, expandable tree, and directory-only compact list,
+The `v` key cycles expandable tree, panes, and directory-only compact list,
 preserving folder focus. Leaving the tree with a nested selection opens its
 containing directory in the flat view, keeping the same selected logical path.
 
 After terminal availability and startup validation, the CLI loads `cdd/last-view`
 from `os.UserConfigDir`. The file contains a stable name (`panes`, `tree`, or
-`list`), not an enum ordinal. Missing, unreadable, or unknown values use panes;
-an unavailable saved tree also keeps the default and reports its initialization
+`list`), not an enum ordinal. Missing, unreadable, or unknown values use tree;
+an unavailable saved tree keeps panes and reports its initialization
 error. Each successful view change atomically replaces the preference through a
 private temporary file in the same directory. Failed changes do not save, while
 save failures leave navigation usable and report through the terminal. Cancellation

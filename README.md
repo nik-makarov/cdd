@@ -38,8 +38,8 @@ On Intel macOS or Linux, replace `/opt/homebrew` with the output of
 
 Use an interactive ANSI-compatible terminal.
 
-Press `v` to cycle through **panes → tree → list**. The last used view is restored
-on startup; panes is the default when no valid preference exists.
+Press `v` to cycle through **tree → panes → list**. The last used view is restored
+on startup; tree is the default when no valid preference exists.
 In tree view, Right expands a branch or focuses its first child; Left collapses
 it or focuses its parent. Click its arrow or double-click its name to toggle it.
 Enter chooses the highlighted directory, including while filtering. The tree

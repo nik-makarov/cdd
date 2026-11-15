@@ -38,7 +38,7 @@ cdd --help
 cdd --version
 ```
 
-Place options before the starting directory. The default panes view lists files,
+Place options before the starting directory. The default tree view lists files,
 directories, and symbolic links; only directories and links to directories can
 be opened or chosen as a destination. The compact list view omits files,
 broken symlinks, and links to regular files.
@@ -54,7 +54,7 @@ broken symlinks, and links to regular files.
 | Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
-| `v` | Cycle panes (default), expandable tree, and compact list |
+| `v` | Cycle expandable tree (default), panes, and compact list |
 | Tab / Shift+Tab | Switch columns in the compact list view |
 | `/` | Filter names, ignoring case |
 | Enter / Esc while filtering | In panes/list, finish editing; in tree, Enter chooses the highlighted directory and Esc finishes editing |
@@ -162,7 +162,7 @@ Cancelling the picker after creation leaves the new directory on disk.
 
 ## Appearance
 
-### Panes view (default)
+### Panes view (second)
 
 The middle pane is always active and lists the current directory's folders and
 files. The left pane shows its parent's entries as context. The right pane
@@ -195,9 +195,9 @@ The center has more width than either side pane. Below 59 terminal cells, the
 side panes are hidden while the active list and its file display remain.
 Expanding the terminal restores the panes without changing the selected entry.
 
-### Expandable tree view (second)
+### Expandable tree view (default)
 
-Press `v` once from panes view. A single column shows nested folders with guide
+Tree is the default when no saved preference exists. A single column shows nested folders with guide
 lines, `▸` for a collapsed branch, and `▾` for an expanded branch. The root is your
 home directory when it is an ancestor of the browsing location; otherwise it is
 `/`. Ancestors expand automatically to reveal and focus the browsing location.
@@ -266,7 +266,7 @@ home. Root selection does not change the shell directory.
 Every successful `v` switch saves the selected mode immediately, including if you
 later cancel with Esc or Ctrl+C. The next run restores that view at its new
 starting location. Missing, unreadable, empty, or unrecognized saved values use
-panes. If a saved tree cannot load its ancestors, cdd keeps panes and reports the
+tree. If a saved tree cannot load its ancestors, cdd keeps panes and reports the
 error. A save failure reports an error while allowing navigation and selection.
 
 The preference stores only `panes`, `tree`, or `list` in `cdd/last-view` beneath

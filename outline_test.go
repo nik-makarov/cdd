@@ -18,7 +18,10 @@ func loadOutline(t *testing.T, root string) browser {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return press(m, "v", "v")
+	if err := m.prepareOutline(root); err != nil {
+		t.Fatal(err)
+	}
+	return m
 }
 
 func visiblePath(m browser, path string) bool {
@@ -98,7 +101,7 @@ func TestOutlineModeOrderAndNestedFocus(t *testing.T) {
 	m = press(m, "right", "")
 	m = press(m, "right", "")
 	nested := m.focusedPath()
-	for _, mode := range []viewMode{listView, panesView, outlineView} {
+	for _, mode := range []viewMode{panesView, listView, outlineView} {
 		m = press(m, "v", "v")
 		if m.mode != mode || m.focusedPath() != nested || m.selected != "" {
 			t.Fatalf("switching to %s lost nested focus", mode)
@@ -371,7 +374,7 @@ func TestOutlineRevealsStartingDirAndKeepsItsIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m = press(m, "v", "v")
+	m.restoreViewPreference("")
 	if m.treeRoot != home || m.visible[0].path != home || m.focusedPath() != origin || m.hidden {
 		t.Fatal("tree must reveal and focus a hidden starting path below home")
 	}
@@ -460,7 +463,7 @@ func TestOutlineOutsideHomeAndParentFocus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m = press(m, "v", "v")
+	m.restoreViewPreference("")
 	if m.treeRoot != "/" || m.visible[0].path != "/" || m.focusedPath() != outside {
 		t.Fatal("outside home, tree must start at / and reveal the starting path")
 	}
@@ -469,6 +472,7 @@ func TestOutlineOutsideHomeAndParentFocus(t *testing.T) {
 		t.Fatal(err)
 	}
 	m = focus(t, m, "..")
+	m = press(m, "v", "v")
 	m = press(m, "v", "v")
 	if m.treeRoot != "/" || m.focusedPath() != base {
 		t.Fatal("entering the tree with home's parent selected must retain that destination")

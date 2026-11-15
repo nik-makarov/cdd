@@ -649,3 +649,13 @@ entries, keep private data out, and distinguish local work from publication.
   warning. No dependencies changed or publication ran. Paths: `breadcrumb.go`,
   `breadcrumb_test.go`, `view.go`, `mouse.go`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/development-journal.md`.
+- `2026-11-15T22:13:57Z` — Default interactive startup to the expandable tree
+  when no valid preference exists and order the view cycle as tree, panes, list.
+  Preserve saved pane/list choices and retain panes if ancestor loading fails.
+  Update cycle, focus, restoration, and fallback checks plus user documentation.
+  `make check build`, gopls diagnostics, and `git diff --check` passed; the build
+  retained the nonfatal module-cache write warning. No dependencies changed or
+  publication ran. Paths: `outline.go`, `preferences.go`, `preferences_test.go`,
+  `outline_test.go`, `browser_test.go`, `view.go`, `cli.go`, `README.md`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/development-journal.md`.

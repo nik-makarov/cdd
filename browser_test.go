@@ -592,14 +592,14 @@ func TestColumnNavigation(t *testing.T) {
 	}
 }
 
-func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
+func TestPanesAndModeSwitch(t *testing.T) {
 	root := fixture(t)
 	m, err := newBrowser(root, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.mode == listView {
-		t.Fatal("tree must be the default view")
+	if m.mode != panesView {
+		t.Fatal("browser construction must initialize panes before restoring preferences")
 	}
 	m = focus(t, m, "regular-file")
 	for _, key := range []string{"right", "l", "enter", "confirm"} {
@@ -613,10 +613,6 @@ func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
 				t.Fatal("a new filter should clear the previous file-action message")
 			}
 		})
-	}
-	m = press(m, "v", "v")
-	if m.mode != outlineView || m.visible[m.cursor].name != "regular-file" {
-		t.Fatal("the second view must be the expandable tree and retain file focus")
 	}
 	m = press(m, "v", "v")
 	if m.mode != listView || m.visible[m.cursor].path != root {
@@ -741,7 +737,8 @@ func TestTreePreviewClearsOnCurrentDirectory(t *testing.T) {
 	checkEmpty("return to current row")
 	m = press(m, "ctrl+r", "")
 	checkEmpty("refresh")
-	m = press(m, "v", "v")
-	m = press(m, "v", "v")
+	for range 3 {
+		m = press(m, "v", "v")
+	}
 	checkEmpty("view round trip")
 }

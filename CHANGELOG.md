@@ -13,8 +13,8 @@ version is published on GitHub. Development history is recorded separately in
 - Show the tree from `/` using the header's `[/ Root]` button or `\`, retaining
   the highlighted path and allowing navigation above home.
 - Remember the last successfully chosen view, including after cancellation.
-  Restore it on startup; missing or unknown preferences fall back to panes.
-- Add an expandable tree as the second view: cycle panes, tree, and list with
+  Restore it on startup; missing or unknown preferences fall back to tree.
+- Add an expandable tree as the default view: cycle tree, panes, and list with
   `v`. Browse nested branches with arrows or the mouse, load folders on demand,
   filter expanded branches with ancestor context, and create a directory inside
   the highlighted folder. Anchor the tree at home or `/`, reveal the browsing
@@ -50,6 +50,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Use tree as the default view, followed by panes and then the compact list.
+  Continue restoring a valid saved mode.
 - Display folder names without a trailing slash in all views and side panes.
 - Shorten interface wording to dir/dirs and label the current row `(current dir)`.
 - In panes/list views, confirm the current directory and exit with Enter or a

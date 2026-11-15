@@ -18,6 +18,10 @@ func TestMain(m *testing.M) {
 		if os.Getenv("CDD_TEST_MODE") == "cli" {
 			os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 		}
+		if os.Getenv("CDD_SHELL_INTEGRATION") != "1" {
+			fmt.Fprintln(os.Stderr, "shell function did not mark the picker invocation")
+			os.Exit(1)
+		}
 		for _, arg := range os.Args[1:] {
 			if arg == "--help" {
 				fmt.Print("HELP\n")
@@ -113,7 +117,44 @@ printf '%s\000%s' "$_cdd_test_code" "$PWD"
 	}
 }
 
+func TestShellIntegrationMarkerScope(t *testing.T) {
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	missing := filepath.Join(t.TempDir(), "missing")
+	for _, shell := range []string{"zsh", "bash"} {
+		t.Run(shell, func(t *testing.T) {
+			binary, err := exec.LookPath(shell)
+			if err != nil {
+				t.Skipf("%s is not installed", shell)
+			}
+			script := "unset CDD_SHELL_INTEGRATION\n" + shellInit(executable) + `
+[ -z "${CDD_SHELL_INTEGRATION+x}" ] || exit 10
+cdd ` + shellQuote(missing) + `
+[ "$?" -eq 1 ] || exit 11
+[ -z "${CDD_SHELL_INTEGRATION+x}" ] || exit 12
+command ` + shellQuote(executable) + " " + shellQuote(missing) + `
+[ "$?" -eq 1 ] || exit 13
+`
+			cmd := exec.Command(binary, "-f", "-c", script)
+			cmd.Env = append(os.Environ(), "CDD_TEST_HELPER=1", "CDD_TEST_MODE=cli")
+			var stderr bytes.Buffer
+			cmd.Stderr = &stderr
+			out, err := cmd.Output()
+			if err != nil || len(out) != 0 {
+				t.Fatalf("shell failed: %v, stdout %q, stderr %q", err, out, stderr.String())
+			}
+			message := stderr.String()
+			if !strings.Contains(message, missing) || strings.Count(message, "shell integration is not loaded") != 1 {
+				t.Fatalf("expected directory error from function and setup message from direct launch: %q", message)
+			}
+		})
+	}
+}
+
 func TestShellIntegration(t *testing.T) {
+	t.Setenv("CDD_SHELL_INTEGRATION", "")
 	executable, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)

@@ -98,6 +98,7 @@ func FuzzParseArgsCompatibility(f *testing.F) {
 }
 
 func TestCLIWithoutTerminal(t *testing.T) {
+	t.Setenv("CDD_SHELL_INTEGRATION", "")
 	for _, tt := range []struct {
 		name string
 		args []string
@@ -115,7 +116,6 @@ func TestCLIWithoutTerminal(t *testing.T) {
 		{"positional before help", []string{"a", "--help"}, 2},
 		{"version equals", []string{"--version=true"}, 0},
 		{"extra args", []string{"a", "b"}, 2},
-		{"missing directory", []string{filepath.Join(t.TempDir(), "missing")}, 1},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var out, errOut bytes.Buffer
@@ -130,6 +130,54 @@ func TestCLIWithoutTerminal(t *testing.T) {
 			}
 			if tt.name == "version" && out.String() != "cdd "+version+"\n" {
 				t.Fatalf("version output: %q", &out)
+			}
+		})
+	}
+}
+
+func TestCLIRequiresShellIntegration(t *testing.T) {
+	t.Setenv("TERM", "xterm-256color")
+	t.Setenv("NO_COLOR", "")
+	missing := filepath.Join(t.TempDir(), "missing")
+	for _, tt := range []struct {
+		name, marker string
+		loaded       bool
+	}{
+		{"not loaded", "", false},
+		{"invalid marker", "true", false},
+		{"loaded", "1", true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("CDD_SHELL_INTEGRATION", tt.marker)
+			t.Setenv("SHELL", "/bin/zsh")
+			var stdout, stderr bytes.Buffer
+			if code := run([]string{missing}, &stdout, &stderr); code != 1 || stdout.Len() != 0 {
+				t.Fatalf("exit %d, stdout %q, stderr %q", code, stdout.String(), stderr.String())
+			}
+			message := stderr.String()
+			if strings.Contains(message, "\x1b") {
+				t.Fatalf("captured stderr contains terminal styling: %q", message)
+			}
+			if tt.loaded {
+				if !strings.Contains(message, missing) || strings.Contains(message, "integration is not loaded") {
+					t.Fatalf("loaded integration did not reach directory validation: %q", message)
+				}
+				return
+			}
+			for _, want := range []string{
+				"shell integration is not loaded",
+				"close and reopen your terminal",
+				"~/.zshrc", "~/.bashrc",
+				`echo 'eval "$(/opt/homebrew/bin/cdd --init zsh)"' >> ~/.zshrc`,
+				"source ~/.zshrc",
+				"brew --prefix", "--init bash",
+			} {
+				if !strings.Contains(message, want) {
+					t.Errorf("setup message %q does not contain %q", message, want)
+				}
+			}
+			if strings.Contains(message, missing) {
+				t.Fatalf("uninitialized launch reached directory validation: %q", message)
 			}
 		})
 	}

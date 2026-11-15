@@ -40,9 +40,11 @@ Keys:
 
 The first row (.) selects the current directory.
 Tree view also lists files; they cannot be opened or selected as a destination.
-Without shell integration, stdout contains only the selected absolute path,
-without a trailing newline. Cancellation produces no output and exits 130.
-Connect the binary to your shell: eval "$(/path/to/cdd --init zsh)"
+Shell integration is required to choose a directory and change the current shell.
+The binary returns only the selected absolute path, without a trailing newline.
+Cancellation produces no output and exits 130.
+Add eval "$(/path/to/cdd --init zsh)" to ~/.zshrc, then reopen your terminal.
+For bash, use --init bash in ~/.bashrc.
 `
 
 type options struct {
@@ -130,6 +132,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	if opts.showVersion {
 		return writeResult(stdout, stderr, "cdd "+version+"\n")
+	}
+	if os.Getenv("CDD_SHELL_INTEGRATION") != "1" {
+		var styles viewStyles
+		if output, ok := stderr.(*os.File); ok {
+			styles = terminalStyles(term.IsTerminal(int(output.Fd())), os.Getenv("TERM"), os.Getenv("NO_COLOR"))
+		}
+		io.WriteString(stderr, shellSetupMessage(styles))
+		return 1
 	}
 	start := "."
 	if len(opts.args) == 1 {

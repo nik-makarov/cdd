@@ -44,6 +44,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Fixed
 
+- Detect missing shell integration before opening the picker and explain how to
+  load the zsh or bash initialization script and reopen the terminal, with
+  highlighted setup instructions in interactive terminals.
 - Pass strict Homebrew package validation by inferring the version from the
   source archive URL.
 - Relay informational output through shell integration for every supported flag

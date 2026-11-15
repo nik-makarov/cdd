@@ -287,3 +287,40 @@ entries, keep private data out, and distinguish local work from publication.
   DNS blocked synchronization, and no push, hosted CI, or publication ran.
   Paths: `browser.go`, `browser_test.go`, `cli.go`, `view.go`, `README.md`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T13:21:36Z` — Require loaded shell integration before browsing.
+  Set an invocation-scoped marker in the generated zsh/bash function and report
+  missing integration on stderr with initialization commands and instructions
+  to reopen the terminal. Keep help, version, and initialization available before
+  setup. Update CLI help, usage, and release notes. Formatting, vet, shuffled
+  race-enabled application/tool tests, and host build passed with a temporary Go
+  build cache after the default cache denied writes. The successful build also
+  reported a nonfatal module-cache write warning. Tests cover missing/invalid
+  markers, marker scope, informational commands, cancellation, and literal paths
+  with quotes, metacharacters, Unicode, and trailing newlines. A host-binary
+  check returned the setup message with status 1; a native zsh PTY check loaded
+  integration, selected a directory, and changed the shell directory with status
+  0. No dependencies changed or hosted CI/publication ran. Paths: `cli.go`,
+  `cli_test.go`, `shell.go`, `shell_test.go`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/development-journal.md`.
+- `2026-11-15T13:26:22Z` — Align the missing-integration message with the README's
+  Homebrew setup instructions. Show the same literal echo command that appends
+  initialization to .zshrc and the source command that loads it, retain the
+  terminal-reopen reminder, and include the README's prefix and bash guidance.
+  Update CLI assertions and usage documentation. Formatting, vet, shuffled
+  race-enabled application/tool tests, and host build passed with a temporary
+  Go build cache; the build retained the nonfatal module-cache write warning.
+  A host-binary check displayed the updated instructions and exited with status
+  1. No shell configuration was modified. Paths: `shell.go`, `cli.go`,
+  `cli_test.go`, `docs/usage.md`, `docs/development-journal.md`.
+- `2026-11-15T13:29:49Z` — Highlight the missing-integration heading in bold red
+  and the README setup commands in bold cyan using the existing terminal palette.
+  Detect terminal support on the actual diagnostic writer; retain bold emphasis
+  under NO_COLOR and plain text for TERM=dumb or redirected stderr. Preserve the
+  instruction text and update usage/release notes. Formatting, vet, shuffled
+  race-enabled application/tool tests, and host build passed with a temporary
+  Go build cache; the build retained the nonfatal module-cache write warning.
+  Native PTY checks verified color even with stdout redirected, bold-only output
+  with NO_COLOR, and plain output with TERM=dumb. A captured-stderr host-binary
+  check and CLI assertions confirmed no ANSI styling outside a terminal. No
+  dependencies changed. Paths: `cli.go`, `cli_test.go`, `shell.go`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/development-journal.md`.

@@ -15,6 +15,17 @@ It does not edit shell configuration or require adding a directory to `PATH`.
 The function stores the binary's absolute path, so moving the binary requires
 running its `--init` command again.
 
+Starting the binary without the shell function exits with a setup message before
+opening the picker. The message repeats the README's Homebrew setup commands:
+append the initialization line to `~/.zshrc` with `echo`, then run `source ~/.zshrc`.
+Adjust the binary path for your installation, use `~/.bashrc` and `--init bash`
+for bash, and run the append command only once. Then close and reopen your terminal.
+For zsh with a custom `ZDOTDIR`, use `.zshrc` in that directory instead. `--help`,
+`--version`, and `--init` remain available before integration is loaded.
+On terminal stderr, the setup message highlights its heading in red and commands
+in cyan. `NO_COLOR` removes colors while retaining bold emphasis; `TERM=dumb`
+and redirected stderr produce plain text.
+
 ## Options
 
 ```sh
@@ -196,6 +207,11 @@ If `GOBIN` is set, use that directory instead of `$(go env GOPATH)/bin`.
 A child process cannot change the parent shell's working directory. `--init`
 prints a function named `cdd` that runs the binary, captures its selected absolute
 path, and executes `builtin cd -- "$path"` in the current shell.
+
+The function sets `CDD_SHELL_INTEGRATION=1` only for the picker process. The
+binary checks this marker before browsing, so merely having zsh installed or
+setting `SHELL` does not count as loading integration. Do not export the marker
+in your shell configuration; load the generated function instead.
 
 The initial `eval` defines that function. Selected paths never pass through
 `eval`: they are literal arguments, preserving whitespace, quotes, shell

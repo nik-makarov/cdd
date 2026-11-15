@@ -38,6 +38,7 @@ Keys:
   .              Toggle hidden dirs
   ~              Go to home dir
   Ctrl+R         Refresh
+  \\              Show tree from filesystem root
   ?              Toggle controls help (Esc closes help)
   Esc, q, Ctrl+C Cancel without changing dir
 

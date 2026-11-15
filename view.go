@@ -157,6 +157,8 @@ func (m browser) helpLines(width int) []viewLine {
 	for _, hint := range helpHints {
 		if m.mode == outlineView {
 			switch hint.key {
+			case "~":
+				lines = append(lines, m.hints([]keyHint{{"\\", "tree from /"}}))
 			case "→ / l":
 				hint.action = "expand / first child"
 			case "← / h / Backspace":
@@ -454,6 +456,10 @@ func (m browser) view() string {
 	start := m.pageStart()
 	if m.height >= 8 {
 		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" panes / tree / list", m.styles.muted}}
+		if m.mode == outlineView && width >= 14 {
+			title := truncate("cdd  tree   v panes / tree / list", width-len(rootButton)-1)
+			header[0] = viewLine{{title + strings.Repeat(" ", width-len(rootButton)-textWidth(title)), m.styles.muted}, {rootButton, m.styles.accent}}
+		}
 	}
 	if columns == 2 {
 		if m.height >= 8 {

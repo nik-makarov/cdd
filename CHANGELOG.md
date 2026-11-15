@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Show the tree from `/` using the header's `[/ Root]` button or `\`, retaining
+  the highlighted path and allowing navigation above home.
 - Remember the last successfully chosen view, including after cancellation.
   Restore it on startup; missing or unknown preferences fall back to panes.
 - Add an expandable tree as the second view: cycle panes, tree, and list with

@@ -11,6 +11,7 @@ type browser struct {
 	path      string
 	origin    string
 	treeRoot  string
+	rootTree  bool
 	entries   []entry
 	visible   []entry
 	cursor    int
@@ -251,6 +252,10 @@ func (m *browser) handle(key keyEvent) bool {
 		m.showHelp = !m.showHelp
 	case "v":
 		m.cycleView()
+	case "\\":
+		if m.mode == outlineView {
+			m.showRootTree()
+		}
 	}
 	return false
 }

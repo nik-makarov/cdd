@@ -631,3 +631,12 @@ entries, keep private data out, and distinguish local work from publication.
   CI/publication ran. Paths: `preferences.go`, `preferences_test.go`, `browser.go`,
   `outline.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T22:09:12Z` — Add a visible filesystem-root button and backslash
+  shortcut in tree view. Preserve nested selection and expanded branches while
+  revealing ancestors above home, and retain root scope during session navigation.
+  Cover rendering, mouse/keyboard activation, focus, and hidden-button hit testing.
+  `make check build`, gopls diagnostics, and `git diff --check` passed; the host
+  build retained the nonfatal module-cache write warning. No dependencies changed
+  or publication ran. Paths: `browser.go`, `outline.go`, `outline_test.go`,
+  `view.go`, `mouse.go`, `cli.go`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/development-journal.md`.

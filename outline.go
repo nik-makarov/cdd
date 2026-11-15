@@ -109,11 +109,14 @@ func treeRootFor(path, home string) string {
 func (m *browser) prepareOutline(focus string) error {
 	home, _ := os.UserHomeDir()
 	root := treeRootFor(m.path, home)
+	if m.rootTree {
+		root = treeRootFor(m.path, "")
+	}
 	if !pathWithin(focus, root) {
 		root = treeRootFor(focus, home)
 	}
 	branches := make(map[string]treeBranch)
-	if root == m.treeRoot {
+	if m.treeRoot != "" && pathWithin(m.treeRoot, root) {
 		branches = maps.Clone(m.branches)
 		if branches == nil {
 			branches = make(map[string]treeBranch)
@@ -147,6 +150,11 @@ func (m *browser) prepareOutline(focus string) error {
 	if err := reveal(m.path); err != nil {
 		return err
 	}
+	if focus != root {
+		if err := reveal(filepath.Dir(focus)); err != nil {
+			return err
+		}
+	}
 	if m.origin != root && pathWithin(m.origin, root) {
 		// The source may have disappeared since launch; its header still explains
 		// where the shell started even if that optional branch cannot be read.
@@ -156,6 +164,25 @@ func (m *browser) prepareOutline(focus string) error {
 	m.message, m.scroll, m.lastClick = "", 0, mouseClick{}
 	m.rebuildOutline(focus)
 	return nil
+}
+
+func (m *browser) showRootTree() {
+	next := *m
+	next.rootTree = true
+	next.query, next.filtering = "", false
+	if err := next.prepareOutline(m.focusedPath()); err != nil {
+		m.message = err.Error()
+		return
+	}
+	*m = next
+}
+
+const rootButton = "[/ Root]"
+
+func (m browser) rootButtonAt(x, y int) bool {
+	width, margin := m.viewWidth()
+	return m.mode == outlineView && m.height >= 8 && width >= 14 &&
+		y == 0 && x >= margin+width-len(rootButton) && x < margin+width
 }
 
 func (m browser) outlineEntries(items []entry) []entry {

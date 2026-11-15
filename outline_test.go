@@ -25,6 +25,38 @@ func visiblePath(m browser, path string) bool {
 	return slices.ContainsFunc(m.visible, func(item entry) bool { return item.path == path })
 }
 
+func TestOutlineRootButtonRevealsAncestors(t *testing.T) {
+	root := fixture(t)
+	m := loadOutline(t, root)
+	m = focus(t, m, "Alpha")
+	m = press(m, "right", "")
+	m = press(m, "right", "")
+	focus := m.focusedPath()
+	width, margin := m.viewWidth()
+	if !strings.Contains(plainFrame(m.view()), rootButton) {
+		t.Fatal("root button must be visible in the rendered header")
+	}
+	if m.handle(keyEvent{name: "mouse-left", x: margin + width - 2, y: 0}) {
+		t.Fatal("root button must not confirm a destination")
+	}
+	if m.treeRoot != "/" || m.focusedPath() != focus || !visiblePath(m, filepath.Dir(root)) || m.origin != root || m.selected != "" {
+		t.Fatal("root button must reveal ancestors and retain the nested selection")
+	}
+	m = press(m, "~", "~")
+	if m.treeRoot != "/" || m.path != root {
+		t.Fatal("home navigation must retain the expanded root scope")
+	}
+	m = loadOutline(t, root)
+	m = press(m, "\\", "\\")
+	if m.treeRoot != "/" || m.focusedPath() != root {
+		t.Fatal("keyboard root action must retain home focus")
+	}
+	m.height = 7
+	if m.rootButtonAt(margin+width-2, 0) {
+		t.Fatal("hidden root button must not accept clicks")
+	}
+}
+
 func TestOutlineNavigationAndConfirmation(t *testing.T) {
 	root := fixture(t)
 	m := loadOutline(t, root)

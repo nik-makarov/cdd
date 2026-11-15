@@ -258,6 +258,11 @@ While editing a filter, `v` is literal input; finish editing before switching.
 
 ### Remembered view
 
+In tree view, click `[/ Root]` in the header or press `\` to reveal the tree
+from `/` while retaining the highlighted path. This root remains active while
+browsing and switching views during the current session. `~` still navigates
+home. Root selection does not change the shell directory.
+
 Every successful `v` switch saves the selected mode immediately, including if you
 later cancel with Esc or Ctrl+C. The next run restores that view at its new
 starting location. Missing, unreadable, empty, or unrecognized saved values use

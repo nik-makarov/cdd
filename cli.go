@@ -35,7 +35,7 @@ Keys:
   n              Create a dir in the current location
   Shift+N        Create an empty file in the highlighted dir (or file's parent)
   Space          Preview file (Quick Look on macOS; text preview on Linux)
-  Configured key Open dir/file in a new Zed window (see config.json)
+  Configured key Open dir/file in a new editor window (Zed, then VS Code)
   /              Filter names (Esc finishes; Enter confirms in tree)
   .              Toggle hidden dirs
   ~              Go to home dir
@@ -61,8 +61,8 @@ In panes, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
 The Change Dir button shows the shortcut and destination; click to confirm.
 The last used view is restored on startup; tree is the default.
-Customize keys.open_in_zed in cdd/config.json under the user config directory.
-The binding is ignored when the Zed CLI is not installed.
+Customize editor_command and keys.open_in_editor in cdd/config.json.
+The binding is ignored when none of the configured editor CLIs is installed.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.
 Files open in the default application with Enter; they cannot be a cd destination.
 Shell integration is required to choose a dir and change the current shell.

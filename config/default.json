@@ -1,5 +1,6 @@
 {
+  "editor_command": "zed --new || zeditor --new || code --new-window",
   "keys": {
-    "open_in_zed": "z"
+    "open_in_editor": "z"
   }
 }

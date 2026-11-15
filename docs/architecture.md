@@ -157,10 +157,15 @@ the [xdg-open specification](https://portland.freedesktop.org/doc/xdg-open.html)
 The CLI also reads optional `config.json` beside the view preference, after
 startup validation. It merges typed overrides onto embedded JSON defaults and
 rejects unknown keys, invalid letters, and collisions with built-in shortcuts.
-Browser key handling and help use the resulting binding, never a literal Zed key.
-The Zed action resolves its installed CLI through PATH (`zed`, then Linux
-`zeditor`), validates an existing folder or regular file, and passes only that
-path with `--new --`. Absence is a no-op. No parent folder is added for a file.
+Browser key handling and help use the resulting editor binding, retaining the
+old `keys.open_in_zed` alias. One `editor_command` string provides quoted arguments
+and `||` alternatives: defaults prefer `zed`, then `zeditor`, then `code`. The
+launcher resolves the first installed CLI through PATH and validates an existing
+folder or regular file. It appends `--` and the selected absolute path as literal
+arguments; no shell, variable expansion, or path interpolation is involved.
+Absence is a no-op; an installed editor's launch failure is reported without
+trying another editor. No parent folder is added for a file. The action carries
+its configured command into the terminal-owned cancellable runner.
 
 The expandable tree follows the arrow-key model from the
 [WAI-ARIA tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/): Right

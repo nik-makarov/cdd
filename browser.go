@@ -129,8 +129,8 @@ func (m *browser) handle(key keyEvent) bool {
 		return true
 	}
 	if m.filePreview != nil {
-		if m.config.Keys.OpenInZed != "" && key.name == m.config.Keys.OpenInZed {
-			m.openInZed(runtime.GOOS)
+		if m.config.Keys.OpenInEditor != "" && key.name == m.config.Keys.OpenInEditor {
+			m.openInEditor()
 			if m.action.kind != "" {
 				m.filePreview = nil
 			}
@@ -207,8 +207,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.showHelp = false
 		return false
 	}
-	if m.config.Keys.OpenInZed != "" && key.name == m.config.Keys.OpenInZed {
-		m.openInZed(runtime.GOOS)
+	if m.config.Keys.OpenInEditor != "" && key.name == m.config.Keys.OpenInEditor {
+		m.openInEditor()
 		return false
 	}
 	if key.name == "enter" && m.visible[m.cursor].name == "." {

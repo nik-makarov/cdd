@@ -128,8 +128,8 @@ func (m browser) shortHelp(width int) viewLine {
 	} else {
 		hints = append(hints, keyHint{"Enter", "open file"}, keyHint{"Space", "preview"})
 	}
-	if key := m.config.Keys.OpenInZed; key != "" {
-		hints = append(hints, keyHint{key, "Zed"})
+	if key := m.config.Keys.OpenInEditor; key != "" && m.config.EditorCommand != "" {
+		hints = append(hints, keyHint{key, "Editor"})
 	}
 	hints = append(hints, keyHint{"n/N", "new dir/file"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
 	// Preserve Enter, help and exit when space is limited.
@@ -137,7 +137,7 @@ func (m browser) shortHelp(width int) viewLine {
 	if m.mode == outlineView {
 		trimOrder = []string{"/", "n/N", "↑↓", "v", "→", "←"}
 	}
-	trimOrder = append([]string{m.config.Keys.OpenInZed}, trimOrder...)
+	trimOrder = append([]string{m.config.Keys.OpenInEditor}, trimOrder...)
 	for _, key := range trimOrder {
 		if textWidth(hintText(hints)) <= width {
 			break
@@ -164,8 +164,8 @@ func (m browser) helpLines(width int) []viewLine {
 	var lines []viewLine
 	var row []keyHint
 	hints := append([]keyHint(nil), helpHints...)
-	if key := m.config.Keys.OpenInZed; key != "" {
-		hints = append([]keyHint{{key, "Zed: new window"}}, hints...)
+	if key := m.config.Keys.OpenInEditor; key != "" && m.config.EditorCommand != "" {
+		hints = append([]keyHint{{key, "Editor: new window"}}, hints...)
 	}
 	for _, hint := range hints {
 		if m.mode == outlineView {

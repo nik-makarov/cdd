@@ -63,7 +63,7 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Up / Down, `k` / `j` | Move selection |
 | Enter | Open a file; in tree, choose a directory; in panes, confirm `.` or browse another directory |
 | Space | Preview a file: Quick Look on macOS, built-in viewer on Linux |
-| Configured Zed key (default `z`) | Open the highlighted folder as a project or a file by itself in a new Zed window |
+| Configured editor key (default `z`) | Open the highlighted folder as a project or a file by itself in a new editor window |
 | Right, `l` | Open the highlighted directory |
 | Left, `h`, Backspace | Focus `..` first; from `..` go to the parent directory |
 | Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
@@ -81,9 +81,10 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | `?` | Show or hide controls help; Esc also closes help |
 | Esc, `q`, Ctrl+C / Ctrl+D | Cancel |
 
-The Zed key comes from [configuration](configuration.md). It is ignored when the
-CLI is absent and remains literal during text input. It also works from the
-built-in file preview. File and editor actions keep cdd open.
+The editor key and command come from [configuration](configuration.md). The
+default tries Zed's `zed`/`zeditor` CLI, then VS Code's `code`. The key is ignored
+when none is installed and remains literal during text input. It also works from
+the built-in file preview. File and editor actions keep cdd open.
 
 In terminals that support mouse reporting:
 
@@ -194,7 +195,7 @@ permissions `0644` restricted by the process umask, and is highlighted after
 refresh. Hidden names become visible. In panes view, browsing enters the target
 folder to show the new file; shell selection remains unchanged.
 
-Space previews the new file, Enter opens it, and the configured Zed shortcut
+Space previews the new file, Enter opens it, and the configured editor shortcut
 opens it in the editor. It cannot be selected as a cd destination. Cancelling
 the picker after creation leaves the file on disk.
 

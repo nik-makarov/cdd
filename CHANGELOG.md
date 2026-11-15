@@ -11,9 +11,11 @@ version is published on GitHub. Development history is recorded separately in
 - Create an empty named file with Shift+N inside the highlighted folder or beside
   the highlighted file. Focus the new file without opening it or overwriting
   existing entries.
-- Open a folder as a project or a single file in a new Zed window through its
-  installed CLI. Configure the binding in `config.json` (shipped default: `z`);
-  ignore it when Zed is unavailable.
+- Open a folder as a project or a single file in a new editor window through its
+  installed CLI: prefer Zed, then VS Code. Configure the fallback command in one
+  `editor_command` string and the binding in `keys.open_in_editor` (default: `z`);
+  existing `keys.open_in_zed` settings still work. Ignore the key if no editor is
+  available.
 - Open highlighted files in the default application with Enter, preserving
   browsing state and keeping files out of shell directory selection.
 - Preview files with Space: native Quick Look on macOS and a bounded, scrollable

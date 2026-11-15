@@ -732,3 +732,20 @@ entries, keep private data out, and distinguish local work from publication.
   `create_file_test.go`, `config_test.go`, `terminal_test.go`, `cli.go`, `AGENTS.md`,
   `README.md`, `CHANGELOG.md`, `docs/configuration.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T22:44:55Z` — Generalize the editor action with one configurable
+  command string, preferring Zed and its `zeditor` alias before VS Code. Parse
+  quoted arguments and `||` alternatives without invoking a shell; append the
+  selected path literally and skip unavailable executables. Preserve new-window
+  defaults and report installed-editor failures without launching a fallback.
+  Introduce `keys.open_in_editor`, retain the old key alias, and update hints and
+  scope documentation. Verify priority, missing/disabled editors, custom quoted
+  commands, legacy settings, folder/file arguments on both platforms, literal
+  names, preview dispatch, stale paths, bounded errors, and cancellation using
+  fake CLIs. `make check build`, gopls diagnostics, and `git diff --check` passed;
+  the build retained the nonfatal module-cache write warning. Checked the official
+  Zed and VS Code CLI references for new-window flags. Tests did not open desktop
+  applications. No dependencies changed or publication ran. Paths: `editor.go`,
+  `editor_test.go` (replacing `zed_test.go`), `actions.go`, `browser.go`, `view.go`,
+  `config.go`, `config/default.json`, `config_test.go`, `cli.go`, `AGENTS.md`,
+  `README.md`, `CHANGELOG.md`, `docs/configuration.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

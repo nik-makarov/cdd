@@ -9,11 +9,16 @@ import (
 
 type browser struct {
 	path      string
+	origin    string
+	treeRoot  string
 	entries   []entry
 	visible   []entry
 	cursor    int
 	scroll    int
-	compact   bool
+	mode      viewMode
+	viewFile  string
+	branches  map[string]treeBranch
+	outline   []outlineRow
 	lastClick mouseClick
 	hidden    bool
 	filtering bool
@@ -34,7 +39,7 @@ type browser struct {
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
-	m := browser{hidden: hidden, width: 80, height: 24}
+	m := browser{origin: path, hidden: hidden, width: 80, height: 24}
 	if err := m.open(path, ""); err != nil {
 		return browser{}, err
 	}
@@ -45,6 +50,21 @@ func (m *browser) open(path, focus string) error {
 	entries, err := readEntries(path)
 	if err != nil {
 		return err
+	}
+	if m.mode == outlineView {
+		next := *m
+		next.path, next.entries = path, entries
+		next.query, next.message, next.filtering = "", "", false
+		next.newName, next.creating = "", false
+		target := path
+		if focus != "" {
+			target = filepath.Join(path, focus)
+		}
+		if err := next.prepareOutline(target); err != nil {
+			return err
+		}
+		*m = next
+		return nil
 	}
 	m.path, m.entries = path, entries
 	m.query, m.message, m.filtering = "", "", false
@@ -63,6 +83,18 @@ func (m *browser) open(path, focus string) error {
 func (m *browser) refilter() {
 	m.message = ""
 	m.scroll, m.lastClick = 0, mouseClick{}
+	if m.mode == outlineView {
+		m.rebuildOutline(m.focusedPath())
+		if m.query != "" {
+			for i, item := range m.visible {
+				if !item.isDotDir() && strings.Contains(strings.ToLower(item.name), strings.ToLower(m.query)) {
+					m.cursor = i
+					break
+				}
+			}
+		}
+		return
+	}
 	m.visible = nil
 	if parent := filepath.Dir(m.path); parent != m.path {
 		m.visible = append(m.visible, entry{name: "..", path: parent})
@@ -71,7 +103,7 @@ func (m *browser) refilter() {
 	m.visible = append(m.visible, entry{name: ".", path: m.path})
 	firstMatch := len(m.visible)
 	for _, dir := range m.entries {
-		if m.compact && !dir.isDir() {
+		if m.mode == listView && !dir.isDir() {
 			continue
 		}
 		if !m.hidden && strings.HasPrefix(dir.name, ".") {
@@ -120,6 +152,10 @@ func (m *browser) handle(key keyEvent) bool {
 		}
 		return false
 	}
+	if m.mode == outlineView && (key.name == "enter" || key.name == "confirm") {
+		m.filtering = false
+		key.name = "confirm"
+	}
 	if m.filtering {
 		switch key.name {
 		case "esc", "enter":
@@ -155,6 +191,10 @@ func (m *browser) handle(key keyEvent) bool {
 	case "right", "l", "enter":
 		m.openSelected()
 	case "left", "h", "backspace":
+		if m.mode == outlineView {
+			m.outlineLeft()
+			break
+		}
 		parent := slices.IndexFunc(m.visible, func(item entry) bool { return item.name == ".." })
 		if parent < 0 {
 			m.message = ""
@@ -202,21 +242,15 @@ func (m *browser) handle(key keyEvent) bool {
 		}
 		m.navigate(home, "")
 	case "ctrl+r":
-		m.navigate(m.path, m.visible[m.cursor].name)
+		if m.mode == outlineView {
+			m.refreshOutline()
+		} else {
+			m.navigate(m.path, m.visible[m.cursor].name)
+		}
 	case "?":
 		m.showHelp = !m.showHelp
 	case "v":
-		focus := m.visible[m.cursor].path
-		m.compact = !m.compact
-		m.refilter()
-		for i, item := range m.visible {
-			if item.path == focus {
-				m.cursor = i
-				break
-			}
-		}
-		m.message = ""
-		m.refreshContext()
+		m.cycleView()
 	}
 	return false
 }
@@ -227,7 +261,8 @@ func (m *browser) createDirectory() {
 		m.message = "Enter a single dir name, not a path, . or .."
 		return
 	}
-	if err := os.Mkdir(filepath.Join(m.path, name), 0o755); err != nil {
+	parent := m.creationPath()
+	if err := os.Mkdir(filepath.Join(parent, name), 0o755); err != nil {
 		m.message = wrapError("create dir", err).Error()
 		return
 	}
@@ -235,13 +270,28 @@ func (m *browser) createDirectory() {
 	if strings.HasPrefix(name, ".") {
 		m.hidden = true
 	}
+	if m.mode == outlineView {
+		items, err := readEntries(parent)
+		if err != nil {
+			m.message = "Dir created, but refreshing failed: " + err.Error()
+			return
+		}
+		m.query = ""
+		m.message = ""
+		m.branches[parent] = treeBranch{items: items, expanded: true}
+		if parent == m.path {
+			m.entries = items
+		}
+		m.rebuildOutline(filepath.Join(parent, name))
+		return
+	}
 	if err := m.open(m.path, name); err != nil {
 		m.message = "Dir created, but refreshing failed: " + err.Error()
 	}
 }
 
 func (m *browser) refreshContext() {
-	if m.compact {
+	if m.mode != panesView {
 		return
 	}
 	m.parent, m.parentErr = nil, ""
@@ -258,7 +308,7 @@ func (m *browser) refreshContext() {
 }
 
 func (m *browser) refreshPreview(force bool) {
-	if m.compact || len(m.visible) == 0 {
+	if m.mode != panesView || len(m.visible) == 0 {
 		return
 	}
 	item := m.visible[m.cursor]
@@ -290,6 +340,10 @@ func (m *browser) openSelected() {
 	item := m.visible[m.cursor]
 	if !item.isDir() {
 		m.message = "Files cannot be opened; choose a dir"
+		return
+	}
+	if m.mode == outlineView && item.name != ".." {
+		m.outlineRight()
 		return
 	}
 	focus := ""

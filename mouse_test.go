@@ -58,7 +58,7 @@ func TestMouseEntryMatchesRenderedRows(t *testing.T) {
 		for _, size := range [][2]int{{120, 24}, {80, 12}, {58, 8}, {40, 7}, {20, 5}} {
 			for _, mode := range []string{"normal", "filter", "help", "error"} {
 				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
-					m := browser{path: "/projects", compact: compact, width: size[0], height: size[1], cursor: 37}
+					m := browser{path: "/projects", mode: testView(compact), width: size[0], height: size[1], cursor: 37}
 					for i := range 60 {
 						name := fmt.Sprintf("dir-%02d", i)
 						m.visible = append(m.visible, entry{name: name, path: filepath.Join(m.path, name)})
@@ -102,7 +102,7 @@ func TestMouseIgnoresNonEntryAreas(t *testing.T) {
 		}
 	}
 	for _, compact := range []bool{false, true} {
-		m.compact, m.width, m.height = compact, 1, 1
+		m.mode, m.width, m.height = testView(compact), 1, 1
 		m.cursor = 2
 		if got := m.mouseEntry(0, 0); got != m.cursor {
 			t.Fatalf("single-cell terminal maps to %d, want %d", got, m.cursor)
@@ -126,13 +126,13 @@ func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			root := fixture(t)
 			m := loadBrowser(t, root)
-			m.compact = mode == "list"
+			m.mode = testView(mode == "list")
 			m.refilter()
 			click := mouseOn(t, m, "Alpha", "mouse-left", time.Unix(100, 0))
 			if m.handle(click) || m.selected != "" || m.path != root || m.visible[m.cursor].name != "Alpha" {
 				t.Fatal("single click must only highlight the directory")
 			}
-			if !m.compact && m.preview != filepath.Join(root, "Alpha") {
+			if m.mode != listView && m.preview != filepath.Join(root, "Alpha") {
 				t.Fatal("click did not refresh the directory preview")
 			}
 			selected := m
@@ -151,7 +151,7 @@ func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
 
 func TestMouseKeepsScrolledRowsStable(t *testing.T) {
 	for _, compact := range []bool{false, true} {
-		m := browser{path: "/projects", compact: compact, width: 80, height: 16, cursor: 37}
+		m := browser{path: "/projects", mode: testView(compact), width: 80, height: 16, cursor: 37}
 		for i := range 60 {
 			m.visible = append(m.visible, entry{name: fmt.Sprintf("dir-%02d", i), path: fmt.Sprintf("/projects/dir-%02d", i)})
 		}
@@ -170,7 +170,7 @@ func TestMouseDoubleClickConfirmsCurrentDirectory(t *testing.T) {
 			t.Run(fmt.Sprintf("compact=%t/%s", compact, mode), func(t *testing.T) {
 				root := t.TempDir()
 				m := loadBrowser(t, root)
-				m.compact = compact
+				m.mode = testView(compact)
 				if mode == "filter" {
 					m = press(m, "/", "/")
 					m = press(m, "text", "missing")
@@ -210,7 +210,7 @@ func TestMouseOpensSecondColumn(t *testing.T) {
 	for _, target := range []string{"dir-20", "dir-39"} {
 		t.Run(target, func(t *testing.T) {
 			m := loadBrowser(t, root)
-			m.compact = true
+			m.mode = listView
 			if target == "dir-39" {
 				m.cursor = len(m.visible) - 1
 			}
@@ -348,7 +348,7 @@ func TestMouseOpensParent(t *testing.T) {
 				}
 				start := filepath.Join(root, name)
 				m := loadBrowser(t, start)
-				m.compact, m.query, m.filtering = compact, query, query != ""
+				m.mode, m.query, m.filtering = testView(compact), query, query != ""
 				m.refilter()
 				click := mouseOn(t, m, "\u2190 Back to parent", "mouse-left", time.Unix(100, 0))
 				if m.handle(click) || m.path != start || m.selected != "" || m.visible[m.cursor].name != ".." {
@@ -370,7 +370,7 @@ func TestSelectButtonMatchesRenderedPosition(t *testing.T) {
 			for _, mode := range []string{"normal", "filter", "completed filter", "help", "error", "create"} {
 				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
 					m := loadBrowser(t, root)
-					m.compact, m.width, m.height = compact, size[0], size[1]
+					m.mode, m.width, m.height = testView(compact), size[0], size[1]
 					m.filtering, m.creating, m.showHelp = mode == "filter", mode == "create", mode == "help"
 					if mode == "completed filter" {
 						m.query = "missing"

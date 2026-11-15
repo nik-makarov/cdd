@@ -91,7 +91,7 @@ func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
 		for _, size := range [][2]int{{120, 30}, {80, 24}, {73, 12}, {60, 18}, {56, 8}, {55, 8}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
 			for _, mode := range []string{"normal", "filter", "help", "error", "create", "create error"} {
 				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
-					m := browser{path: "/long/parent/projects", compact: compact, width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
+					m := browser{path: "/long/parent/projects", mode: testView(compact), width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
 					for i := range 60 {
 						m.visible = append(m.visible, entry{name: fmt.Sprintf("folder-%02d-\u754c", i) + strings.Repeat("long", 20)})
 					}
@@ -189,7 +189,7 @@ func TestPanePathsFollowDisplayedDirectories(t *testing.T) {
 			[]string{"/work/current", "/work/current"}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			m := browser{path: tt.current, compact: tt.compact, width: tt.width, height: tt.height, cursor: 1}
+			m := browser{path: tt.current, mode: testView(tt.compact), width: tt.width, height: tt.height, cursor: 1}
 			m.visible = []entry{{name: ".", path: tt.current}, tt.item}
 			for range 30 {
 				m.visible = append(m.visible, entry{name: "other"})
@@ -197,7 +197,7 @@ func TestPanePathsFollowDisplayedDirectories(t *testing.T) {
 			row := 0
 			if m.height >= 8 {
 				row = 1
-				if !m.compact {
+				if m.mode != listView {
 					row = 2
 				}
 			}
@@ -289,7 +289,7 @@ func TestStyledViewSanitizesDynamicText(t *testing.T) {
 }
 
 func TestTwoColumnListing(t *testing.T) {
-	m := browser{path: "/projects", compact: true, width: 80, height: 12}
+	m := browser{path: "/projects", mode: listView, width: 80, height: 12}
 	m.visible = []entry{{name: "."}}
 	for i := 1; i <= 20; i++ {
 		m.visible = append(m.visible, entry{name: fmt.Sprintf("dir-%02d", i)})
@@ -326,7 +326,7 @@ func TestTwoColumnListing(t *testing.T) {
 }
 
 func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
-	m := browser{path: "/projects", compact: true, width: 80, height: 12, styles: terminalStyles(true, "xterm", "")}
+	m := browser{path: "/projects", mode: listView, width: 80, height: 12, styles: terminalStyles(true, "xterm", "")}
 	for i := range 30 {
 		m.visible = append(m.visible, entry{name: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439-\u754c-" + strconv.Itoa(i)})
 	}
@@ -403,7 +403,7 @@ func TestSelectButtonAppearance(t *testing.T) {
 		if right := width - left - textWidth(lines[0][1].text); right < left || right-left > 1 {
 			t.Fatal("button must be horizontally centered")
 		}
-		m.compact = false
+		m.mode = panesView
 		m.refilter()
 		m = focus(t, m, "regular-file")
 		button = m.selectButton()[1].render(80)

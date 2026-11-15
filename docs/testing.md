@@ -38,10 +38,22 @@ outlined geometry, destination clipping, and all four clickable rows.
 Column tests cover ordered two-column pages, automatic fallback for short/narrow
 lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
 filter-mode switching, full-page navigation, and selection/opening from the right.
-Tree-mode tests verify default mode, a single active middle pane, file-action
+Panes-mode tests verify default mode, a single active middle pane, file-action
 guards, parent and child context, file/link colors and suffixes, directory-link
 navigation, preview failures, and focus across view changes. Both views are
-checked across terminal sizes, including hidden side panes in narrow tree view.
+checked across terminal sizes, including hidden side panes in narrow panes view.
+Expandable-tree tests cover mode order, nested focus across mode changes,
+expansion/collapse and parent navigation, lazy logical symlinks including cycles,
+ancestor-preserving filters, hidden entries, refresh with deleted selections,
+nested creation, empty folders, file/stale-directory guards, mouse disclosure
+controls, Enter confirmation at every depth and during filtering, scrolling,
+NO_COLOR, and tiny terminals. Root tests cover home ancestry, similarly prefixed
+paths, missing home, `/` fallback, automatic hidden-ancestor revelation, fixed
+root navigation, and immutable starting-dir styling across focus and view changes.
+Preference tests cover all saved modes, missing and malformed values, restoration
+after cancellation, private atomic replacement, failed mode changes, and save
+errors that leave confirmation usable. Test preference files stay in temporary
+directories, independently of the user's real configuration.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough. Separate stdout/stderr assertions verify move
@@ -117,9 +129,17 @@ Use a disposable directory tree and a real interactive terminal:
    exit. Confirm with each row of the Change Dir button, Cmd+Enter on macOS, or Ctrl+Enter on
    Linux in a compatible terminal. Check that the shown path follows the
    highlighted directory and that terminal keyboard mode is restored on exit.
-   Repeat in tree view and both compact columns, including after scrolling and
+   Repeat in panes view and both compact columns, including after scrolling and
    resizing. Check the wheel, inert side previews and blank rows, file selection
    guards, filtering, and directory-name input.
+9. Press `v` once from panes view to open the expandable tree. Expand two sibling
+   branches, move among their children, collapse one, and reopen it. Check Right
+   and Left, single-click disclosure arrows, double-click labels, fixed home or `/`
+   roots, Enter confirmation at depth, and preservation of focus through all three
+   views. Filter a nested name and check its ancestors remain visible. Create a
+   child under a highlighted folder, then refresh after externally removing it.
+   Check the subdued starting-dir marker independently of focus, also with
+   NO_COLOR and when an explicit CLI starting path differs from the launch dir.
 
 Automated model tests do not verify visual layout or real terminal restoration.
 Terminal emulators can differ in key sequences and Unicode display width.

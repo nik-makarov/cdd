@@ -27,14 +27,14 @@ Options:
 Keys:
   ↑/↓, k/j       Move selection
   Tab, Shift+Tab Switch columns in a long list
-  v              Switch tree/list view (tree is the default)
-  Enter          Open dir; on . change dir and exit
+  v              Cycle views: panes, tree, list
+  Enter          Change dir in tree; open in panes/list (. confirms)
   →, l           Open highlighted dir
   ←, h, Backspace  Focus parent first; press again to go up
   Cmd+Enter      Change dir and exit (macOS)
   Ctrl+Enter     Change dir and exit (Linux)
   n              Create a dir in the current location
-  /              Filter dir names (Enter/Esc finishes filtering)
+  /              Filter names (Esc finishes; Enter confirms in tree)
   .              Toggle hidden dirs
   ~              Go to home dir
   Ctrl+R         Refresh
@@ -46,11 +46,20 @@ Mouse (in compatible terminals):
   Double click   Open dir; on . change dir and exit
   Wheel          Move selection up/down
 
-The first row (← Back to parent) goes up; it is absent at the filesystem root.
+Tree view expands branches in place: Right expands or focuses the first child;
+Left collapses or focuses the parent. Enter always chooses the highlighted dir,
+including while filtering. The root is home when it contains the location, or /.
+Ancestors open automatically; the launch location is marked (starting dir).
+Click a disclosure arrow or double-click a dir to toggle its branch.
+The tree filter matches expanded branches and keeps their ancestors visible.
+In tree view, n creates inside the highlighted dir (or a file's parent).
+
+In panes/list, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
 The Change Dir button shows the shortcut and destination; click to confirm.
+The last used view is restored on startup; panes is the fallback default.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.
-Tree view also lists files; they cannot be opened or selected as a destination.
+Panes and tree views list files; they cannot be opened or chosen as a destination.
 Shell integration is required to choose a dir and change the current shell.
 The binary returns only the selected absolute path, without a trailing newline.
 Cancellation produces no output and exits 130.
@@ -166,6 +175,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 		io.WriteString(stderr, "cdd: "+err.Error()+"\n")
 		return 1
 	}
+	if origin, err := os.Getwd(); err == nil {
+		m.origin = origin
+	}
 	// Command substitution redirects stdout, but normally leaves stdin and
 	// stderr connected to the terminal. Fall back to /dev/tty when necessary.
 	input, output := os.Stdin, os.Stderr
@@ -178,6 +190,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		defer tty.Close()
 		input, output = tty, tty
 	}
+	m.restoreViewPreference(viewPreferencePath())
 	if err := runTerminal(&m, input, output); err != nil {
 		if errors.Is(err, errCancelled) {
 			return 130

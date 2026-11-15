@@ -28,6 +28,13 @@ func press(m browser, name, text string) browser {
 	return m
 }
 
+func testView(compact bool) viewMode {
+	if compact {
+		return listView
+	}
+	return panesView
+}
+
 func loadBrowser(t *testing.T, root string) browser {
 	t.Helper()
 	m, err := newBrowser(root, false)
@@ -35,7 +42,7 @@ func loadBrowser(t *testing.T, root string) browser {
 		t.Fatal(err)
 	}
 	// Existing directory-only cases exercise the compact list mode.
-	m.compact = true
+	m.mode = listView
 	m.refilter()
 	return m
 }
@@ -76,7 +83,7 @@ func TestParentEntry(t *testing.T) {
 	for _, compact := range []bool{false, true} {
 		root := fixture(t)
 		m := loadBrowser(t, root)
-		m.compact = compact
+		m.mode = testView(compact)
 		for _, query := range []string{"", "Alpha", "missing"} {
 			for _, hidden := range []bool{false, true} {
 				m.query, m.hidden = query, hidden
@@ -98,7 +105,7 @@ func TestParentEntry(t *testing.T) {
 		}
 		for _, key := range []string{"right", "l", "enter"} {
 			m = loadBrowser(t, filepath.Join(root, "Alpha"))
-			m.compact = compact
+			m.mode = testView(compact)
 			m = focus(t, m, "..")
 			if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != "Alpha" || m.selected != "" {
 				t.Fatal("opening .. must restore parent focus without completing selection")
@@ -131,7 +138,7 @@ func TestCreateDirectory(t *testing.T) {
 			t.Run(mode+"/"+tt.name, func(t *testing.T) {
 				root := fixture(t)
 				m := loadBrowser(t, root)
-				m.compact = mode == "list"
+				m.mode = testView(mode == "list")
 				m = press(m, "/", "/")
 				m = press(m, "text", "Alpha")
 				m = press(m, "enter", "")
@@ -160,7 +167,7 @@ func TestCreateDirectory(t *testing.T) {
 				if strings.HasPrefix(tt.directory, ".") && !m.hidden {
 					t.Fatal("a newly created hidden directory must become visible")
 				}
-				if !m.compact && (m.preview != target || len(m.children) != 0 || m.childErr != "") {
+				if m.mode != listView && (m.preview != target || len(m.children) != 0 || m.childErr != "") {
 					t.Fatal("preview did not refresh to the new empty directory")
 				}
 				if !m.handle(keyEvent{name: "confirm"}) || m.selected != target {
@@ -339,7 +346,7 @@ func TestLeftFocusesParentBeforeOpening(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					m.compact = compact
+					m.mode = testView(compact)
 					m.refilter()
 					m = focus(t, m, target)
 					m.refreshPreview(false)
@@ -364,7 +371,7 @@ func TestLeftPreservesFilterUntilParentNavigation(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			root := fixture(t)
 			m := loadBrowser(t, root)
-			m.compact = mode == "list"
+			m.mode = testView(mode == "list")
 			m = press(m, "/", "/")
 			m = press(m, "text", "Al")
 			m = press(m, "esc", "")
@@ -591,7 +598,7 @@ func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.compact {
+	if m.mode == listView {
 		t.Fatal("tree must be the default view")
 	}
 	m = focus(t, m, "regular-file")
@@ -608,7 +615,11 @@ func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
 		})
 	}
 	m = press(m, "v", "v")
-	if !m.compact || m.visible[m.cursor].path != root {
+	if m.mode != outlineView || m.visible[m.cursor].name != "regular-file" {
+		t.Fatal("the second view must be the expandable tree and retain file focus")
+	}
+	m = press(m, "v", "v")
+	if m.mode != listView || m.visible[m.cursor].path != root {
 		t.Fatal("switching from a file should focus current directory in compact mode")
 	}
 	for _, item := range m.visible {
@@ -618,7 +629,7 @@ func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
 	}
 	m = focus(t, m, "Alpha")
 	m = press(m, "v", "v")
-	if m.compact || m.visible[m.cursor].name != "Alpha" {
+	if m.mode == listView || m.visible[m.cursor].name != "Alpha" {
 		t.Fatal("mode switch lost directory focus")
 	}
 	m = press(m, "tab", "")
@@ -627,7 +638,7 @@ func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
 	}
 	m = press(m, "/", "/")
 	m = press(m, "v", "v")
-	if m.compact || m.query != "v" || !m.filtering {
+	if m.mode == listView || m.query != "v" || !m.filtering {
 		t.Fatal("v must remain literal while filtering")
 	}
 }

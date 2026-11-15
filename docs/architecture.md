@@ -1,10 +1,11 @@
 # Architecture
 
-cdd has one application package and no background service or persistent state.
+cdd has one application package and no background service. It persists only the
+last chosen view; browsing paths, filters, and tree expansion stay in memory.
 Browsing reads directory entries without recursive indexing or file-content
 reads. Directory creation uses one literal child name with `os.Mkdir`; it does
 not overwrite existing entries or create intermediate directories.
-Tree view caches the current listing, its parent, and one level inside
+Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 
 ## Application
@@ -18,6 +19,8 @@ the highlighted directory. It does not execute external commands to list entries
 | `entry.go` | File/directory/link classification and directories-first sorting |
 | `view.go` | Layout, safe text clipping, theme colors, and contextual help |
 | `tree.go` | Parent/current/child panes with one active middle list |
+| `outline.go` | View cycle, lazy expandable tree, branch state, and tree hit testing |
+| `preferences.go` | Last-view storage, validation, and startup restoration |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `keyboard.go` | Extended keyboard decoding and platform confirmation shortcuts |
 | `mouse.go` | Mouse report decoding, visible-row hit testing, and click handling |
@@ -45,11 +48,12 @@ The alternate screen pushes the kitty keyboard protocol's disambiguation flag
 and pops it during cleanup. The decoder accepts CSI-u control keys, including
 Cmd+Enter on macOS and Ctrl+Enter on Linux, while retaining legacy UTF-8/CSI/SS3
 input. It ignores release events and confirmation repeats. Lock modifiers do not
-affect shortcuts. Plain Enter confirms the current directory on the `.` row
-and opens other directories for browsing. The confirmation shortcut and button
+affect shortcuts. In panes/list views, plain Enter confirms the current directory
+on the `.` row and opens other directories for browsing. In tree view, Enter
+confirms any highlighted directory, including while filtering. The confirmation shortcut and button
 select the highlighted directory. Legacy ambiguous Enter input follows the same
-rules as plain Enter. While editing a filter or directory name, Enter only
-finishes input.
+rules as plain Enter. While naming a directory, Enter creates it; in panes/list
+filters, Enter only finishes input.
 
 Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking),
 with legacy mouse packets consumed as a whole for terminals without SGR support.
@@ -59,14 +63,16 @@ require the same path and row within 400 ms, allowing two cells of horizontal
 pointer drift; navigation, keyboard input, and
 terminal resizing reset the click state. Double-clicks on `.` finish filter editing
 and invoke the confirmation handler; other directories use the keyboard navigation
-handler. Clicking any of the footer button's four rows
+handler. In expandable tree view, directory double-clicks toggle branches in
+place; disclosure arrows provide the same action with a single click.
+Clicking any of the footer button's four rows
 invokes the same confirmation handler as modified Enter, including its directory
 checks. Button hit testing follows the centered rendered block after clipping,
 help expansion, and input-mode changes. The outlined block pairs the action and
 platform shortcut on one line, with the sanitized destination beneath it and its
 final name emphasized. It appears above the keyboard shortcuts in the footer.
-Its shortcut label is Enter for the current-directory row, the platform
-confirmation shortcut for other directories, and empty for files. Short controls
+Its shortcut label is Enter for tree directories and the panes/list current row,
+the platform confirmation shortcut for other panes/list directories, and empty for files. Short controls
 omit opening and confirmation hints for files. Button size stays stable as the label changes.
 Box-drawing glyphs and UI arrows use one cell; other non-ASCII text retains
 conservative two-cell budgeting. The button's right edge is anchored explicitly
@@ -79,10 +85,10 @@ and generous pointer targets recommended by
 [W3C](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum).
 These principles inform the terminal layout; CSS pixel thresholds are not treated
 as terminal-cell measurements. The entire outlined block is clickable. A double-click
-confirms a shell change only on the current-directory row; other directories open
-for browsing.
+confirms a shell change only on the panes/list current-directory row; tree
+double-clicks always toggle branches.
 
-The emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
+In panes/list views, the emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
 entries. The current row is highlighted initially; Home focuses the first row.
 Both navigation rows bypass name and hidden-entry filtering and do not contribute
 to entry counts or child previews. The root omits `..`; elsewhere it uses the logical parent path
@@ -104,7 +110,7 @@ The final terminal column is reserved to avoid automatic wrapping. The footer
 stays at the bottom in ordinary windows, and small windows prioritize keeping
 the selected row visible.
 
-Tree view is the default. Only the middle list owns the cursor; parent and child
+Panes view is the fallback default. Only the middle list owns the cursor; parent and child
 panes are read-only context. Navigation and refresh update their cached entries,
 and cursor movement refreshes child context only when its path changes. Files
 can be highlighted but never opened or returned as a selected destination.
@@ -112,7 +118,47 @@ Symlink targets are checked for directory status without resolving their logical
 paths. Colors distinguish entry types; suffixes mark symlinks. Folder labels
 have no trailing slash.
 
-The `v` key switches to a directory-only compact list, preserving folder focus.
+The `v` key cycles panes, expandable tree, and directory-only compact list,
+preserving folder focus. Leaving the tree with a nested selection opens its
+containing directory in the flat view, keeping the same selected logical path.
+
+After terminal availability and startup validation, the CLI loads `cdd/last-view`
+from `os.UserConfigDir`. The file contains a stable name (`panes`, `tree`, or
+`list`), not an enum ordinal. Missing, unreadable, or unknown values use panes;
+an unavailable saved tree also keeps the default and reports its initialization
+error. Each successful view change atomically replaces the preference through a
+private temporary file in the same directory. Failed changes do not save, while
+save failures leave navigation usable and report through the terminal. Cancellation
+does not revert the last view. Pure browser construction performs no preference
+I/O, keeping tests and noninteractive commands independent of personal settings.
+
+The expandable tree follows the arrow-key model from the
+[WAI-ARIA tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/): Right
+expands or moves to a first child, and Left collapses or focuses a parent.
+Indentation, visible disclosure state, and guide lines follow established
+filesystem tree conventions also exposed by
+[Textual's DirectoryTree](https://textual.textualize.io/widgets/directory_tree/).
+The terminal adaptation uses Enter to confirm any directory and keeps the
+Change Dir button; it does not implement a browser ARIA widget.
+
+The tree root is home when it contains the browsing location, otherwise `/`.
+Entering the mode reads and expands the ancestor chain, preserving logical paths
+and focus, including hidden ancestors. There are no synthetic navigation rows.
+The immutable launch directory is captured separately from the browsing path,
+marked with a dim foreground and a text suffix, and shown in the From header.
+An explicit CLI path changes browsing without changing the shell's launch marker.
+
+Each loaded branch caches immediate entries and an expanded flag, keyed by its
+logical path. A flattened visible list shares the existing cursor, paging,
+confirmation, and mouse row mapping. Parallel row metadata records parents and
+guide lines. Rendering and filtering never read directories; initial ancestor
+revelation, expansion, and explicit refresh load directories. Filtering retains ancestors within expanded
+branches. Symlink cycles cannot cause automatic recursion because unseen logical
+paths have no loaded children. Refresh drops stale caches and falls back to a
+visible ancestor when focus disappears. Tree creation uses the highlighted
+directory or a file's parent and expands the destination to reveal the new child.
+Long indentation is clipped from the left so deep labels retain usable space.
+
 In compact view, when the list exceeds the available row count and each column can keep
 at least 24 cells, the renderer uses two columns separated by a three-cell
 divider. Both columns share one ordered list and one cursor. Page navigation

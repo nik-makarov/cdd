@@ -9,7 +9,7 @@ import (
 )
 
 type viewStyles struct {
-	muted, strong, accent, directory, file, link, failure, selected string
+	muted, strong, accent, directory, file, link, failure, selected, origin string
 }
 
 // Use the terminal's own palette so light and dark themes keep their contrast.
@@ -21,6 +21,7 @@ func terminalStyles(tty bool, terminal, noColor string) viewStyles {
 	s := viewStyles{muted: "\x1b[2m", strong: "\x1b[1m", selected: "\x1b[7m"}
 	s.file = s.muted
 	s.accent, s.failure = s.strong, s.strong
+	s.origin = s.muted
 	if noColor == "" {
 		s.accent, s.failure = "\x1b[1;36m", "\x1b[1;31m"
 		s.directory = "\x1b[36m"
@@ -91,24 +92,44 @@ func (m browser) shortHelp(width int) viewLine {
 		return m.hints([]keyHint{{"Enter", "create"}, {"Esc", "cancel"}})
 	}
 	if m.filtering {
+		if m.mode == outlineView {
+			hints := []keyHint{{"Esc", "finish filter"}, {"↑↓", "move"}}
+			if len(m.visible) > 0 && m.visible[m.cursor].isDir() {
+				hints = append([]keyHint{{"Enter", "change dir"}}, hints...)
+			}
+			return m.hints(hints)
+		}
 		return m.hints([]keyHint{{"Enter / Esc", "finish filter"}, {"↑↓", "move"}})
 	}
-	leftAction, enterAction := "parent", "open"
+	leftAction, rightAction, enterAction := "parent", "open", "open"
+	if m.mode == outlineView {
+		rightAction, enterAction = "expand", "change dir"
+		if len(m.visible) > 0 {
+			branch := m.branches[m.focusedPath()]
+			if branch.expanded && len(m.outlineEntries(branch.items)) > 0 {
+				leftAction, rightAction = "collapse", "child"
+			}
+		}
+	}
 	if len(m.visible) > 0 {
 		switch m.visible[m.cursor].name {
 		case ".":
 			enterAction = "change dir"
 		case "..":
-			leftAction, enterAction = "go back", "go back"
+			leftAction, rightAction, enterAction = "go back", "go back", "go back"
 		}
 	}
 	hints := []keyHint{{"↑↓", "move"}, {"←", leftAction}}
 	if len(m.visible) == 0 || m.visible[m.cursor].isDir() {
-		hints = append(hints, keyHint{"→", "open"}, keyHint{"Enter", enterAction})
+		hints = append(hints, keyHint{"→", rightAction}, keyHint{"Enter", enterAction})
 	}
 	hints = append(hints, keyHint{"n", "new dir"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
 	// Preserve Enter, help and exit when space is limited.
-	for _, key := range []string{"↑↓", "←", "→", "/", "v", "n"} {
+	trimOrder := []string{"↑↓", "←", "→", "/", "v", "n"}
+	if m.mode == outlineView {
+		trimOrder = []string{"/", "n", "↑↓", "v", "→", "←"}
+	}
+	for _, key := range trimOrder {
 		if textWidth(hintText(hints)) <= width {
 			break
 		}
@@ -134,6 +155,25 @@ func (m browser) helpLines(width int) []viewLine {
 	var lines []viewLine
 	var row []keyHint
 	for _, hint := range helpHints {
+		if m.mode == outlineView {
+			switch hint.key {
+			case "→ / l":
+				hint.action = "expand / first child"
+			case "← / h / Backspace":
+				hint.action = "collapse / parent"
+			case "Enter":
+				hint.action = "change dir"
+			case "Double click":
+				hint.action = "toggle branch"
+			case "Click":
+				hint.action = "highlight; arrow toggles branch"
+			case "/":
+				hint.action = "filter expanded branches"
+			}
+		}
+		if hint.key == "Tab / Shift+Tab" && m.mode != listView {
+			continue
+		}
 		candidate := append(append([]keyHint(nil), row...), hint)
 		if len(row) > 0 && textWidth(hintText(candidate)) > width {
 			lines = append(lines, m.hints(row))
@@ -144,7 +184,7 @@ func (m browser) helpLines(width int) []viewLine {
 	if len(row) > 0 {
 		lines = append(lines, m.hints(row))
 	}
-	if !m.compact {
+	if m.mode != listView {
 		lines = append(lines, viewLine{{"folder  ", m.styles.directory}, {"file  ", m.styles.file}, {"dir-link@", m.styles.link}})
 	}
 	return append(lines, m.hints([]keyHint{{"? / Esc", "close help"}}))
@@ -184,7 +224,7 @@ func (m browser) selectButton() []viewLine {
 	left := strings.Repeat(" ", (width-buttonWidth)/2)
 	border, action := m.styles.directory, m.styles.accent
 	item := m.visible[m.cursor]
-	if item.name == "." {
+	if m.mode == outlineView || item.name == "." {
 		shortcut = "Enter"
 	}
 	path := m.pathLine(item.path, innerWidth, true)
@@ -229,6 +269,9 @@ func (m browser) frame() (header, footer []viewLine) {
 	header = []viewLine{pathLine}
 	if m.height >= 8 {
 		header = []viewLine{{{"cdd", m.styles.muted}}, pathLine, nil}
+		if m.mode == outlineView {
+			header[2] = viewLine{{"From: ", m.styles.muted}, {tail(display(m.origin), max(1, width-6)), m.styles.origin}}
+		}
 	}
 	footer = []viewLine{m.shortHelp(width)}
 	if m.showHelp {
@@ -236,10 +279,16 @@ func (m browser) frame() (header, footer []viewLine) {
 	}
 	var status []viewLine
 	if m.creating {
+		if m.mode == outlineView {
+			status = append(status, viewLine{{"New in: " + tail(display(m.creationPath()), max(1, width-8)), m.styles.muted}})
+		}
 		name := tail(display(m.newName)+"_", max(1, width-5))
 		status = append(status, viewLine{{"New: ", m.styles.strong}, {name, m.styles.accent}})
 	} else if m.filtering || m.query != "" {
 		query := "/ " + display(m.query)
+		if m.mode == outlineView {
+			query = "Filter expanded: " + display(m.query)
+		}
 		if m.filtering {
 			query += "_"
 		}
@@ -290,7 +339,7 @@ func (m browser) pageRows() int {
 func (m browser) columns() int {
 	width, _ := m.viewWidth()
 	// Leave at least 24 cells per column and three cells for the divider.
-	if m.compact && width >= 2*24+3 && len(m.visible) > m.pageRows() {
+	if m.mode == listView && width >= 2*24+3 && len(m.visible) > m.pageRows() {
 		return 2
 	}
 	return 1
@@ -310,7 +359,7 @@ func (m browser) pageStart() int {
 }
 
 func (m browser) paneWidths(width, columns int) []int {
-	if !m.compact {
+	if m.mode == panesView {
 		return treeWidths(width)
 	}
 	if columns == 1 {
@@ -322,10 +371,13 @@ func (m browser) paneWidths(width, columns int) []int {
 
 func (m browser) panePaths(widths []int, margin int) string {
 	paths := []string{m.path}
-	if m.compact && len(widths) == 2 {
+	if m.mode == outlineView {
+		paths[0] = m.treeRoot
+	}
+	if m.mode == listView && len(widths) == 2 {
 		paths = append(paths, m.path)
 	}
-	if !m.compact && len(widths) == 3 {
+	if m.mode == panesView && len(widths) == 3 {
 		parent, child := "", ""
 		if path := filepath.Dir(m.path); path != m.path {
 			parent = path
@@ -340,7 +392,7 @@ func (m browser) panePaths(widths []int, margin int) string {
 	}
 	parts := make([]viewLine, len(paths))
 	for i, path := range paths {
-		parts[i] = m.pathLine(path, widths[i], path == m.path)
+		parts[i] = m.pathLine(path, widths[i], path == m.path || m.mode == outlineView)
 	}
 	return m.paneRow(parts, widths, margin)
 }
@@ -348,6 +400,9 @@ func (m browser) panePaths(widths []int, margin int) string {
 func (m browser) entryLine(index, width int) viewLine {
 	if index >= len(m.visible) {
 		return nil
+	}
+	if m.mode == outlineView {
+		return m.outlineEntryLine(index, width)
 	}
 	return m.itemLine(m.visible[index], width, index == m.cursor)
 }
@@ -397,12 +452,8 @@ func (m browser) view() string {
 	widths := m.paneWidths(width, columns)
 	capacity := rows * columns
 	start := m.pageStart()
-	mode := "tree"
-	if m.compact {
-		mode = "list"
-	}
 	if m.height >= 8 {
-		header[0] = viewLine{{"cdd  " + mode, m.styles.muted}, {"   v", m.styles.strong}, {" view", m.styles.muted}}
+		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" panes / tree / list", m.styles.muted}}
 	}
 	if columns == 2 {
 		if m.height >= 8 {
@@ -419,16 +470,16 @@ func (m browser) view() string {
 	pathRow := 0
 	if m.height >= 8 {
 		pathRow = 1
-		if !m.compact {
+		if m.mode == panesView {
 			lines[1] = m.treeHeading(width, margin)
 			pathRow = 2
 		}
 	}
 	lines[pathRow] = m.panePaths(widths, margin)
-	if !m.compact {
+	if m.mode == panesView {
 		lines = append(lines, m.treeLines(rows, width, margin)...)
 	}
-	for row := 0; m.compact && row < min(rows, end-start); row++ {
+	for row := 0; m.mode != panesView && row < min(rows, end-start); row++ {
 		if columns == 1 {
 			lines = append(lines, render(m.entryLine(start+row, width)))
 			continue
@@ -445,8 +496,8 @@ func (m browser) view() string {
 			hidden = "on"
 		}
 		directories, files := 0, 0
-		for _, item := range m.visible {
-			if item.isDotDir() {
+		for i, item := range m.visible {
+			if item.isDotDir() || (m.mode == outlineView && i == 0) {
 				continue
 			}
 			if item.isDir() {
@@ -459,18 +510,21 @@ func (m browser) view() string {
 		if directories == 1 {
 			count = "1 dir"
 		}
-		if !m.compact {
+		if m.mode != listView {
 			if files == 1 {
 				count += " / 1 file"
 			} else {
 				count += " / " + strconv.Itoa(files) + " files"
 			}
 		}
-		if m.query != "" {
+		if m.query != "" && m.mode != outlineView {
 			count = strconv.Itoa(directories+files) + " matches"
 			if directories+files == 1 {
 				count = "1 match"
 			}
+		}
+		if m.mode == outlineView {
+			count += " shown"
 		}
 		if start > 0 {
 			count += "  |  more above"
@@ -501,7 +555,7 @@ func (m browser) view() string {
 // marks and emoji sequences can leave unused space, but stay valid UTF-8.
 func runeWidth(r rune) int {
 	switch r {
-	case '←', '→', '↑', '↓', '│', '─', '╭', '╮', '╰', '╯':
+	case '←', '→', '↑', '↓', '│', '─', '╭', '╮', '╰', '╯', '├', '└', '▸', '▾':
 		return 1
 	}
 	if r > 127 {

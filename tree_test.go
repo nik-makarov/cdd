@@ -43,7 +43,7 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 	}
 	m.width = 40
 	plain = plainFrame(m.view())
-	if !strings.Contains(plain, "> selected") || strings.Contains(plain, "sibling") || strings.Contains(plain, "nested") || m.compact {
+	if !strings.Contains(plain, "> selected") || strings.Contains(plain, "sibling") || strings.Contains(plain, "nested") || m.mode == listView {
 		t.Fatal("narrow tree view must retain the active list without changing view mode")
 	}
 }

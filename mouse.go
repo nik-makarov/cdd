@@ -84,11 +84,11 @@ func (m browser) mouseEntry(x, y int) int {
 	left := margin
 	for column, width := range widths {
 		if x >= left && x < left+width {
-			if !m.compact && len(widths) == 3 && column != 1 {
+			if m.mode == panesView && len(widths) == 3 && column != 1 {
 				return -1
 			}
 			index := m.pageStart() + row
-			if m.compact {
+			if m.mode == listView {
 				index += column * rows
 			}
 			if index >= len(m.visible) {
@@ -145,6 +145,10 @@ func (m *browser) handleMouse(key keyEvent) bool {
 		m.move("down")
 	case "mouse-left":
 		m.cursor, m.message = index, ""
+		if m.mode == outlineView && m.outlineDisclosureAt(index, key.x) {
+			m.toggleOutline()
+			return false
+		}
 		m.lastClick = mouseClick{path: m.visible[index].path, x: key.x, y: key.y, when: key.when}
 		elapsed := key.when.Sub(previous.when)
 		drift := key.x - previous.x
@@ -153,6 +157,10 @@ func (m *browser) handleMouse(key keyEvent) bool {
 			if m.visible[index].name == "." {
 				m.filtering = false
 				return m.handle(keyEvent{name: "confirm"})
+			}
+			if m.mode == outlineView && m.visible[index].isDir() && m.visible[index].name != ".." {
+				m.toggleOutline()
+				return false
 			}
 			m.openSelected()
 		}

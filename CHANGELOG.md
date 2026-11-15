@@ -8,8 +8,17 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Remember the last successfully chosen view, including after cancellation.
+  Restore it on startup; missing or unknown preferences fall back to panes.
+- Add an expandable tree as the second view: cycle panes, tree, and list with
+  `v`. Browse nested branches with arrows or the mouse, load folders on demand,
+  filter expanded branches with ancestor context, and create a directory inside
+  the highlighted folder. Anchor the tree at home or `/`, reveal the browsing
+  location, and distinguish the launch directory with dim text and a `(starting dir)`
+  label. Enter confirms any highlighted directory, including filtered matches.
+  Preserve the selected path when changing views.
 - Browse directories with the mouse: click to highlight, double-click to open,
-  and use the wheel to move through either view. The `← Back to parent` row above the current
+  and use the wheel to move through the views. The `← Back to parent` row above the current
   directory opens the parent. Double-clicks tolerate slight horizontal pointer drift.
 - Confirm the highlighted directory with a centered, outlined `Change Dir`
   button above the keyboard shortcuts, showing its destination and Cmd+Enter
@@ -17,7 +26,7 @@ version is published on GitHub. Development history is recorded separately in
   protocol in compatible terminals.
 - Create a directory in the current location with `n`, edit its name, and focus
   it after creation; cancel name input with Esc or correct creation errors.
-- Show each column's directory path in tree and compact views, with clipped
+- Show each column's directory path in panes and compact views, with clipped
   paths that follow navigation and the highlighted directory preview.
 - Install through the source-built `nik-makarov/tap` Homebrew tap, with automatic
   versioned releases and formula updates after successful pushes to main.
@@ -37,10 +46,10 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
-- Display folder names without a trailing slash in both views and side panes.
+- Display folder names without a trailing slash in all views and side panes.
 - Shorten interface wording to dir/dirs and label the current row `(current dir)`.
-- Confirm the current directory and exit with Enter or a double-click on the `.`
-  row; Enter and double-clicks on other directories continue browsing. Show Enter
+- In panes/list views, confirm the current directory and exit with Enter or a
+  double-click on the `.` row; Enter and double-clicks on other directories continue browsing. Show Enter
   on the confirmation button when the current-directory row is highlighted; hide
   the shortcut and opening hints for files.
 - Focus the emphasized `Back to parent` row first with Left, `h`, or Backspace;
@@ -52,9 +61,9 @@ version is published on GitHub. Development history is recorded separately in
 - Rename the command, shell function, executables, archives, and Go modules to
   `cdd`, using `github.com/nik-makarov/cdd` as the repository path.
 - Use dim theme-aware text for files so directory entries remain more prominent.
-- Start in a three-pane tree view with an active middle list, parent/child
+- Start in a three-pane view with an active middle list, parent/child
   context, colored files, and distinctly marked directory symlinks. Press `v`
-  to switch to the previous compact directory-only list.
+  to cycle through the views, ending with the compact directory-only list.
 - Reduce executable size with a small compatible argument parser and simpler
   message formatting, preserving error causes and shell integration.
 

@@ -38,7 +38,7 @@ cdd --help
 cdd --version
 ```
 
-Place options before the starting directory. The default tree view lists files,
+Place options before the starting directory. The default panes view lists files,
 directories, and symbolic links; only directories and links to directories can
 be opened or chosen as a destination. The compact list view omits files,
 broken symlinks, and links to regular files.
@@ -48,16 +48,16 @@ broken symlinks, and links to regular files.
 | Key | Action |
 | --- | --- |
 | Up / Down, `k` / `j` | Move selection |
-| Enter | Confirm `.` and exit; open other highlighted directories |
+| Enter | In tree, choose the highlighted directory; in panes/list, confirm `.` or open another directory |
 | Right, `l` | Open the highlighted directory |
 | Left, `h`, Backspace | Focus `..` first; from `..` go to the parent directory |
 | Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
-| `v` | Switch between tree view (default) and compact list view |
+| `v` | Cycle panes (default), expandable tree, and compact list |
 | Tab / Shift+Tab | Switch columns in the compact list view |
 | `/` | Filter names, ignoring case |
-| Enter / Esc while filtering | Finish editing and keep the filter |
+| Enter / Esc while filtering | In panes/list, finish editing; in tree, Enter chooses the highlighted directory and Esc finishes editing |
 | `n` | Enter a name for a new directory in the current location |
 | Enter / Esc while naming | Create the directory / cancel name input |
 | `.` | Toggle hidden directories |
@@ -75,8 +75,9 @@ In terminals that support mouse reporting:
 | Click `Change Dir` | Choose the highlighted directory and exit |
 | Wheel up / down | Move selection one entry up / down |
 
-Mouse actions work in the middle pane of tree view and both columns of compact
-view. Side previews, headers, dividers, and empty rows do not select anything.
+Mouse actions work in the middle pane of panes view, the expandable tree, and both
+columns of compact view. Side previews, headers, dividers, and empty rows do not
+select anything. Tree-specific expansion controls are described below.
 Double-click the same entry and row within 400 ms; up to two cells of horizontal
 pointer drift are allowed. On `.`, this confirms the current directory and exits;
 other directories open for browsing.
@@ -90,13 +91,16 @@ The centered button above the keyboard shortcuts uses a thin rounded outline
 instead of a filled block. Its title and platform shortcut share one line; the
 destination appears below with the final directory name emphasized. All four rows,
 including the border, are clickable. Long paths are shortened from the left.
-The shortcut changes to Enter when the current-directory row is highlighted;
-other directories show Cmd+Enter on macOS or Ctrl+Enter on Linux.
+The shortcut is Enter for every directory in tree view. In panes/list views, it
+changes to Enter on the current-directory row; other directories show Cmd+Enter
+on macOS or Ctrl+Enter on Linux.
 The outline and bold title remain visible with `NO_COLOR`. For files it appears
 dim, shows no shortcut, and asks you to choose a directory. The short controls
 also omit opening and confirmation hints for files. The button is hidden while editing a
-filter or directory name, when
-Enter finishes input instead; modified Enter has no action in these modes.
+filter or directory name. While filtering in tree view, Enter or modified Enter
+chooses the highlighted directory and Esc finishes editing. In panes/list filters,
+Enter finishes input and modified Enter has no action. While naming a new
+directory, Enter creates it and modified Enter has no action.
 Small windows omit the entire button if it cannot fit beside the selected row
 and any input/error message.
 
@@ -108,7 +112,7 @@ binding in its settings or click the button. Legacy terminals may send the same
 bytes for plain and modified Enter; cdd treats those bytes as plain Enter,
 confirming `.` or opening another directory for browsing.
 
-The first row, `← Back to parent`, is emphasized as a navigation action for `..`.
+In panes/list views, the first row, `← Back to parent`, is a navigation action for `..`.
 Its arrow sits in the left gutter, with the action text aligned to directory names.
 The next row, `.  (current dir)`, selects the
 directory currently being viewed and is highlighted initially. Enter or a
@@ -119,12 +123,12 @@ Opening `..` moves up and focuses the directory you came from, while the
 confirmation shortcut or button selects the parent as the destination.
 Both rows remain available regardless of the name filter or hidden-entry setting;
 the filesystem root omits `..`. Left, `h`, or Backspace first
-focuses `..` without leaving the directory or clearing a completed filter.
+focuses `..` in panes/list views without leaving the directory or clearing a completed filter.
 Pressing it again, Enter, or Right opens the parent, clears the filter, and
 focuses the directory you came from. At the filesystem root, Left does nothing.
 While editing a filter, Backspace still deletes text.
 
-Press `/` again to clear the current filter. The `.` and `..` rows remain available
+Press `/` again to clear the current filter. In panes/list, the `.` and `..` rows remain available
 even when no child names match. While editing a filter, the first Enter or Esc finishes
 editing; a subsequent Enter confirms `.` or opens another highlighted directory,
 and a subsequent Esc cancels.
@@ -138,7 +142,8 @@ browsing location. Continue navigating or cancel to return to your shell.
 ## Create a directory
 
 Press `n`, type a name, and press Enter to create one directory inside the current
-location (the middle pane in tree view). Backspace edits the name; Esc dismisses
+location in panes/list views. In tree view, creation uses the highlighted directory,
+or a file's parent; the prompt shows this destination. Backspace edits the name; Esc dismisses
 the input without creating anything. While naming, letters such as `q`, `v`, and
 `n` are ordinary text. Ctrl+C or Ctrl+D cancels the picker. Finish an active filter
 before pressing `n` to start creation.
@@ -150,13 +155,14 @@ remain visible while the name stays editable, so you can correct it and retry.
 
 After creation, the list refreshes, the filter clears, and the new directory is
 highlighted. A name beginning with `.` enables hidden entries so the new directory
-is visible. Enter or Right opens it for browsing; use the confirmation shortcut
-or `Change Dir` to select it and exit.
+is visible. Right opens it for browsing; use the confirmation shortcut or
+`Change Dir` to select it and exit. Enter confirms it in tree view and opens it
+for browsing in panes/list views.
 Cancelling the picker after creation leaves the new directory on disk.
 
 ## Appearance
 
-### Tree view (default)
+### Panes view (default)
 
 The middle pane is always active and lists the current directory's folders and
 files. The left pane shows its parent's entries as context. The right pane
@@ -186,15 +192,87 @@ the parent path and bold cyan for its final directory name, so the address and
 selected row stand out from the surrounding context.
 
 The center has more width than either side pane. Below 59 terminal cells, the
-side panes are hidden while the active list and tree-mode file display remain.
+side panes are hidden while the active list and its file display remain.
 Expanding the terminal restores the panes without changing the selected entry.
+
+### Expandable tree view (second)
+
+Press `v` once from panes view. A single column shows nested folders with guide
+lines, `▸` for a collapsed branch, and `▾` for an expanded branch. The root is your
+home directory when it is an ancestor of the browsing location; otherwise it is
+`/`. Ancestors expand automatically to reveal and focus the browsing location.
+The tree contains real directory nodes, without synthetic `.` or parent rows.
+Files stay visible as context and cannot be opened or selected. Empty folders
+lose the disclosure arrow after
+being checked and display `(empty)`; folders with only hidden entries say so.
+
+| Action | Result |
+| --- | --- |
+| Up / Down, `k` / `j` | Move through visible rows without changing expansion |
+| Right / `l` | Expand a collapsed folder; on an expanded folder, focus its first child |
+| Left / `h` / Backspace | Collapse an expanded folder; otherwise focus its parent |
+| Enter | Choose the highlighted directory and exit, including while filtering |
+| Click a name | Highlight that row |
+| Click a disclosure arrow | Expand or collapse the branch |
+| Double-click a name | Expand or collapse the branch |
+| Home / End, Page Up / Down | Move to the first/last visible row or by one screen |
+| Tab / Shift+Tab | Keep the single tree column focused |
+
+Left on a collapsed root stays at that root. The Change Dir button shows Enter
+for directories; the platform confirmation shortcut continues to work too.
+
+The directory from which the shell launched cdd uses the theme's dim foreground, with a
+`(starting dir)` label, independently of focus and view changes. The label and
+dimming remain with `NO_COLOR`. This identifies the destination that would
+leave the shell in the same place; it remains selectable. The `From:` header keeps
+the launch path visible even if it is outside the tree or its branch is collapsed.
+An explicit starting-path argument changes the browsing location, not this marker.
+
+Apart from revealing ancestor chains, children are read only when a branch is
+first expanded, then cached. Collapsing a branch retains its nested expansion
+state. Ctrl+R refreshes expanded branches;
+if a selected entry disappears, focus returns to its nearest visible ancestor.
+Directory symlinks keep their logical paths. Even a link back to an ancestor loads
+only one level per explicit expansion, without recursively walking the filesystem.
+
+The `/` filter searches currently expanded branches and retains ancestors of
+matching entries, the root, and the starting directory when its branch is visible.
+It does not search unopened folders. Esc finishes input and retains the filter;
+Enter chooses the highlighted directory. Expanding, collapsing, or moving to a
+parent clears the filter. The footer counts displayed entries, excluding the root
+and including retained ancestors,
+rather than claiming a recursive match count. The hidden-entry toggle applies at
+every loaded level; hidden ancestors needed to reveal the browsing and starting
+locations remain visible without revealing unrelated hidden folders.
+
+Switching views preserves folder focus. For a nested selection, the flat view
+opens its containing directory; files fall back to that directory in list view.
+Switching without moving the root preserves cached expansion state within a run.
+The selected view is remembered between runs.
 
 ### Compact list view
 
-Press `v` to switch to the previous directory-only list. A selected folder stays
-highlighted across switches. When switching from a file, selection returns to
-the `.` row. The mode lasts for the current run; each new run starts in tree view.
+The third view is a directory-only list. A selected folder stays highlighted
+across switches. When switching from a file, selection returns to the `.` row.
 While editing a filter, `v` is literal input; finish editing before switching.
+
+### Remembered view
+
+Every successful `v` switch saves the selected mode immediately, including if you
+later cancel with Esc or Ctrl+C. The next run restores that view at its new
+starting location. Missing, unreadable, empty, or unrecognized saved values use
+panes. If a saved tree cannot load its ancestors, cdd keeps panes and reports the
+error. A save failure reports an error while allowing navigation and selection.
+
+The preference stores only `panes`, `tree`, or `list` in `cdd/last-view` beneath
+the operating system's user configuration directory:
+
+- macOS: `~/Library/Application Support/cdd/last-view`.
+- Linux: `$XDG_CONFIG_HOME/cdd/last-view`, or `~/.config/cdd/last-view` by default.
+
+Remove that file to reset the startup view. Paths, filters, hidden-entry settings,
+and expanded branches are not saved. If no user configuration directory can be
+determined, cdd runs with the default view without persisting switches.
 
 ### Shared styling and controls
 
@@ -221,7 +299,7 @@ Switching to an empty column leaves selection unchanged.
 Short compact lists and narrow windows use one column, where Tab leaves selection
 unchanged. Filtering, help, and terminal resizing adjust the layout automatically
 while retaining the current selection unless the filter itself resets it.
-In tree view, Tab leaves the middle pane active.
+In panes view, Tab leaves the middle pane active; in tree view, it keeps the tree focused.
 
 Set a non-empty `NO_COLOR` value to disable added colors:
 

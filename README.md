@@ -4,9 +4,10 @@ Browse directories in your terminal, choose one, and `cd` into it in your curren
 shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 
 - Keyboard and mouse navigation, filtering, hidden directories, and directory symlinks.
-- Create a directory in the current location with `n`, then choose it.
+- Create a directory with `n`, then choose it.
 - Three-pane browsing with colored files and directory links; `v` switches to
-  a compact directory-only list with automatic two-column layout.
+  an expandable directory tree, and a compact directory-only list with automatic
+  two-column layout.
 - Reads one directory at a time without recursively scanning the filesystem.
 - Two application dependencies, both maintained within the Go project.
 
@@ -37,7 +38,16 @@ On Intel macOS or Linux, replace `/opt/homebrew` with the output of
 
 Use an interactive ANSI-compatible terminal.
 
-Use Up/Down to move and Enter or Right to open a directory. Left
+Press `v` to cycle through **panes → tree → list**. The last used view is restored
+on startup; panes is the default when no valid preference exists.
+In tree view, Right expands a branch or focuses its first child; Left collapses
+it or focuses its parent. Click its arrow or double-click its name to toggle it.
+Enter chooses the highlighted directory, including while filtering. The tree
+starts at home when it is an ancestor, otherwise `/`, and reveals the browsing
+location. Your launch directory stays dim and marked `(starting dir)`.
+The tree loads folders as you expand them; `/` filters expanded branches.
+
+In panes/list views, use Up/Down to move and Enter or Right to open a directory. Left
 first focuses `← Back to parent`; pressing Left again opens the parent.
 Enter on `.` confirms the directory currently being viewed and exits. Esc cancels;
 `/` filters names; `n` creates a directory; `?` opens controls help.

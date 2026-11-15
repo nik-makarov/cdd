@@ -567,3 +567,67 @@ entries, keep private data out, and distinguish local work from publication.
   ran. Paths: `mouse.go`, `mouse_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-15T21:06:13Z` — Add an expandable tree as the second view in the
+  panes/tree/list cycle. Apply the WAI-ARIA tree keyboard model and filesystem
+  guide/disclosure conventions documented by Textual, retaining cdd's explicit
+  destination confirmation. Load immediate children on expansion, keep branch
+  state, filter expanded rows with ancestor context, preserve logical symlink
+  paths, and refresh expanded branches with focus fallback after deletion. Add
+  disclosure hit targets, nested directory creation, contextual controls, empty
+  states, and deep-indentation clipping. Preserve nested destination focus when
+  switching to a flat view. Update existing mode fixtures, add tree interaction
+  and rendering coverage, and document controls, filter scope, and design sources.
+  `make check build` passed, including application/tool vet and shuffled race
+  tests; the host build retained the nonfatal module-cache write warning. gopls
+  reported no diagnostics, and `git diff --check` passed. Native PTY checks at
+  100x24 and 80x20 verified nested expansion, mouse disclosure, view cycling,
+  retained destination paths, visible arrow controls, modified-Enter selection,
+  and double-click confirmation of the current row with terminal cleanup and
+  exit status 0. No dependencies changed or hosted CI/publication ran.
+  Paths: `outline.go`, `outline_test.go`, `browser.go`, `browser_test.go`,
+  `view.go`, `view_test.go`, `mouse.go`, `mouse_test.go`, `keyboard_test.go`,
+  `tree_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T21:22:48Z` — Make Enter confirm any highlighted tree directory,
+  including filtered matches, while preserving directory-name input and file
+  guards. Anchor the tree at home when it contains the browsing location,
+  otherwise at `/`; reveal ancestor chains and retain hidden ancestors without
+  exposing unrelated hidden entries. Replace synthetic tree navigation rows with
+  real parent nodes. Track the shell's immutable launch directory independently
+  from CLI starting paths and browsing, and mark it with yellow/bold styling,
+  `(starting dir)`, and a From header. Keep text/bold emphasis with NO_COLOR.
+  Update tree controls, button shortcuts, root/source/confirmation coverage, and
+  documentation. `make check build` passed, including vet and shuffled race tests
+  for application and tools; the build retained the nonfatal module-cache write
+  warning. gopls reported no diagnostics, and `git diff --check` passed. A native
+  100x24 PTY check verified the home-rooted ancestor chain, the source marker both
+  focused and unfocused, an Enter button shortcut on a child, and plain-Enter
+  confirmation returning that child's path with terminal cleanup and exit 0.
+  No dependencies changed or hosted CI/publication ran. Paths: `browser.go`,
+  `outline.go`, `outline_test.go`, `view.go`, `cli.go`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.
+- `2026-11-15T21:27:44Z` — Replace the starting directory's yellow/bold accent
+  with the terminal theme's dim foreground, including the From header. Retain
+  dimming under the selection bar and preserve the textual starting-dir marker
+  with NO_COLOR. Update the existing styling assertion and documentation. Restore
+  chronological placement of the preceding journal entry. Application/tool tests
+  and the host build passed; the build retained the nonfatal module-cache write
+  warning. gopls reported no diagnostics, and `git diff --check` passed. No
+  dependencies changed or hosted CI/publication ran. Paths: `view.go`, `outline.go`,
+  `outline_test.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T21:36:48Z` — Remember the last successfully selected view using a
+  stable mode name in the user's configuration directory. Save mode changes
+  immediately, including before cancellation, with atomic file replacement.
+  Restore the preference on interactive startup and fall back to panes for
+  missing, unreadable, unknown, or unavailable views. Keep navigation usable when
+  saving fails and leave preferences untouched after failed mode transitions.
+  Add isolated temporary-file coverage for persistence, restart, cancellation,
+  fallback, and write failures; update help and documentation. `make check build`
+  passed, including vet and shuffled race tests for application and tools; the
+  build retained the nonfatal module-cache write warning. gopls reported no
+  diagnostics, and `git diff --check` passed. No dependencies changed or hosted
+  CI/publication ran. Paths: `preferences.go`, `preferences_test.go`, `browser.go`,
+  `outline.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

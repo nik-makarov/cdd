@@ -110,7 +110,7 @@ func mouseOn(t *testing.T, m browser, label, button string, when time.Time) keyE
 	t.Helper()
 	for y, line := range strings.Split(plainFrame(m.view()), "\n") {
 		if x := strings.Index(line, label); x >= 0 && m.mouseEntry(x, y) >= 0 {
-			return keyEvent{name: button, x: x, y: y, when: when}
+			return keyEvent{name: button, x: textWidth(line[:x]), y: y, when: when}
 		}
 	}
 	t.Fatalf("entry %q is not displayed", label)
@@ -137,6 +137,7 @@ func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
 			}
 			m.handle(keyEvent{name: "mouse-release", x: click.x, y: click.y})
 			click.when = click.when.Add(200 * time.Millisecond)
+			click.x += 2
 			if m.handle(click) || m.selected != "" || m.path != filepath.Join(root, "Alpha") {
 				t.Fatal("double click must browse the highlighted directory without selecting it")
 			}
@@ -146,7 +147,7 @@ func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
 
 func TestMouseKeepsScrolledRowsStable(t *testing.T) {
 	for _, compact := range []bool{false, true} {
-		m := browser{path: "/projects", compact: compact, width: 80, height: 12, cursor: 37}
+		m := browser{path: "/projects", compact: compact, width: 80, height: 16, cursor: 37}
 		for i := range 60 {
 			m.visible = append(m.visible, entry{name: fmt.Sprintf("dir-%02d", i), path: fmt.Sprintf("/projects/dir-%02d", i)})
 		}
@@ -176,7 +177,7 @@ func TestMouseOpensCurrentAndSecondColumn(t *testing.T) {
 			width, margin := m.viewWidth()
 			panes := m.paneWidths(width, m.columns())
 			header, _ := m.frame()
-			if target == "dir-39" && m.mouseEntry(margin+panes[0]+3, len(header)) != -1 {
+			if target == "dir-39" && m.mouseEntry(margin+panes[0]+3, len(header)+m.pageRows()-1) != -1 {
 				t.Fatal("empty second column must not select a directory")
 			}
 			var click keyEvent
@@ -235,7 +236,7 @@ func TestMouseDoubleClickDoesNotOpenFilesOrStaleDirectories(t *testing.T) {
 }
 
 func TestMouseDoubleClickResets(t *testing.T) {
-	for _, action := range []string{"keyboard", "blank click", "wheel", "modifier", "timeout", "different cell", "different entry"} {
+	for _, action := range []string{"keyboard", "blank click", "wheel", "modifier", "timeout", "large pointer drift", "different entry"} {
 		t.Run(action, func(t *testing.T) {
 			root := fixture(t)
 			m := loadBrowser(t, root)
@@ -253,8 +254,8 @@ func TestMouseDoubleClickResets(t *testing.T) {
 				m.handle(keyEvent{name: "mouse-ignore", x: click.x, y: click.y})
 			case "timeout":
 				click.when = click.when.Add(time.Second)
-			case "different cell":
-				click.x++
+			case "large pointer drift":
+				click.x += 3
 			case "different entry":
 				click = mouseOn(t, m, "beta/", "mouse-left", click.when)
 			}
@@ -314,7 +315,7 @@ func TestMouseOpensParent(t *testing.T) {
 				m := loadBrowser(t, start)
 				m.compact, m.query, m.filtering = compact, query, query != ""
 				m.refilter()
-				click := mouseOn(t, m, "..  parent directory", "mouse-left", time.Unix(100, 0))
+				click := mouseOn(t, m, "\u2190 Back to parent", "mouse-left", time.Unix(100, 0))
 				if m.handle(click) || m.path != start || m.selected != "" || m.visible[m.cursor].name != ".." {
 					t.Fatal("single click must only highlight ..")
 				}
@@ -348,13 +349,13 @@ func TestSelectButtonMatchesRenderedPosition(t *testing.T) {
 					if len(button) > 0 {
 						for y, line := range strings.Split(plainFrame(m.view()), "\n") {
 							if x := strings.Index(line, button[0][1].text); x >= 0 {
-								buttonX, buttonY, buttonWidth = x, y, len(button[0][1].text)
+								buttonX, buttonY, buttonWidth = textWidth(line[:x]), y, textWidth(button[0][1].text)
 							}
 						}
 					}
 					for y := range m.height {
 						for x := range m.width {
-							want := buttonY >= 0 && y >= buttonY && y < buttonY+3 && x >= buttonX && x < buttonX+buttonWidth
+							want := buttonY >= 0 && y >= buttonY && y < buttonY+len(button) && x >= buttonX && x < buttonX+buttonWidth
 							if m.selectButtonAt(x, y) != want {
 								t.Fatalf("button hit test differs from display at (%d,%d)", x, y)
 							}
@@ -366,7 +367,7 @@ func TestSelectButtonMatchesRenderedPosition(t *testing.T) {
 								t.Fatal("only a left click may activate the selection button")
 							}
 						}
-						for row := range 3 {
+						for row := range len(button) {
 							copy := m
 							if !copy.handle(keyEvent{name: "mouse-left", x: buttonX, y: buttonY + row}) || copy.selected != root {
 								t.Fatal("each row of the button must choose the highlighted directory")
@@ -401,7 +402,7 @@ func TestSelectButtonUsesDirectoryGuards(t *testing.T) {
 		for y, line := range strings.Split(plainFrame(m.view()), "\n") {
 			if x := strings.Index(line, button); x >= 0 {
 				found = true
-				key := keyEvent{name: "mouse-left", x: x, y: y}
+				key := keyEvent{name: "mouse-left", x: textWidth(line[:x]), y: y}
 				if target == "removed" || target == "regular-file" {
 					if m.handle(key) || m.selected != "" || m.message == "" || m.path != root {
 						t.Fatal("button must reject files and removed directories")

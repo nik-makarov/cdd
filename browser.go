@@ -155,12 +155,17 @@ func (m *browser) handle(key keyEvent) bool {
 	case "right", "l", "enter":
 		m.openSelected()
 	case "left", "h", "backspace":
-		if m.visible[m.cursor].name != "." {
-			m.cursor = slices.IndexFunc(m.visible, func(item entry) bool { return item.name == "." })
+		parent := slices.IndexFunc(m.visible, func(item entry) bool { return item.name == ".." })
+		if parent < 0 {
 			m.message = ""
 			break
 		}
-		m.navigate(filepath.Dir(m.path), filepath.Base(m.path))
+		if m.cursor != parent {
+			m.cursor = parent
+			m.message = ""
+			break
+		}
+		m.openSelected()
 	case "confirm":
 		if !m.visible[m.cursor].isDir() {
 			m.message = "Only directories can be chosen as a destination"

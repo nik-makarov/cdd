@@ -55,20 +55,38 @@ Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-i
 with legacy mouse packets consumed as a whole for terminals without SGR support.
 Hit testing shares the renderer's pane widths, row counts, and scroll position.
 The viewport stays stable when highlighting another visible row. Double-clicks
-require the same path and cell within 400 ms; navigation, keyboard input, and
+require the same path and row within 400 ms, allowing two cells of horizontal
+pointer drift; navigation, keyboard input, and
 terminal resizing reset the click state. Double-clicks open directories using
-the keyboard navigation handler. Clicking any of the footer button's three rows
+the keyboard navigation handler. Clicking any of the footer button's four rows
 invokes the same confirmation handler as modified Enter, including its directory
 checks. Button hit testing follows the centered rendered block after clipping,
-help expansion, and input-mode changes. The block shows its name, the platform
-shortcut, and the sanitized destination, and appears above the keyboard shortcuts
-in the footer.
+help expansion, and input-mode changes. The outlined block pairs the action and
+platform shortcut on one line, with the sanitized destination beneath it and its
+final name emphasized. It appears above the keyboard shortcuts in the footer.
+Its shortcut label is Enter for the current-directory row, the platform
+confirmation shortcut for other directories, and empty for files. Short controls
+omit opening and confirmation hints for files. Button size stays stable as the label changes.
+Box-drawing glyphs and UI arrows use one cell; other non-ASCII text retains
+conservative two-cell budgeting. The button's right edge is anchored explicitly
+so narrower filename glyphs cannot displace the border.
 
-The parent row `← ..` precedes the current-directory row `.` and filesystem
+The design applies clear action labels and visual hierarchy from
+[NN/g's button guidance](https://www.nngroup.com/articles/button-states-communicate-interaction/),
+visible button boundaries used by [Textual](https://textual.textualize.io/widgets/button/),
+and generous pointer targets recommended by
+[W3C](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum).
+These principles inform the terminal layout; CSS pixel thresholds are not treated
+as terminal-cell measurements. The entire outlined block is clickable, while
+double-clicking a directory only browses and never confirms a shell change.
+
+The emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
 entries. The current row is highlighted initially; Home focuses the first row.
 Both navigation rows bypass name and hidden-entry filtering and do not contribute
 to entry counts or child previews. The root omits `..`; elsewhere it uses the logical parent path
 and restores focus to the directory being left when opened.
+Left, h, and Backspace first focus the parent row, then open it on a second press.
+They leave the filesystem root unchanged when no parent row exists.
 
 The renderer controls the alternate screen and cursor visibility. Cleanup restores
 terminal settings and disables mouse reporting on normal exit, cancellation,

@@ -58,6 +58,7 @@ func TestBrowseAndSelect(t *testing.T) {
 		t.Fatalf("opened %q", m.path)
 	}
 	m = press(m, "left", "")
+	m = press(m, "left", "")
 	if m.path != root || m.visible[m.cursor].name != "Alpha" {
 		t.Fatalf("parent did not preserve focus: %+v", m)
 	}
@@ -107,6 +108,11 @@ func TestParentEntry(t *testing.T) {
 	m := loadBrowser(t, string(filepath.Separator))
 	if slices.ContainsFunc(m.visible, func(item entry) bool { return item.name == ".." }) {
 		t.Fatal("filesystem root must not offer a parent row")
+	}
+	for _, key := range []string{"left", "h", "backspace"} {
+		if m.handle(keyEvent{name: key}) || m.path != string(filepath.Separator) || m.cursor < 0 || m.selected != "" || m.message != "" {
+			t.Fatal("parent navigation at the filesystem root must remain in the picker")
+		}
 	}
 }
 
@@ -313,14 +319,14 @@ func TestCreateDirectoryThroughLogicalSymlink(t *testing.T) {
 	}
 }
 
-func TestLeftFocusesCurrentBeforeParent(t *testing.T) {
+func TestLeftFocusesParentBeforeOpening(t *testing.T) {
 	for _, key := range []string{"left", "h", "backspace"} {
 		for _, compact := range []bool{false, true} {
 			mode := "tree"
 			if compact {
 				mode = "list"
 			}
-			for _, target := range []string{"Alpha", "regular-file", "link"} {
+			for _, target := range []string{".", "Alpha", "regular-file", "link"} {
 				if compact && target == "regular-file" {
 					continue
 				}
@@ -338,11 +344,11 @@ func TestLeftFocusesCurrentBeforeParent(t *testing.T) {
 					m = focus(t, m, target)
 					m.refreshPreview(false)
 					m.message = "Previous error"
-					if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != "." || m.message != "" || m.selected != "" {
-						t.Fatalf("first %s must focus . without leaving or selecting: path %q, cursor %d", key, m.path, m.cursor)
+					if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != ".." || m.message != "" || m.selected != "" {
+						t.Fatalf("first %s must focus .. without leaving or selecting: path %q, cursor %d", key, m.path, m.cursor)
 					}
-					if !compact && (len(m.children) != 0 || m.childErr != "" || m.preview != root) {
-						t.Fatal("focusing . must clear the child preview")
+					if !compact && (len(m.children) != 0 || m.childErr != "" || m.preview != filepath.Dir(root)) {
+						t.Fatal("focusing .. must clear the child preview")
 					}
 					if m.handle(keyEvent{name: key}) || m.path != filepath.Dir(root) || m.visible[m.cursor].path != root {
 						t.Fatalf("second %s must open the parent and focus the previous directory", key)
@@ -363,12 +369,12 @@ func TestLeftPreservesFilterUntilParentNavigation(t *testing.T) {
 			m = press(m, "text", "Al")
 			m = press(m, "esc", "")
 			m = press(m, "left", "")
-			if m.path != root || m.visible[m.cursor].name != "." || m.query != "Al" || len(m.visible) != 3 {
-				t.Fatal("focusing . must preserve the completed filter and listing")
+			if m.path != root || m.visible[m.cursor].name != ".." || m.query != "Al" || len(m.visible) != 3 {
+				t.Fatal("focusing .. must preserve the completed filter and listing")
 			}
-			selected := press(m, "enter", "")
-			if selected.selected != root {
-				t.Fatal("Enter after Left must choose the current directory")
+			opened := press(m, "enter", "")
+			if opened.path != filepath.Dir(root) || opened.selected != "" || opened.query != "" {
+				t.Fatal("Enter after Left must browse the parent directory")
 			}
 			m = press(m, "left", "")
 			if m.path != filepath.Dir(root) || m.query != "" {
@@ -547,9 +553,9 @@ func TestColumnNavigation(t *testing.T) {
 	m.cursor = 2
 	m = press(m, "tab", "")
 	wantPath := m.visible[m.cursor].path
-	current := press(m, "left", "")
-	if current.path != root || current.visible[current.cursor].name != "." {
-		t.Fatal("Left from the second column must focus . in the same directory")
+	parent := press(m, "left", "")
+	if parent.path != root || parent.visible[parent.cursor].name != ".." {
+		t.Fatal("Left from the second column must focus .. in the same directory")
 	}
 	selected := press(m, "confirm", "")
 	if selected.selected != wantPath {
@@ -559,6 +565,7 @@ func TestColumnNavigation(t *testing.T) {
 	if m.path != wantPath {
 		t.Fatal("Right must still open the directory")
 	}
+	m = press(m, "left", "")
 	m = press(m, "left", "")
 	if m.path != root || m.visible[m.cursor].path != wantPath {
 		t.Fatal("Left must restore parent focus")
@@ -652,8 +659,8 @@ func TestTreeContextAndSymlinkNavigation(t *testing.T) {
 	}
 	m = focus(t, m, "nested")
 	m = press(m, "left", "")
-	if m.path != filepath.Join(root, "link") || m.visible[m.cursor].name != "." {
-		t.Fatal("first Left must focus . without resolving or leaving the directory link")
+	if m.path != filepath.Join(root, "link") || m.visible[m.cursor].name != ".." {
+		t.Fatal("first Left must focus .. without resolving or leaving the directory link")
 	}
 	m = press(m, "left", "")
 	if m.path != root || m.visible[m.cursor].name != "link" {
@@ -716,6 +723,10 @@ func TestTreePreviewClearsOnCurrentDirectory(t *testing.T) {
 		t.Fatal("highlighting a child directory must populate its preview")
 	}
 	m = press(m, "left", "")
+	if m.visible[m.cursor].name != ".." || len(m.children) != 0 {
+		t.Fatal("Left must focus the parent and clear the children preview")
+	}
+	m = press(m, "down", "")
 	checkEmpty("return to current row")
 	m = press(m, "ctrl+r", "")
 	checkEmpty("refresh")

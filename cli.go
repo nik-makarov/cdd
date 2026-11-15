@@ -30,7 +30,7 @@ Keys:
   v              Switch tree/list view (tree is the default)
   Enter          Open directory; on . change directory and exit
   →, l           Open highlighted directory
-  ←, h, Backspace  Focus . first; from . go to parent
+  ←, h, Backspace  Focus parent first; press again to go up
   Cmd+Enter      Change directory and exit (macOS)
   Ctrl+Enter     Change directory and exit (Linux)
   n              Create a directory in the current location
@@ -46,7 +46,7 @@ Mouse (in compatible terminals):
   Double click   Open a directory for browsing (.. opens the parent)
   Wheel          Move selection up/down
 
-The first row (← ..) opens the parent; it is absent at the filesystem root.
+The first row (← Back to parent) goes up; it is absent at the filesystem root.
 The next row (.) selects the current directory and is highlighted initially.
 The Change Directory button shows the shortcut and destination; click to confirm.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.

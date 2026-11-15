@@ -9,9 +9,9 @@ version is published on GitHub. Development history is recorded separately in
 ### Added
 
 - Browse directories with the mouse: click to highlight, double-click to open,
-  and use the wheel to move through either view. The `← ..` row above the current
-  directory opens the parent.
-- Confirm the highlighted directory with a centered, three-line `Change Directory`
+  and use the wheel to move through either view. The `← Back to parent` row above the current
+  directory opens the parent. Double-clicks tolerate slight horizontal pointer drift.
+- Confirm the highlighted directory with a centered, outlined `Change Directory`
   button above the keyboard shortcuts, showing its destination and Cmd+Enter
   (macOS) or Ctrl+Enter (Linux) shortcut. Modified Enter uses the kitty keyboard
   protocol in compatible terminals.
@@ -38,9 +38,11 @@ version is published on GitHub. Development history is recorded separately in
 ### Changed
 
 - Confirm the current directory and exit with Enter on the `.` row; Enter on
-  other directories continues browsing.
-- Focus the current-directory row first with Left, `h`, or Backspace; navigate
-  to the parent only when that row is already highlighted.
+  other directories continues browsing. Show Enter on the confirmation button
+  when the current-directory row is highlighted; hide the shortcut and opening
+  hints for files.
+- Focus the emphasized `Back to parent` row first with Left, `h`, or Backspace;
+  open the parent when that row is already highlighted.
 - Make the current directory's address more prominent with a bold final name,
   subdued pane labels, and dim side entries that retain their type colors.
 - Skip automatic releases and tap updates for pushes that only change Markdown

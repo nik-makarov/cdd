@@ -38,7 +38,7 @@ On Intel macOS or Linux, replace `/opt/homebrew` with the output of
 Use an interactive ANSI-compatible terminal.
 
 Use Up/Down to move and Enter or Right to open a directory. Left
-first focuses the `.` row; pressing Left from that row opens the parent.
+first focuses `← Back to parent`; pressing Left again opens the parent.
 Enter on `.` confirms the directory currently being viewed and exits. Esc cancels;
 `/` filters names; `n` creates a directory; `?` opens controls help.
 In mouse-compatible terminals, click to highlight and double-click to open a

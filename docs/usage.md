@@ -50,7 +50,7 @@ broken symlinks, and links to regular files.
 | Up / Down, `k` / `j` | Move selection |
 | Enter | Confirm `.` and exit; open other highlighted directories |
 | Right, `l` | Open the highlighted directory |
-| Left, `h`, Backspace | Focus `.` first; from `.` go to the parent directory |
+| Left, `h`, Backspace | Focus `..` first; from `..` go to the parent directory |
 | Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
@@ -77,18 +77,23 @@ In terminals that support mouse reporting:
 
 Mouse actions work in the middle pane of tree view and both columns of compact
 view. Side previews, headers, dividers, and empty rows do not select anything.
-Double-click the same cell within 400 ms to open a directory without completing
-selection. Right-click has no action. Files cannot be opened or chosen. While
+Double-click the same entry and row within 400 ms to open a directory without
+completing selection; up to two cells of horizontal pointer drift are allowed.
+Right-click has no action. Files cannot be opened or chosen. While
 filtering, double-click opens the directory and clears the filter. While entering
 a new directory name, mouse actions are ignored. Mouse reporting is disabled
 when the picker exits, including cancellation.
 
-The centered button above the keyboard shortcuts has three clickable rows:
-`Change Directory`, the platform shortcut, and the highlighted directory's
-destination path. Long paths are shortened from the left to preserve the directory
-name. It retains
-emphasis with `NO_COLOR`. For files it appears dim and asks you to choose a
-directory. The button is hidden while editing a filter or directory name, when
+The centered button above the keyboard shortcuts uses a thin rounded outline
+instead of a filled block. Its title and platform shortcut share one line; the
+destination appears below with the final directory name emphasized. All four rows,
+including the border, are clickable. Long paths are shortened from the left.
+The shortcut changes to Enter when the current-directory row is highlighted;
+other directories show Cmd+Enter on macOS or Ctrl+Enter on Linux.
+The outline and bold title remain visible with `NO_COLOR`. For files it appears
+dim, shows no shortcut, and asks you to choose a directory. The short controls
+also omit opening and confirmation hints for files. The button is hidden while editing a
+filter or directory name, when
 Enter finishes input instead; modified Enter has no action in these modes.
 Small windows omit the entire button if it cannot fit beside the selected row
 and any input/error message.
@@ -101,7 +106,9 @@ binding in its settings or click the button. Legacy terminals may send the same
 bytes for plain and modified Enter; cdd treats those bytes as plain Enter,
 confirming `.` or opening another directory for browsing.
 
-The first row, `← ..`, points to the parent. The next row, `.`, selects the
+The first row, `← Back to parent`, is emphasized as a navigation action for `..`.
+Its arrow sits in the left gutter, with the action text aligned to directory names.
+The next row, `.`, selects the
 directory currently being viewed and is highlighted initially. Enter on `.`
 confirms that directory and exits, applying the shell directory change. On other
 directory rows, Enter opens them for further browsing, like Right or double-click.
@@ -109,9 +116,10 @@ Opening `..` moves up and focuses the directory you came from, while the
 confirmation shortcut or button selects the parent as the destination.
 Both rows remain available regardless of the name filter or hidden-entry setting;
 the filesystem root omits `..`. Left, `h`, or Backspace first
-focuses `.` without leaving the directory or clearing a completed filter.
-Pressing it from `.` opens the parent, clears the filter, and focuses the
-directory you came from. While editing a filter, Backspace still deletes text.
+focuses `..` without leaving the directory or clearing a completed filter.
+Pressing it again, Enter, or Right opens the parent, clears the filter, and
+focuses the directory you came from. At the filesystem root, Left does nothing.
+While editing a filter, Backspace still deletes text.
 
 Press `/` again to clear the current filter. The `.` and `..` rows remain available
 even when no child names match. While editing a filter, the first Enter or Esc finishes
@@ -203,7 +211,7 @@ path because they split the same listing. Entries run down the left column, then
 the right. `Tab` or Shift+Tab switches to the corresponding row in the other
 column, or its last entry if that row is absent. Up/Down continues through the
 ordered list; Page Up/Down moves a full page of both columns. Right still opens
-the selected directory. Left first focuses `.`, then opens the parent on a
+the selected directory. Left first focuses `..`, then opens the parent on a
 second press.
 Switching to an empty column leaves selection unchanged.
 

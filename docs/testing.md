@@ -28,11 +28,12 @@ paths. Creation prompt checks cover long names, terminal-control sanitization,
 and small terminal sizes.
 Mouse tests cover fragmented SGR and legacy reports, invalid coordinates, rendered
 row and button hit testing across layouts and input modes, stable scrolling,
-single/double clicks, parent navigation through logical symlinks, wheel movement,
+single/double clicks with small pointer drift, parent navigation through logical
+symlinks, wheel movement,
 and file/stale-directory guards. Parent-row tests cover filtering, hidden entries,
 root behavior, focus restoration, counts, and child previews. Button checks cover
 confirmation-shortcut equivalence, inactive file styling, NO_COLOR, centered
-three-row geometry, destination clipping, and all clickable rows.
+outlined geometry, destination clipping, and all four clickable rows.
 Column tests cover ordered two-column pages, automatic fallback for short/narrow
 lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
 filter-mode switching, full-page navigation, and selection/opening from the right.

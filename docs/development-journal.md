@@ -471,3 +471,64 @@ entries, keep private data out, and distinguish local work from publication.
   reported no diagnostics. No dependencies changed or hosted CI/publication ran.
   Paths: `view.go`, `view_test.go`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/development-journal.md`.
+- `2026-11-15T20:20:53Z` — Save the previous picker state in commit `8f0c772`
+  before revising navigation and confirmation styling. Make Left, h, and
+  Backspace focus the parent row before opening it, preserving completed filters
+  on the first press and leaving the filesystem root unchanged. Emphasize the
+  parent as a Back to parent action. Replace the filled confirmation block with
+  a narrower rounded outline, a shared action/shortcut line, and a destination
+  line with an accented basename. Keep all four rows clickable above the controls.
+  Budget UI arrows and box drawing as single cells and anchor the right border
+  independently of filename glyph widths. Allow two cells of horizontal drift
+  between double-clicks on the same entry and row. Document the interactions and
+  design references from NN/g, Textual, and W3C. Formatting, vet, shuffled
+  race-enabled application/tool tests, and host build passed with a temporary Go
+  build cache; the build retained the nonfatal module-cache write warning. gopls
+  reported no diagnostics. Tests cover parent focus from current/child/file/link
+  rows, filter preservation, root handling, logical symlinks, pointer drift and
+  its limit, outline geometry, Unicode clipping, and rendered click boundaries
+  across views, sizes, and help/input modes. An isolated background agterm session
+  displayed the new block, verified both Left steps, and exited after an injected
+  click on Change Directory; the temporary session closed. Physical trackpad
+  gestures and a Linux runtime were not tested. No dependencies changed or hosted
+  CI/publication ran. Paths: `browser.go`, `browser_test.go`, `view.go`,
+  `view_test.go`, `mouse.go`, `mouse_test.go`, `terminal_test.go`, `cli.go`,
+  `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T20:25:04Z` — Remove the literal dots from the displayed parent-row
+  label, leaving the arrow and Back to parent action. Retain the internal `..`
+  entry and its navigation behavior. Update the rendered-label and mouse-target
+  assertions, CLI help, and documentation. Focused view and parent mouse-navigation
+  tests passed; the host binary rebuilt with the existing nonfatal module-cache
+  write warning. gopls reported no diagnostics. No dependencies changed or hosted
+  CI/publication ran. Paths: `view.go`, `view_test.go`, `mouse_test.go`, `cli.go`,
+  `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/development-journal.md`.
+- `2026-11-15T20:27:33Z` — Show Enter on the Change Directory button when the
+  current-directory row is highlighted, and retain the platform modifier shortcut
+  for other entries. Keep the button dimensions and visibility threshold stable
+  when focus changes. Update existing button assertions and usage, architecture,
+  and release notes. Focused button appearance, destination, hit-testing, and
+  directory-guard tests passed; the host binary rebuilt with the existing nonfatal
+  module-cache write warning. gopls reported no diagnostics. No dependencies changed
+  or hosted CI/publication ran. Paths: `view.go`, `view_test.go`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/development-journal.md`.
+- `2026-11-15T20:30:50Z` — Move the parent action's arrow into the left gutter
+  so Back to parent aligns with directory names. Keep the arrow in place when
+  highlighted; retain the full-row highlight and use a trailing selection marker
+  when styling is unavailable. Update usage documentation. Existing view, tree,
+  entry, and mouse tests passed, and the host binary rebuilt with the existing
+  nonfatal module-cache write warning. gopls reported no diagnostics. A native
+  PTY check showed the arrow before and after Left focus, then cancelled with
+  terminal cleanup and exit status 130. No dependencies changed or hosted
+  CI/publication ran. Paths: `view.go`, `docs/usage.md`,
+  `docs/development-journal.md`.
+- `2026-11-15T20:34:04Z` — Hide the confirmation shortcut on the inactive button
+  when a file is highlighted, and omit opening/Enter actions from the short
+  controls. Keep directory shortcuts, button geometry, and text-input controls
+  intact. Update the existing file-button assertion, usage, architecture, and
+  release notes. Focused button, view, creation-prompt, and input-mode tests passed;
+  the host binary rebuilt with the existing nonfatal module-cache write warning.
+  gopls reported no diagnostics. No dependencies changed or hosted CI/publication
+  ran. Paths: `view.go`, `view_test.go`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/development-journal.md`.

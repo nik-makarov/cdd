@@ -147,7 +147,8 @@ func (m *browser) handleMouse(key keyEvent) bool {
 		m.cursor, m.message = index, ""
 		m.lastClick = mouseClick{path: m.visible[index].path, x: key.x, y: key.y, when: key.when}
 		elapsed := key.when.Sub(previous.when)
-		if !previous.when.IsZero() && previous.path == m.lastClick.path && previous.x == key.x && previous.y == key.y && elapsed >= 0 && elapsed <= 400*time.Millisecond {
+		drift := key.x - previous.x
+		if !previous.when.IsZero() && previous.path == m.lastClick.path && drift >= -2 && drift <= 2 && previous.y == key.y && elapsed >= 0 && elapsed <= 400*time.Millisecond {
 			m.lastClick = mouseClick{}
 			m.openSelected()
 		}

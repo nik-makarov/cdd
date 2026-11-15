@@ -60,6 +60,7 @@ func TestTruncateUnicode(t *testing.T) {
 	}{
 		{"abcdef", 3, "abc"}, {"\u0420\u0443\u0441\u0441\u043a\u0438\u0439", 5, "\u0420\u0443"},
 		{"a\u754cb", 3, "a\u754c"}, {"x\U0001f642y", 3, "x\U0001f642"},
+		{"\u256d\u2500\u256e", 3, "\u256d\u2500\u256e"}, {"\u2190 ..", 4, "\u2190 .."},
 		{"anything", 0, ""},
 	} {
 		if got := truncate(tt.input, tt.width); got != tt.want || !utf8.ValidString(got) {

@@ -150,6 +150,10 @@ func (m *browser) handleMouse(key keyEvent) bool {
 		drift := key.x - previous.x
 		if !previous.when.IsZero() && previous.path == m.lastClick.path && drift >= -2 && drift <= 2 && previous.y == key.y && elapsed >= 0 && elapsed <= 400*time.Millisecond {
 			m.lastClick = mouseClick{}
+			if m.visible[index].name == "." {
+				m.filtering = false
+				return m.handle(keyEvent{name: "confirm"})
+			}
 			m.openSelected()
 		}
 	}

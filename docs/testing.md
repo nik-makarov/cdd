@@ -28,7 +28,8 @@ paths. Creation prompt checks cover long names, terminal-control sanitization,
 and small terminal sizes.
 Mouse tests cover fragmented SGR and legacy reports, invalid coordinates, rendered
 row and button hit testing across layouts and input modes, stable scrolling,
-single/double clicks with small pointer drift, parent navigation through logical
+single/double clicks with small pointer drift, current-directory confirmation
+with filtering and stale-path validation, parent navigation through logical
 symlinks, wheel movement,
 and file/stale-directory guards. Parent-row tests cover filtering, hidden entries,
 root behavior, focus restoration, counts, and child previews. Button checks cover
@@ -112,8 +113,8 @@ Use a disposable directory tree and a real interactive terminal:
    uncatchable kill. Do not use a production shell for destructive process tests.
 8. Click a directory to highlight it, double-click to browse it, and double-click
    `..` to return to its parent. Enter must browse other directories without
-   exiting; on `.` it must confirm the current directory and exit. Confirm with
-   each row of the Change Dir button, Cmd+Enter on macOS, or Ctrl+Enter on
+   exiting; on `.` Enter or a double-click must confirm the current directory and
+   exit. Confirm with each row of the Change Dir button, Cmd+Enter on macOS, or Ctrl+Enter on
    Linux in a compatible terminal. Check that the shown path follows the
    highlighted directory and that terminal keyboard mode is restored on exit.
    Repeat in tree view and both compact columns, including after scrolling and

@@ -71,16 +71,18 @@ In terminals that support mouse reporting:
 | Mouse action | Result |
 | --- | --- |
 | Left click | Highlight the entry under the pointer |
-| Double left click | Open the directory for browsing; `..` opens the parent |
+| Double left click | Open the directory for browsing; `..` opens the parent; `.` confirms the current directory and exits |
 | Click `Change Dir` | Choose the highlighted directory and exit |
 | Wheel up / down | Move selection one entry up / down |
 
 Mouse actions work in the middle pane of tree view and both columns of compact
 view. Side previews, headers, dividers, and empty rows do not select anything.
-Double-click the same entry and row within 400 ms to open a directory without
-completing selection; up to two cells of horizontal pointer drift are allowed.
+Double-click the same entry and row within 400 ms; up to two cells of horizontal
+pointer drift are allowed. On `.`, this confirms the current directory and exits;
+other directories open for browsing.
 Right-click has no action. Files cannot be opened or chosen. While
-filtering, double-click opens the directory and clears the filter. While entering
+filtering, double-clicking `.` also confirms the current directory; double-clicking
+another directory opens it and clears the filter. While entering
 a new directory name, mouse actions are ignored. Mouse reporting is disabled
 when the picker exits, including cancellation.
 
@@ -109,9 +111,10 @@ confirming `.` or opening another directory for browsing.
 The first row, `← Back to parent`, is emphasized as a navigation action for `..`.
 Its arrow sits in the left gutter, with the action text aligned to directory names.
 The next row, `.  (current dir)`, selects the
-directory currently being viewed and is highlighted initially. Enter on `.`
-confirms that directory and exits, applying the shell directory change. On other
-directory rows, Enter opens them for further browsing, like Right or double-click.
+directory currently being viewed and is highlighted initially. Enter or a
+double-click on `.` confirms that directory and exits, applying the shell directory
+change. On other directory rows, Enter opens them for further browsing, like Right
+or double-click.
 Opening `..` moves up and focuses the directory you came from, while the
 confirmation shortcut or button selects the parent as the destination.
 Both rows remain available regardless of the name filter or hidden-entry setting;

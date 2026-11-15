@@ -43,7 +43,7 @@ Keys:
 
 Mouse (in compatible terminals):
   Left click     Highlight an entry
-  Double click   Open a dir for browsing (.. opens the parent)
+  Double click   Open dir; on . change dir and exit
   Wheel          Move selection up/down
 
 The first row (← Back to parent) goes up; it is absent at the filesystem root.

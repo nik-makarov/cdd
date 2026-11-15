@@ -164,14 +164,50 @@ func TestMouseKeepsScrolledRowsStable(t *testing.T) {
 	}
 }
 
-func TestMouseOpensCurrentAndSecondColumn(t *testing.T) {
+func TestMouseDoubleClickConfirmsCurrentDirectory(t *testing.T) {
+	for _, compact := range []bool{false, true} {
+		for _, mode := range []string{"normal", "filter", "removed directory"} {
+			t.Run(fmt.Sprintf("compact=%t/%s", compact, mode), func(t *testing.T) {
+				root := t.TempDir()
+				m := loadBrowser(t, root)
+				m.compact = compact
+				if mode == "filter" {
+					m = press(m, "/", "/")
+					m = press(m, "text", "missing")
+				}
+				click := mouseOn(t, m, ".  (current dir)", "mouse-left", time.Unix(100, 0))
+				if m.handle(click) || m.selected != "" || m.path != root {
+					t.Fatal("single click must only highlight the current directory")
+				}
+				if mode == "removed directory" {
+					if err := os.Remove(root); err != nil {
+						t.Fatal(err)
+					}
+				}
+				click.when = click.when.Add(200 * time.Millisecond)
+				done := m.handle(click)
+				if mode == "removed directory" {
+					if done || m.selected != "" || m.message == "" {
+						t.Fatal("double click must reject a current directory that no longer exists")
+					}
+					return
+				}
+				if !done || m.selected != root || m.path != root {
+					t.Fatal("double click on . must confirm the current directory and exit")
+				}
+			})
+		}
+	}
+}
+
+func TestMouseOpensSecondColumn(t *testing.T) {
 	root := t.TempDir()
 	for i := range 40 {
 		if err := os.Mkdir(filepath.Join(root, fmt.Sprintf("dir-%02d", i)), 0o700); err != nil {
 			t.Fatal(err)
 		}
 	}
-	for _, target := range []string{".", "dir-20", "dir-39"} {
+	for _, target := range []string{"dir-20", "dir-39"} {
 		t.Run(target, func(t *testing.T) {
 			m := loadBrowser(t, root)
 			m.compact = true
@@ -184,12 +220,7 @@ func TestMouseOpensCurrentAndSecondColumn(t *testing.T) {
 			if target == "dir-39" && m.mouseEntry(margin+panes[0]+3, len(header)+m.pageRows()-1) != -1 {
 				t.Fatal("empty second column must not select a directory")
 			}
-			var click keyEvent
-			if target == "." {
-				click = mouseOn(t, m, ".  (current dir)", "mouse-left", time.Unix(100, 0))
-			} else {
-				click = mouseOn(t, m, target, "mouse-left", time.Unix(100, 0))
-			}
+			click := mouseOn(t, m, target, "mouse-left", time.Unix(100, 0))
 			if target == "dir-20" && click.x < margin+panes[0]+3 {
 				t.Fatal("expected a directory in the second column")
 			}

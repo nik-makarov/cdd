@@ -39,10 +39,10 @@ version is published on GitHub. Development history is recorded separately in
 
 - Display folder names without a trailing slash in both views and side panes.
 - Shorten interface wording to dir/dirs and label the current row `(current dir)`.
-- Confirm the current directory and exit with Enter on the `.` row; Enter on
-  other directories continues browsing. Show Enter on the confirmation button
-  when the current-directory row is highlighted; hide the shortcut and opening
-  hints for files.
+- Confirm the current directory and exit with Enter or a double-click on the `.`
+  row; Enter and double-clicks on other directories continue browsing. Show Enter
+  on the confirmation button when the current-directory row is highlighted; hide
+  the shortcut and opening hints for files.
 - Focus the emphasized `Back to parent` row first with Left, `h`, or Backspace;
   open the parent when that row is already highlighted.
 - Make the current directory's address more prominent with a bold final name,

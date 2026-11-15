@@ -556,3 +556,14 @@ entries, keep private data out, and distinguish local work from publication.
   ran. Paths: `entry.go`, `view.go`, `entry_test.go`, `view_test.go`, `tree_test.go`,
   `mouse_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/development-journal.md`.
+- `2026-11-15T20:52:45Z` — Confirm the current-directory row with a double-click
+  through the existing Change Dir handler, including while filtering. Keep a
+  single click as highlighting and other directory double-clicks as browsing.
+  Update mouse tests for both views, active filtering, and rejection of a removed
+  current directory. Update CLI help, README, usage, architecture, testing guidance,
+  and release notes. Application/tool tests and the host build passed; the build
+  retained the nonfatal module-cache write warning. gopls reported no diagnostics,
+  and `git diff --check` passed. No dependencies changed or hosted CI/publication
+  ran. Paths: `mouse.go`, `mouse_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

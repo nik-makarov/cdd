@@ -57,8 +57,9 @@ Hit testing shares the renderer's pane widths, row counts, and scroll position.
 The viewport stays stable when highlighting another visible row. Double-clicks
 require the same path and row within 400 ms, allowing two cells of horizontal
 pointer drift; navigation, keyboard input, and
-terminal resizing reset the click state. Double-clicks open directories using
-the keyboard navigation handler. Clicking any of the footer button's four rows
+terminal resizing reset the click state. Double-clicks on `.` finish filter editing
+and invoke the confirmation handler; other directories use the keyboard navigation
+handler. Clicking any of the footer button's four rows
 invokes the same confirmation handler as modified Enter, including its directory
 checks. Button hit testing follows the centered rendered block after clipping,
 help expansion, and input-mode changes. The outlined block pairs the action and
@@ -77,8 +78,9 @@ visible button boundaries used by [Textual](https://textual.textualize.io/widget
 and generous pointer targets recommended by
 [W3C](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum).
 These principles inform the terminal layout; CSS pixel thresholds are not treated
-as terminal-cell measurements. The entire outlined block is clickable, while
-double-clicking a directory only browses and never confirms a shell change.
+as terminal-cell measurements. The entire outlined block is clickable. A double-click
+confirms a shell change only on the current-directory row; other directories open
+for browsing.
 
 The emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
 entries. The current row is highlighted initially; Home focuses the first row.

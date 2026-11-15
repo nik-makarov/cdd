@@ -1,6 +1,24 @@
 package main
 
-import "strings"
+import (
+	"io"
+	"os"
+	"strings"
+)
+
+func shellIntegrationActive(stdout io.Writer) bool {
+	if os.Getenv("CDD_SHELL_INTEGRATION") == "1" {
+		return true
+	}
+	// Older shell functions already capture stdout but do not set the marker.
+	// A pipe also supports callers that intentionally capture the selected path.
+	output, ok := stdout.(*os.File)
+	if !ok {
+		return false
+	}
+	info, err := output.Stat()
+	return err == nil && info.Mode()&os.ModeNamedPipe != 0
+}
 
 func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"

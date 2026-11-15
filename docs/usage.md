@@ -15,8 +15,9 @@ It does not edit shell configuration or require adding a directory to `PATH`.
 The function stores the binary's absolute path, so moving the binary requires
 running its `--init` command again.
 
-Starting the binary without the shell function exits with a setup message before
-opening the picker. The message repeats the README's Homebrew setup commands:
+Starting the binary directly in the terminal without the shell function exits
+with a setup message before opening the picker. The message repeats the README's
+Homebrew setup commands:
 append the initialization line to `~/.zshrc` with `echo`, then run `source ~/.zshrc`.
 Adjust the binary path for your installation, use `~/.bashrc` and `--init bash`
 for bash, and run the append command only once. Then close and reopen your terminal.
@@ -228,10 +229,13 @@ A child process cannot change the parent shell's working directory. `--init`
 prints a function named `cdd` that runs the binary, captures its selected absolute
 path, and executes `builtin cd -- "$path"` in the current shell.
 
-The function sets `CDD_SHELL_INTEGRATION=1` only for the picker process. The
-binary checks this marker before browsing, so merely having zsh installed or
-setting `SHELL` does not count as loading integration. Do not export the marker
-in your shell configuration; load the generated function instead.
+The function sets `CDD_SHELL_INTEGRATION=1` only for the picker process. Older
+functions remain supported because they capture stdout through a pipe, even
+without the marker. The binary also allows explicit path capture through pipes;
+this does not prove that a function is loaded or change the parent directory
+automatically. Merely having zsh installed or setting `SHELL` does not enable
+integration. Do not export the marker in your shell configuration; load the
+generated function instead.
 
 The initial `eval` defines that function. Selected paths never pass through
 `eval`: they are literal arguments, preserving whitespace, quotes, shell

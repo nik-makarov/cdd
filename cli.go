@@ -134,7 +134,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if opts.showVersion {
 		return writeResult(stdout, stderr, "cdd "+version+"\n")
 	}
-	if os.Getenv("CDD_SHELL_INTEGRATION") != "1" {
+	if !shellIntegrationActive(stdout) {
 		var styles viewStyles
 		if output, ok := stderr.(*os.File); ok {
 			styles = terminalStyles(term.IsTerminal(int(output.Fd())), os.Getenv("TERM"), os.Getenv("NO_COLOR"))

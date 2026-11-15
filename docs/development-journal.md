@@ -343,3 +343,16 @@ entries, keep private data out, and distinguish local work from publication.
   Paths: `AGENTS.md`, `browser.go`, `browser_test.go`, `view.go`, `view_test.go`,
   `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T14:14:01Z` — Preserve compatibility with shell functions loaded
+  before the integration marker was introduced. Accept markerless stdout pipes
+  used by those functions and explicit path-capture workflows while retaining
+  setup guidance for direct terminal output and uncaptured file output. Update
+  usage and release notes. A regression test first reproduced false rejection
+  with both zsh and bash, then passed with the compatibility check. Formatting,
+  vet, shuffled race-enabled application/tool tests, and host build passed with
+  a temporary Go build cache; the build retained the nonfatal module-cache write
+  warning. A native zsh PTY check selected a directory and changed the shell
+  location through a markerless function; a direct terminal invocation still
+  displayed the colored setup message and returned status 1. No dependencies
+  or user shell configuration changed. Paths: `cli.go`, `shell.go`,
+  `shell_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/development-journal.md`.

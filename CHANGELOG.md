@@ -46,6 +46,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Fixed
 
+- Keep previously loaded zsh/bash functions working after a binary update, even
+  when they do not set the newer shell-integration marker.
 - Detect missing shell integration before opening the picker and explain how to
   load the zsh or bash initialization script and reopen the terminal, with
   highlighted setup instructions in interactive terminals.

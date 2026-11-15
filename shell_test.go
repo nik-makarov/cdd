@@ -129,12 +129,13 @@ func TestShellIntegrationMarkerScope(t *testing.T) {
 			if err != nil {
 				t.Skipf("%s is not installed", shell)
 			}
+			outputPath := filepath.Join(t.TempDir(), "direct-output")
 			script := "unset CDD_SHELL_INTEGRATION\n" + shellInit(executable) + `
 [ -z "${CDD_SHELL_INTEGRATION+x}" ] || exit 10
 cdd ` + shellQuote(missing) + `
 [ "$?" -eq 1 ] || exit 11
 [ -z "${CDD_SHELL_INTEGRATION+x}" ] || exit 12
-command ` + shellQuote(executable) + " " + shellQuote(missing) + `
+command ` + shellQuote(executable) + " " + shellQuote(missing) + " > " + shellQuote(outputPath) + `
 [ "$?" -eq 1 ] || exit 13
 `
 			cmd := exec.Command(binary, "-f", "-c", script)
@@ -148,6 +149,47 @@ command ` + shellQuote(executable) + " " + shellQuote(missing) + `
 			message := stderr.String()
 			if !strings.Contains(message, missing) || strings.Count(message, "shell integration is not loaded") != 1 {
 				t.Fatalf("expected directory error from function and setup message from direct launch: %q", message)
+			}
+			captured, err := os.ReadFile(outputPath)
+			if err != nil || len(captured) != 0 {
+				t.Fatalf("direct launch contaminated stdout: %q, %v", captured, err)
+			}
+		})
+	}
+}
+
+func TestLegacyShellIntegration(t *testing.T) {
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	missing := filepath.Join(t.TempDir(), "missing")
+	for _, shell := range []string{"zsh", "bash"} {
+		t.Run(shell, func(t *testing.T) {
+			binary, err := exec.LookPath(shell)
+			if err != nil {
+				t.Skipf("%s is not installed", shell)
+			}
+			// Earlier releases capture stdout without setting an environment marker.
+			script := `unset CDD_SHELL_INTEGRATION
+cdd() {
+    local _cdd_dir
+    _cdd_dir="$(command ` + shellQuote(executable) + ` "$@" && printf '.')" || return "$?"
+    _cdd_dir="${_cdd_dir%.}"
+    [ -n "$_cdd_dir" ] || return 0
+    builtin cd -- "$_cdd_dir"
+}
+cdd ` + shellQuote(missing)
+			cmd := exec.Command(binary, "-f", "-c", script)
+			cmd.Env = append(os.Environ(), "CDD_TEST_HELPER=1", "CDD_TEST_MODE=cli")
+			var stderr bytes.Buffer
+			cmd.Stderr = &stderr
+			out, err := cmd.Output()
+			if err == nil || cmd.ProcessState.ExitCode() != 1 || len(out) != 0 {
+				t.Fatalf("unexpected legacy wrapper result: %v, stdout %q, stderr %q", err, out, stderr.String())
+			}
+			if !strings.Contains(stderr.String(), missing) || strings.Contains(stderr.String(), "integration is not loaded") {
+				t.Fatalf("legacy integration was rejected before directory validation: %q", stderr.String())
 			}
 		})
 	}

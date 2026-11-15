@@ -5,6 +5,10 @@ last chosen view; browsing paths, filters, and tree expansion stay in memory.
 Browsing reads directory entries without recursive indexing or file-content
 reads except explicit preview. Directory creation uses one literal child name with `os.Mkdir`; it does
 not overwrite existing entries or create intermediate directories.
+Empty-file creation uses the same literal-name input with Shift+N, targeting the
+highlighted directory in both modes or the highlighted file's parent. It uses
+`os.OpenFile` with `O_CREATE|O_EXCL`, never truncation, closes immediately, and
+refreshes focus without returning a file as a directory destination.
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 

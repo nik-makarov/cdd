@@ -717,3 +717,18 @@ entries, keep private data out, and distinguish local work from publication.
   `cli.go`, `view.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
   `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T22:38:15Z` — Add Shift+N to create an empty named file inside the
+  highlighted directory or beside the highlighted file in either view. Use
+  exclusive creation, preserve literal names, reject existing entries including
+  symlinks, keep failed input editable, and focus the new file without opening it
+  or selecting it for cd. Show the creation destination, support shifted CSI-u
+  letters, reserve the shortcut from editor bindings, and document the requested
+  scope expansion. Tests cover both views, hidden files, directory symlinks,
+  Unicode and shell metacharacters, cancellation, missing-parent retry, input
+  precedence, and non-overwrite behavior. `make check build`, gopls diagnostics,
+  a ten-second keyboard fuzz run, and `git diff --check` passed; the build retained
+  the nonfatal module-cache write warning. No dependencies changed or publication
+  ran. Paths: `browser.go`, `outline.go`, `view.go`, `keyboard.go`, `config.go`,
+  `create_file_test.go`, `config_test.go`, `terminal_test.go`, `cli.go`, `AGENTS.md`,
+  `README.md`, `CHANGELOG.md`, `docs/configuration.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

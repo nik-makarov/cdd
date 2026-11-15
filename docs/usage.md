@@ -73,7 +73,8 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | `/` | Filter names, ignoring case |
 | Enter / Esc while filtering | In panes, finish editing; in tree, Enter chooses the highlighted directory and Esc finishes editing |
 | `n` | Enter a name for a new directory in the current location |
-| Enter / Esc while naming | Create the directory / cancel name input |
+| Shift+N | Enter a name for an empty file inside the highlighted directory (or beside a highlighted file) |
+| Enter / Esc while naming | Create the directory or file / cancel name input |
 | `.` | Toggle hidden directories |
 | `~` | Go to the home directory |
 | Ctrl+R | Refresh the listing |
@@ -177,6 +178,25 @@ is visible. Right opens it for browsing; use the confirmation shortcut or
 `Change Dir` to select it and exit. Enter confirms it in tree view and opens it
 for browsing in panes views.
 Cancelling the picker after creation leaves the new directory on disk.
+
+## Create an empty file
+
+Highlight a directory and press Shift+N, type a file name, then press Enter. Both
+views create inside the highlighted directory; when a file is highlighted, its
+parent is used. `New in:` shows the destination and `New file:` shows the name.
+Backspace edits it and Esc cancels without creating anything. Finish an active
+filter before invoking the shortcut; letters remain literal during text input.
+
+Creation uses one literal name and never overwrites an existing file, directory,
+or symlink, including a broken symlink. Empty names, `.`, `..`, `/`, and NUL are
+rejected. Errors keep the name editable for retry. The new file is empty, has
+permissions `0644` restricted by the process umask, and is highlighted after
+refresh. Hidden names become visible. In panes view, browsing enters the target
+folder to show the new file; shell selection remains unchanged.
+
+Space previews the new file, Enter opens it, and the configured Zed shortcut
+opens it in the editor. It cannot be selected as a cd destination. Cancelling
+the picker after creation leaves the file on disk.
 
 ## Appearance
 

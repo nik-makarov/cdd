@@ -65,7 +65,7 @@ func readConfiguration(path string) (configuration, error) {
 		if len(key) != 1 || !((key[0] >= 'a' && key[0] <= 'z') || (key[0] >= 'A' && key[0] <= 'Z')) {
 			return defaults, errors.New("keys.open_in_zed must be one ASCII letter, or empty to disable")
 		}
-		if strings.Contains("hjklqnv", key) {
+		if strings.Contains("hjklqnNv", key) {
 			return defaults, fmt.Errorf("keys.open_in_zed conflicts with built-in key %q", key)
 		}
 	}

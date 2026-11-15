@@ -8,6 +8,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Create an empty named file with Shift+N inside the highlighted folder or beside
+  the highlighted file. Focus the new file without opening it or overwriting
+  existing entries.
 - Open a folder as a project or a single file in a new Zed window through its
   installed CLI. Configure the binding in `config.json` (shipped default: `z`);
   ignore it when Zed is unavailable.

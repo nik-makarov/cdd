@@ -19,6 +19,7 @@ func TestConfigurationOverridesAndFallback(t *testing.T) {
 		{"custom", `{"keys":{"open_in_zed":"e"}}`, "e", false},
 		{"disabled", `{"keys":{"open_in_zed":""}}`, "", false},
 		{"conflict", `{"keys":{"open_in_zed":"v"}}`, "z", true},
+		{"new file conflict", `{"keys":{"open_in_zed":"N"}}`, "z", true},
 		{"multiple", `{"keys":{"open_in_zed":"zz"}}`, "z", true},
 		{"unknown", `{"keys":{"zed":"e"}}`, "z", true},
 		{"invalid", "{", "z", true},

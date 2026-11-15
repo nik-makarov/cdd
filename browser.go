@@ -9,38 +9,39 @@ import (
 )
 
 type browser struct {
-	path        string
-	origin      string
-	treeRoot    string
-	rootTree    bool
-	entries     []entry
-	visible     []entry
-	cursor      int
-	scroll      int
-	mode        viewMode
-	viewFile    string
-	branches    map[string]treeBranch
-	outline     []outlineRow
-	lastClick   mouseClick
-	hidden      bool
-	filtering   bool
-	creating    bool
-	showHelp    bool
-	query       string
-	newName     string
-	message     string
-	selected    string
-	width       int
-	height      int
-	styles      viewStyles
-	parent      []entry
-	children    []entry
-	parentErr   string
-	childErr    string
-	preview     string
-	filePreview *filePreview
-	action      externalAction
-	config      configuration
+	path         string
+	origin       string
+	treeRoot     string
+	rootTree     bool
+	entries      []entry
+	visible      []entry
+	cursor       int
+	scroll       int
+	mode         viewMode
+	viewFile     string
+	branches     map[string]treeBranch
+	outline      []outlineRow
+	lastClick    mouseClick
+	hidden       bool
+	filtering    bool
+	creating     bool
+	creatingFile bool
+	showHelp     bool
+	query        string
+	newName      string
+	message      string
+	selected     string
+	width        int
+	height       int
+	styles       viewStyles
+	parent       []entry
+	children     []entry
+	parentErr    string
+	childErr     string
+	preview      string
+	filePreview  *filePreview
+	action       externalAction
+	config       configuration
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
@@ -61,6 +62,7 @@ func (m *browser) open(path, focus string) error {
 		next.path, next.entries = path, entries
 		next.query, next.message, next.filtering = "", "", false
 		next.newName, next.creating = "", false
+		next.creatingFile = false
 		target := path
 		if focus != "" {
 			target = filepath.Join(path, focus)
@@ -74,6 +76,7 @@ func (m *browser) open(path, focus string) error {
 	m.path, m.entries = path, entries
 	m.query, m.message, m.filtering = "", "", false
 	m.newName, m.creating = "", false
+	m.creatingFile = false
 	m.refilter()
 	for i, dir := range m.visible {
 		if dir.name == focus {
@@ -154,8 +157,9 @@ func (m *browser) handle(key keyEvent) bool {
 		switch key.name {
 		case "esc":
 			m.creating, m.newName, m.message = false, "", ""
+			m.creatingFile = false
 		case "enter":
-			m.createDirectory()
+			m.createEntry()
 		case "backspace":
 			runes := []rune(m.newName)
 			if len(runes) > 0 {
@@ -255,8 +259,9 @@ func (m *browser) handle(key keyEvent) bool {
 		m.filtering = true
 		m.query = ""
 		m.refilter()
-	case "n":
+	case "n", "N":
 		m.creating, m.showHelp = true, false
+		m.creatingFile = key.name == "N"
 		m.newName, m.message = "", ""
 	case ".":
 		m.hidden = !m.hidden
@@ -288,25 +293,41 @@ func (m *browser) handle(key keyEvent) bool {
 	return false
 }
 
-func (m *browser) createDirectory() {
+func (m *browser) createEntry() {
 	name := m.newName
+	kind, created := "dir", "Dir"
+	if m.creatingFile {
+		kind, created = "file", "File"
+	}
 	if name == "" || name == "." || name == ".." || strings.ContainsAny(name, "/\x00") {
-		m.message = "Enter a single dir name, not a path, . or .."
+		m.message = "Enter a single " + kind + " name, not a path, . or .."
 		return
 	}
 	parent := m.creationPath()
-	if err := os.Mkdir(filepath.Join(parent, name), 0o755); err != nil {
+	path := filepath.Join(parent, name)
+	if m.creatingFile {
+		file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		if err != nil {
+			m.message = wrapError("create file", err).Error()
+			return
+		}
+		if err := file.Close(); err != nil {
+			m.creating, m.creatingFile, m.newName = false, false, ""
+			m.message = "File created, but closing failed: " + err.Error()
+			return
+		}
+	} else if err := os.Mkdir(path, 0o755); err != nil {
 		m.message = wrapError("create dir", err).Error()
 		return
 	}
-	m.creating, m.newName = false, ""
+	m.creating, m.creatingFile, m.newName = false, false, ""
 	if strings.HasPrefix(name, ".") {
 		m.hidden = true
 	}
 	if m.mode == outlineView {
 		items, err := readEntries(parent)
 		if err != nil {
-			m.message = "Dir created, but refreshing failed: " + err.Error()
+			m.message = created + " created, but refreshing failed: " + err.Error()
 			return
 		}
 		m.query = ""
@@ -318,8 +339,8 @@ func (m *browser) createDirectory() {
 		m.rebuildOutline(filepath.Join(parent, name))
 		return
 	}
-	if err := m.open(m.path, name); err != nil {
-		m.message = "Dir created, but refreshing failed: " + err.Error()
+	if err := m.open(parent, name); err != nil {
+		m.message = created + " created, but refreshing failed: " + err.Error()
 	}
 }
 

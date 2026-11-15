@@ -26,6 +26,11 @@ metacharacters, hidden entries, existing files/directories/symlinks, invalid
 paths, editing and retry, cancellation, a removed parent, and logical symlink
 paths. Creation prompt checks cover long names, terminal-control sanitization,
 and small terminal sizes.
+Empty-file creation checks cover both modes, selected folders and file parents,
+logical directory symlinks, literal Unicode/metacharacter names, hidden files,
+zero-byte contents, non-overwrite behavior for files and symlinks, invalid names,
+cancellation, missing-parent retry, input precedence, and directory-selection
+guards. Shifted ASCII keys are covered in legacy and CSI-u input.
 Mouse tests cover fragmented SGR and legacy reports, invalid coordinates, rendered
 row and button hit testing across layouts and input modes, stable scrolling,
 single/double clicks with small pointer drift, current-directory confirmation

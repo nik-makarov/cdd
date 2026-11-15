@@ -18,9 +18,9 @@ For example, change the Zed shortcut from `z` to `e`:
 ```
 
 Use an empty string to disable it. The binding accepts one ASCII letter, including
-uppercase letters; built-in navigation keys `h`, `j`, `k`, `l`, `q`, `n`, and `v`
+uppercase letters; built-in keys `h`, `j`, `k`, `l`, `q`, `n`, `N`, and `v`
 cannot be reassigned. Shortcut letters stay literal while editing a filter or
-directory name. Help displays the configured key. Restart cdd after editing.
+file/dir name. Help displays the configured key. Restart cdd after editing.
 
 Missing files and omitted keys use the shipped defaults. Malformed JSON, unknown
 keys, and conflicting bindings show an error and use defaults for that run.

@@ -367,7 +367,7 @@ func (m *browser) refreshOutline() {
 }
 
 func (m browser) creationPath() string {
-	if m.mode != outlineView {
+	if m.mode != outlineView && !m.creatingFile {
 		return m.path
 	}
 	item := m.visible[m.cursor]

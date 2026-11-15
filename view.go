@@ -69,6 +69,7 @@ var helpHints = []keyHint{
 	{"Enter", "open file/dir; . changes dir"}, {changeShortcut(runtime.GOOS), "change dir"},
 	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"n", "new dir"},
+	{"Shift+N", "new file"},
 	{"Space", "preview file"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
@@ -130,11 +131,11 @@ func (m browser) shortHelp(width int) viewLine {
 	if key := m.config.Keys.OpenInZed; key != "" {
 		hints = append(hints, keyHint{key, "Zed"})
 	}
-	hints = append(hints, keyHint{"n", "new dir"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
+	hints = append(hints, keyHint{"n/N", "new dir/file"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
 	// Preserve Enter, help and exit when space is limited.
-	trimOrder := []string{"↑↓", "←", "→", "/", "v", "n"}
+	trimOrder := []string{"↑↓", "←", "→", "/", "v", "n/N"}
 	if m.mode == outlineView {
-		trimOrder = []string{"/", "n", "↑↓", "v", "→", "←"}
+		trimOrder = []string{"/", "n/N", "↑↓", "v", "→", "←"}
 	}
 	trimOrder = append([]string{m.config.Keys.OpenInZed}, trimOrder...)
 	for _, key := range trimOrder {
@@ -288,11 +289,15 @@ func (m browser) frame() (header, footer []viewLine) {
 	}
 	var status []viewLine
 	if m.creating {
-		if m.mode == outlineView {
+		if m.mode == outlineView || m.creatingFile {
 			status = append(status, viewLine{{"New in: " + tail(display(m.creationPath()), max(1, width-8)), m.styles.muted}})
 		}
-		name := tail(display(m.newName)+"_", max(1, width-5))
-		status = append(status, viewLine{{"New: ", m.styles.strong}, {name, m.styles.accent}})
+		label := "New: "
+		if m.creatingFile {
+			label = "New file: "
+		}
+		name := tail(display(m.newName)+"_", max(1, width-textWidth(label)))
+		status = append(status, viewLine{{label, m.styles.strong}, {name, m.styles.accent}})
 	} else if m.filtering || m.query != "" {
 		query := "/ " + display(m.query)
 		if m.mode == outlineView {

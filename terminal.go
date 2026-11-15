@@ -60,6 +60,14 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 	if err := redraw(); err != nil {
 		return wrapError("draw terminal", err)
 	}
+	var actionDone chan error
+	var cancelAction context.CancelFunc
+	defer func() {
+		if cancelAction != nil {
+			cancelAction()
+			<-actionDone
+		}
+	}()
 	var pending []byte
 	var lastInput time.Time
 	var buffer [4096]byte
@@ -68,6 +76,15 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		select {
 		case <-ctx.Done():
 			return errCancelled
+		case err := <-actionDone:
+			cancelAction()
+			actionDone, cancelAction = nil, nil
+			if err != nil && !errors.Is(err, context.Canceled) {
+				m.message = err.Error()
+			}
+			if err := redraw(); err != nil {
+				return wrapError("redraw terminal", err)
+			}
 		case <-resize:
 			if err := redraw(); err != nil {
 				return wrapError("redraw terminal", err)
@@ -110,6 +127,20 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			key.when = time.Now()
 			if m.handle(key) {
 				return nil
+			}
+			if m.action.kind != "" {
+				action := m.action
+				m.action = externalAction{}
+				if cancelAction != nil {
+					cancelAction()
+				} else {
+					actionCtx, cancel := context.WithCancel(ctx)
+					cancelAction = cancel
+					actionDone = make(chan error, 1)
+					go func(done chan<- error) {
+						done <- runExternalAction(actionCtx, action, runtime.GOOS)
+					}(actionDone)
+				}
 			}
 			changed = true
 		}

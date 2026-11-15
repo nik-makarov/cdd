@@ -3,7 +3,7 @@
 cdd has one application package and no background service. It persists only the
 last chosen view; browsing paths, filters, and tree expansion stay in memory.
 Browsing reads directory entries without recursive indexing or file-content
-reads. Directory creation uses one literal child name with `os.Mkdir`; it does
+reads except explicit preview. Directory creation uses one literal child name with `os.Mkdir`; it does
 not overwrite existing entries or create intermediate directories.
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
@@ -21,6 +21,8 @@ the highlighted directory. It does not execute external commands to list entries
 | `tree.go` | Parent/current/child panes with one active middle list |
 | `outline.go` | View cycle, lazy expandable tree, branch state, and tree hit testing |
 | `preferences.go` | Last-view storage, validation, and startup restoration |
+| `preview.go` | Bounded text preview, scrolling, and platform preview selection |
+| `actions.go` | Direct external CLI invocation with cancellation and bounded diagnostics |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `keyboard.go` | Extended keyboard decoding and platform confirmation shortcuts |
 | `mouse.go` | Mouse report decoding, visible-row hit testing, and click handling |
@@ -132,6 +134,14 @@ private temporary file in the same directory. Failed changes do not save, while
 save failures leave navigation usable and report through the terminal. Cancellation
 does not revert the last view. Pure browser construction performs no preference
 I/O, keeping tests and noninteractive commands independent of personal settings.
+
+Space previews a regular file explicitly. On Linux, a nonblocking open and a
+post-open type check reject special files; at most 256 KiB is decoded as text.
+Binary files show metadata. Rendering sanitizes file contents before styling.
+On macOS, `qlmanage -p` receives the absolute path as one literal argument.
+The terminal owns one cancellable child operation and joins it during cleanup.
+Child stdout is discarded, stderr is bounded, and failures appear in the UI.
+No process receives the terminal input stream or the selected-path output stream.
 
 The expandable tree follows the arrow-key model from the
 [WAI-ARIA tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/): Right

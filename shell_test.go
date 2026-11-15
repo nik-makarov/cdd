@@ -14,6 +14,9 @@ import (
 // The test executable doubles as a picker to exercise the real shell function
 // without a TTY. This includes failure after partial output.
 func TestMain(m *testing.M) {
+	if os.Getenv("CDD_TEST_ACTION") != "" {
+		os.Exit(actionTestHelper())
+	}
 	if os.Getenv("CDD_TEST_HELPER") == "1" {
 		if os.Getenv("CDD_TEST_MODE") == "cli" {
 			os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))

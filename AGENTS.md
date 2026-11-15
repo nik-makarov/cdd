@@ -14,11 +14,13 @@ Keep this small CLI simple. UI and diagnostics go to the terminal/stderr;
 stdout is reserved for the selected path. Preserve shell integration tests,
 especially cancellation and filenames containing shell metacharacters.
 The application's scope is directory navigation and selection, creating a
-directory as a navigation destination, and shell integration for cd. Do not add
-other file management, background services, networking, or unrelated capabilities.
+directory as a navigation destination, explicit file preview, and shell integration
+for cd. Do not add other file management, background services, networking, or
+unrelated capabilities.
 Features must directly support choosing a directory.
-File names may be displayed as browsing context, but files must never be opened,
-executed, modified, or returned as a selected directory.
+File contents may be read only for an explicitly requested preview. Never execute
+or modify files, or return a file as a selected directory. Preview must preserve
+the browsing state and stdout contract.
 
 Minimize dependencies. Prefer the standard library; remaining external modules
 must have a clear purpose and verifiable maintainers. Currently only the Go

@@ -69,6 +69,7 @@ var helpHints = []keyHint{
 	{"Enter", "open; . changes dir"}, {changeShortcut(runtime.GOOS), "change dir"},
 	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"n", "new dir"},
+	{"Space", "preview file"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
 	{"Esc / q / Ctrl+C / Ctrl+D", "cancel"},
@@ -121,6 +122,8 @@ func (m browser) shortHelp(width int) viewLine {
 	hints := []keyHint{{"↑↓", "move"}, {"←", leftAction}}
 	if len(m.visible) == 0 || m.visible[m.cursor].isDir() {
 		hints = append(hints, keyHint{"→", rightAction}, keyHint{"Enter", enterAction})
+	} else {
+		hints = append(hints, keyHint{"Space", "preview"})
 	}
 	hints = append(hints, keyHint{"n", "new dir"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
 	// Preserve Enter, help and exit when space is limited.
@@ -431,6 +434,9 @@ func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 }
 
 func (m browser) view() string {
+	if m.filePreview != nil {
+		return m.filePreviewView()
+	}
 	width, margin := m.viewWidth()
 	header, footer := m.frame()
 	rows := m.pageRows()

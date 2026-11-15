@@ -671,3 +671,16 @@ entries, keep private data out, and distinguish local work from publication.
   `mouse_test.go`, `keyboard_test.go`, `tree_test.go`, `README.md`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-15T22:22:45Z` — Add explicit Space preview: Quick Look through
+  `qlmanage -p` on macOS and a bounded, scrollable text viewer on Linux. Preserve
+  browsing focus, sanitize rendered contents, reject special files, and handle
+  binary data and UTF-8 at the read limit. Add a cancellable terminal-owned child
+  runner with isolated stdout and bounded diagnostics. Update the project scope
+  for explicitly requested preview. Tests use a fake CLI rather than launching
+  desktop apps. `make check build`, gopls diagnostics, and `git diff --check`
+  passed; the build retained the nonfatal module-cache write warning. No
+  dependencies changed or publication ran. Paths: `actions.go`, `actions_test.go`,
+  `preview.go`, `preview_test.go`, `browser.go`, `view.go`, `terminal.go`,
+  `shell_test.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

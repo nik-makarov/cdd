@@ -53,6 +53,10 @@ Preference tests cover all saved modes, missing and malformed values, restoratio
 after cancellation, private atomic replacement, failed mode changes, and save
 errors that leave confirmation usable. Test preference files stay in temporary
 directories, independently of the user's real configuration.
+Preview tests cover Linux text scrolling, closing, tiny windows, sanitization,
+binary/empty/large files, partial UTF-8 at the byte limit, and rejection of FIFOs.
+A fake Quick Look CLI verifies literal arguments, bounded errors, output isolation,
+and cancellation without opening a desktop application during automated tests.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough. Separate stdout/stderr assertions verify move

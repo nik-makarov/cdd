@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Preview files with Space: native Quick Look on macOS and a bounded, scrollable
+  text preview on Linux. Close the built-in preview with Esc or Space.
 - Click visible folder components in header paths to navigate without changing
   the shell directory. Tree breadcrumbs follow the highlighted directory.
 - Show the tree from `/` using the header's `[/ Root]` button or `\`, retaining

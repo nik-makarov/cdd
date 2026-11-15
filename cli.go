@@ -33,6 +33,7 @@ Keys:
   Cmd+Enter      Change dir and exit (macOS)
   Ctrl+Enter     Change dir and exit (Linux)
   n              Create a dir in the current location
+  Space          Preview file (Quick Look on macOS; text preview on Linux)
   /              Filter names (Esc finishes; Enter confirms in tree)
   .              Toggle hidden dirs
   ~              Go to home dir

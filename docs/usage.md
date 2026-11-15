@@ -44,6 +44,13 @@ be opened or chosen as a destination.
 
 ## Controls
 
+Space on a file opens Quick Look on macOS, or the built-in text preview on Linux.
+The built-in viewer supports arrows, mouse wheel, Page Up/Down, Home/End, and
+closes with Esc or Space, restoring browser focus. It reads at most 256 KiB and
+shows a size placeholder for binary files; special files such as FIFOs are not
+read. Close the native Quick Look window to return to browsing; another Space
+in cdd stops the active preview. Neither action chooses a shell directory.
+
 | Key | Action |
 | --- | --- |
 | Up / Down, `k` / `j` | Move selection |
@@ -167,8 +174,8 @@ files. The left pane shows its parent's entries as context. The right pane
 previews entries inside the highlighted directory, including directory symlinks.
 Highlighting the `.` or `..` row leaves Children blank, including after entering
 a directory.
-Highlighting a file shows no directory preview. File contents are never read or
-opened.
+Highlighting a file shows no directory preview. File contents are read only after
+an explicit Space preview action.
 
 Each pane shows its directory's absolute path above its entries: the parent on
 the left, the current directory in the middle, and the highlighted directory

@@ -3,40 +3,43 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 )
 
 type browser struct {
-	path      string
-	origin    string
-	treeRoot  string
-	rootTree  bool
-	entries   []entry
-	visible   []entry
-	cursor    int
-	scroll    int
-	mode      viewMode
-	viewFile  string
-	branches  map[string]treeBranch
-	outline   []outlineRow
-	lastClick mouseClick
-	hidden    bool
-	filtering bool
-	creating  bool
-	showHelp  bool
-	query     string
-	newName   string
-	message   string
-	selected  string
-	width     int
-	height    int
-	styles    viewStyles
-	parent    []entry
-	children  []entry
-	parentErr string
-	childErr  string
-	preview   string
+	path        string
+	origin      string
+	treeRoot    string
+	rootTree    bool
+	entries     []entry
+	visible     []entry
+	cursor      int
+	scroll      int
+	mode        viewMode
+	viewFile    string
+	branches    map[string]treeBranch
+	outline     []outlineRow
+	lastClick   mouseClick
+	hidden      bool
+	filtering   bool
+	creating    bool
+	showHelp    bool
+	query       string
+	newName     string
+	message     string
+	selected    string
+	width       int
+	height      int
+	styles      viewStyles
+	parent      []entry
+	children    []entry
+	parentErr   string
+	childErr    string
+	preview     string
+	filePreview *filePreview
+	action      externalAction
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
@@ -120,6 +123,10 @@ func (m *browser) refilter() {
 func (m *browser) handle(key keyEvent) bool {
 	if key.name == "ctrl+c" || key.name == "ctrl+d" {
 		return true
+	}
+	if m.filePreview != nil {
+		m.handleFilePreview(key)
+		return false
 	}
 	m.scroll = m.pageStart()
 	defer func() {
@@ -249,6 +256,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.showHelp = !m.showHelp
 	case "v":
 		m.cycleView()
+	case " ":
+		m.previewFile(runtime.GOOS)
 	case "\\":
 		if m.mode == outlineView {
 			m.showRootTree()

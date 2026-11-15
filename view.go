@@ -65,10 +65,10 @@ type keyHint struct{ key, action string }
 
 var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "focus parent, then open"},
-	{"Enter", "open; . changes directory"}, {changeShortcut(runtime.GOOS), "change directory"},
+	{"Enter", "open; . changes dir"}, {changeShortcut(runtime.GOOS), "change dir"},
 	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"Tab / Shift+Tab", "switch column"},
-	{"n", "new directory"},
+	{"n", "new dir"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
 	{"Esc / q / Ctrl+C / Ctrl+D", "cancel"},
@@ -145,7 +145,7 @@ func (m browser) helpLines(width int) []viewLine {
 		lines = append(lines, m.hints(row))
 	}
 	if !m.compact {
-		lines = append(lines, viewLine{{"folder/  ", m.styles.directory}, {"file  ", m.styles.file}, {"directory-link@/", m.styles.link}})
+		lines = append(lines, viewLine{{"folder/  ", m.styles.directory}, {"file  ", m.styles.file}, {"dir-link@/", m.styles.link}})
 	}
 	return append(lines, m.hints([]keyHint{{"? / Esc", "close help"}}))
 }
@@ -175,7 +175,7 @@ func (m browser) pathLine(path string, width int, active bool) viewLine {
 func (m browser) selectButton() []viewLine {
 	width, margin := m.viewWidth()
 	shortcut := changeShortcut(runtime.GOOS)
-	label := "Change Directory"
+	label := "Change Dir"
 	if m.filtering || m.creating || width < textWidth(label+shortcut)+6 || len(m.visible) == 0 {
 		return nil
 	}
@@ -196,7 +196,7 @@ func (m browser) selectButton() []viewLine {
 	if !item.isDir() {
 		shortcut = ""
 		border, action = m.styles.muted, m.styles.muted
-		path = viewLine{{"Choose a directory", m.styles.muted}}
+		path = viewLine{{"Choose a dir", m.styles.muted}}
 	}
 	title := viewLine{
 		{label, action},
@@ -363,7 +363,7 @@ func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 	row := viewLine{{"  " + label, style}}
 	if item.isDotDir() {
 		name := item.name
-		description := "  current directory"
+		description := "  (current dir)"
 		if item.name == ".." {
 			name = "←"
 			description = " Back to parent"
@@ -455,9 +455,9 @@ func (m browser) view() string {
 				files++
 			}
 		}
-		count := strconv.Itoa(directories) + " directories"
+		count := strconv.Itoa(directories) + " dirs"
 		if directories == 1 {
-			count = "1 directory"
+			count = "1 dir"
 		}
 		if !m.compact {
 			if files == 1 {

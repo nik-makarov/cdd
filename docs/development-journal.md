@@ -532,3 +532,16 @@ entries, keep private data out, and distinguish local work from publication.
   gopls reported no diagnostics. No dependencies changed or hosted CI/publication
   ran. Paths: `view.go`, `view_test.go`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/development-journal.md`.
+- `2026-11-15T20:42:35Z` — Save the preceding UI revision in commit `d232119`
+  after `make check build` passed, then shorten application-owned interface text
+  from directory/directories to dir/dirs. Label the current row `(current dir)`
+  and the confirmation button Change Dir. Update controls, counts, CLI help,
+  diagnostic operation text, rendered-label assertions, error expectations, and
+  documentation references. Preserve paths, internal identifiers, and underlying
+  operating-system errors. Application/tool tests and the host build passed after
+  the wording changes; the build retained the nonfatal module-cache write warning.
+  gopls reported no diagnostics, and the rebuilt help output was inspected.
+  No dependencies changed or hosted CI/publication ran. Paths: `view.go`,
+  `browser.go`, `cli.go`, `entry.go`, `view_test.go`, `mouse_test.go`,
+  `keyboard_test.go`, `errors_test.go`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.

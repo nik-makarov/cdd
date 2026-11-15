@@ -46,7 +46,7 @@ func (e entry) label() string {
 func readEntries(path string) ([]entry, error) {
 	items, err := os.ReadDir(path)
 	if err != nil {
-		return nil, wrapError("read directory "+strconv.Quote(path), err)
+		return nil, wrapError("read dir "+strconv.Quote(path), err)
 	}
 	entries := make([]entry, 0, len(items))
 	for _, item := range items {

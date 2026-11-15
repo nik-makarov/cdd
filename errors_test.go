@@ -32,7 +32,7 @@ func TestDirectoryErrorPreservesPathAndCause(t *testing.T) {
 		t.Fatalf("directory error lost its cause: %v", err)
 	}
 	cause, ok := errors.AsType[*os.PathError](err)
-	if !ok || cause.Path != path || err.Error() != "read directory "+strconv.Quote(path)+": "+cause.Error() {
+	if !ok || cause.Path != path || err.Error() != "read dir "+strconv.Quote(path)+": "+cause.Error() {
 		t.Fatalf("directory error lost its quoted path or operation: %v", err)
 	}
 }

@@ -182,7 +182,7 @@ func TestMouseOpensCurrentAndSecondColumn(t *testing.T) {
 			}
 			var click keyEvent
 			if target == "." {
-				click = mouseOn(t, m, ".  current directory", "mouse-left", time.Unix(100, 0))
+				click = mouseOn(t, m, ".  (current dir)", "mouse-left", time.Unix(100, 0))
 			} else {
 				click = mouseOn(t, m, target+"/", "mouse-left", time.Unix(100, 0))
 			}

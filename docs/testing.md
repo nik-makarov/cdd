@@ -113,7 +113,7 @@ Use a disposable directory tree and a real interactive terminal:
 8. Click a directory to highlight it, double-click to browse it, and double-click
    `..` to return to its parent. Enter must browse other directories without
    exiting; on `.` it must confirm the current directory and exit. Confirm with
-   each row of the Change Directory button, Cmd+Enter on macOS, or Ctrl+Enter on
+   each row of the Change Dir button, Cmd+Enter on macOS, or Ctrl+Enter on
    Linux in a compatible terminal. Check that the shown path follows the
    highlighted directory and that terminal keyboard mode is restored on exit.
    Repeat in tree view and both compact columns, including after scrolling and

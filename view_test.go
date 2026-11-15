@@ -299,7 +299,7 @@ func TestTwoColumnListing(t *testing.T) {
 		t.Fatal("long listing should use both columns")
 	}
 	first := strings.Split(plainFrame(m.view()), "\n")[3]
-	if !strings.Contains(first, "current directory") || !strings.Contains(first, fmt.Sprintf("dir-%02d/", rows)) || !strings.Contains(first, " | ") {
+	if !strings.Contains(first, "(current dir)") || !strings.Contains(first, fmt.Sprintf("dir-%02d/", rows)) || !strings.Contains(first, " | ") {
 		t.Fatalf("first page is not column-major: %q", first)
 	}
 	m.cursor = rows
@@ -358,7 +358,7 @@ func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
 func TestViewStatusAndHelp(t *testing.T) {
 	m := browser{path: "/projects/cdd", width: 100, height: 24, cursor: 1, visible: []entry{{name: ".."}, {name: "."}, {name: "docs"}}}
 	plain := m.view()
-	if !strings.Contains(plain, "1 directory") || !strings.Contains(plain, "\u2190 Back to parent") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
+	if !strings.Contains(plain, "1 dir") || !strings.Contains(plain, "\u2190 Back to parent") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
 		t.Fatalf("default view is not compact: %q", plain)
 	}
 	if !strings.Contains(plain, "Enter change dir") {
@@ -378,7 +378,7 @@ func TestViewStatusAndHelp(t *testing.T) {
 	}
 	m.query = "missing"
 	m.visible = m.visible[:2]
-	if !strings.Contains(m.view(), "0 matches") || !strings.Contains(m.view(), "current directory") {
+	if !strings.Contains(m.view(), "0 matches") || !strings.Contains(m.view(), "(current dir)") {
 		t.Fatal("empty filter must retain current-directory selection")
 	}
 }
@@ -389,7 +389,7 @@ func TestSelectButtonAppearance(t *testing.T) {
 		m.styles = terminalStyles(true, "xterm", noColor)
 		lines := m.selectButton()
 		button := lines[1].render(80)
-		if len(lines) != 4 || !strings.Contains(button, "Change Directory") || strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.accent) {
+		if len(lines) != 4 || !strings.Contains(button, "Change Dir") || strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.accent) {
 			t.Fatal("selection button must show its action and shortcut with visible emphasis")
 		}
 		if !strings.Contains(plainFrame(button), " Enter ") || !strings.Contains(lines[2].render(80), m.styles.accent+filepath.Base(m.path)) {
@@ -451,7 +451,7 @@ func TestSelectButtonDestination(t *testing.T) {
 		t.Fatal("clipped destination must retain its final directory name")
 	}
 	view := strings.Split(plainFrame(m.view()), "\n")
-	if !strings.Contains(view[m.height-5], "Change Directory") || !strings.Contains(view[m.height-5], changeShortcut(runtime.GOOS)) || !strings.Contains(view[m.height-4], "destination") || !strings.Contains(view[m.height-2], "Enter open") {
+	if !strings.Contains(view[m.height-5], "Change Dir") || !strings.Contains(view[m.height-5], changeShortcut(runtime.GOOS)) || !strings.Contains(view[m.height-4], "destination") || !strings.Contains(view[m.height-2], "Enter open") {
 		t.Fatal("the button must appear above the keyboard shortcuts")
 	}
 }

@@ -72,7 +72,7 @@ In terminals that support mouse reporting:
 | --- | --- |
 | Left click | Highlight the entry under the pointer |
 | Double left click | Open the directory for browsing; `..` opens the parent |
-| Click `Change Directory` | Choose the highlighted directory and exit |
+| Click `Change Dir` | Choose the highlighted directory and exit |
 | Wheel up / down | Move selection one entry up / down |
 
 Mouse actions work in the middle pane of tree view and both columns of compact
@@ -108,7 +108,7 @@ confirming `.` or opening another directory for browsing.
 
 The first row, `← Back to parent`, is emphasized as a navigation action for `..`.
 Its arrow sits in the left gutter, with the action text aligned to directory names.
-The next row, `.`, selects the
+The next row, `.  (current dir)`, selects the
 directory currently being viewed and is highlighted initially. Enter on `.`
 confirms that directory and exits, applying the shell directory change. On other
 directory rows, Enter opens them for further browsing, like Right or double-click.
@@ -148,7 +148,7 @@ remain visible while the name stays editable, so you can correct it and retry.
 After creation, the list refreshes, the filter clears, and the new directory is
 highlighted. A name beginning with `.` enables hidden entries so the new directory
 is visible. Enter or Right opens it for browsing; use the confirmation shortcut
-or `Change Directory` to select it and exit.
+or `Change Dir` to select it and exit.
 Cancelling the picker after creation leaves the new directory on disk.
 
 ## Appearance

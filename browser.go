@@ -168,7 +168,7 @@ func (m *browser) handle(key keyEvent) bool {
 		m.openSelected()
 	case "confirm":
 		if !m.visible[m.cursor].isDir() {
-			m.message = "Only directories can be chosen as a destination"
+			m.message = "Only dirs can be chosen as a destination"
 			break
 		}
 		path := m.visible[m.cursor].path
@@ -178,7 +178,7 @@ func (m *browser) handle(key keyEvent) bool {
 			break
 		}
 		if !info.IsDir() {
-			m.message = "Directory no longer exists; press Ctrl+R to refresh"
+			m.message = "Dir no longer exists; press Ctrl+R to refresh"
 			break
 		}
 		m.selected = path
@@ -224,11 +224,11 @@ func (m *browser) handle(key keyEvent) bool {
 func (m *browser) createDirectory() {
 	name := m.newName
 	if name == "" || name == "." || name == ".." || strings.ContainsAny(name, "/\x00") {
-		m.message = "Enter a single directory name, not a path, . or .."
+		m.message = "Enter a single dir name, not a path, . or .."
 		return
 	}
 	if err := os.Mkdir(filepath.Join(m.path, name), 0o755); err != nil {
-		m.message = wrapError("create directory", err).Error()
+		m.message = wrapError("create dir", err).Error()
 		return
 	}
 	m.creating, m.newName = false, ""
@@ -236,7 +236,7 @@ func (m *browser) createDirectory() {
 		m.hidden = true
 	}
 	if err := m.open(m.path, name); err != nil {
-		m.message = "Directory created, but refreshing failed: " + err.Error()
+		m.message = "Dir created, but refreshing failed: " + err.Error()
 	}
 }
 
@@ -289,7 +289,7 @@ func (m *browser) navigate(path, focus string) {
 func (m *browser) openSelected() {
 	item := m.visible[m.cursor]
 	if !item.isDir() {
-		m.message = "Files cannot be opened; choose a directory"
+		m.message = "Files cannot be opened; choose a dir"
 		return
 	}
 	focus := ""

@@ -13,13 +13,13 @@ import (
 
 var version = "dev"
 
-const help = `cdd — interactively choose a directory
+const help = `cdd — interactively choose a dir
 
-Usage: cdd [--hidden] [START_DIRECTORY]
+Usage: cdd [--hidden] [START_DIR]
        cdd --init zsh|bash
 
 Options:
-  --hidden       Show hidden directories initially
+  --hidden       Show hidden dirs initially
   --init SHELL   Print shell integration (zsh or bash)
   --version      Print version
   -h, --help     Show help
@@ -28,30 +28,30 @@ Keys:
   ↑/↓, k/j       Move selection
   Tab, Shift+Tab Switch columns in a long list
   v              Switch tree/list view (tree is the default)
-  Enter          Open directory; on . change directory and exit
-  →, l           Open highlighted directory
+  Enter          Open dir; on . change dir and exit
+  →, l           Open highlighted dir
   ←, h, Backspace  Focus parent first; press again to go up
-  Cmd+Enter      Change directory and exit (macOS)
-  Ctrl+Enter     Change directory and exit (Linux)
-  n              Create a directory in the current location
-  /              Filter directory names (Enter/Esc finishes filtering)
-  .              Toggle hidden directories
-  ~              Go to home directory
+  Cmd+Enter      Change dir and exit (macOS)
+  Ctrl+Enter     Change dir and exit (Linux)
+  n              Create a dir in the current location
+  /              Filter dir names (Enter/Esc finishes filtering)
+  .              Toggle hidden dirs
+  ~              Go to home dir
   Ctrl+R         Refresh
   ?              Toggle controls help (Esc closes help)
-  Esc, q, Ctrl+C Cancel without changing directory
+  Esc, q, Ctrl+C Cancel without changing dir
 
 Mouse (in compatible terminals):
   Left click     Highlight an entry
-  Double click   Open a directory for browsing (.. opens the parent)
+  Double click   Open a dir for browsing (.. opens the parent)
   Wheel          Move selection up/down
 
 The first row (← Back to parent) goes up; it is absent at the filesystem root.
-The next row (.) selects the current directory and is highlighted initially.
-The Change Directory button shows the shortcut and destination; click to confirm.
+The next row, . (current dir), selects the current dir and is highlighted initially.
+The Change Dir button shows the shortcut and destination; click to confirm.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.
 Tree view also lists files; they cannot be opened or selected as a destination.
-Shell integration is required to choose a directory and change the current shell.
+Shell integration is required to choose a dir and change the current shell.
 The binary returns only the selected absolute path, without a trailing newline.
 Cancellation produces no output and exits 130.
 Add eval "$(/path/to/cdd --init zsh)" to ~/.zshrc, then reopen your terminal.
@@ -126,7 +126,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if len(opts.args) > 1 {
-		io.WriteString(stderr, "cdd: expected at most one starting directory\n")
+		io.WriteString(stderr, "cdd: expected at most one starting dir\n")
 		return 2
 	}
 	if opts.initShell != "" {
@@ -158,7 +158,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	abs, err := filepath.Abs(start)
 	if err != nil {
-		io.WriteString(stderr, "cdd: resolve starting directory: "+err.Error()+"\n")
+		io.WriteString(stderr, "cdd: resolve starting dir: "+err.Error()+"\n")
 		return 1
 	}
 	m, err := newBrowser(abs, opts.hidden)

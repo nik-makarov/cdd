@@ -48,9 +48,10 @@ broken symlinks, and links to regular files.
 | Key | Action |
 | --- | --- |
 | Up / Down, `k` / `j` | Move selection |
+| Enter | Confirm `.` and exit; open other highlighted directories |
 | Right, `l` | Open the highlighted directory |
 | Left, `h`, Backspace | Focus `.` first; from `.` go to the parent directory |
-| Enter | Choose the highlighted directory and exit |
+| Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
 | `v` | Switch between tree view (default) and compact list view |
@@ -62,20 +63,62 @@ broken symlinks, and links to regular files.
 | `.` | Toggle hidden directories |
 | `~` | Go to the home directory |
 | Ctrl+R | Refresh the listing |
-| `?` | Show or hide keyboard help; Esc also closes help |
+| `?` | Show or hide controls help; Esc also closes help |
 | Esc, `q`, Ctrl+C / Ctrl+D | Cancel |
 
-The first row, `.`, selects the directory currently being viewed. Enter selects
-a directory; Right opens it for further browsing. Left, `h`, or Backspace first
+In terminals that support mouse reporting:
+
+| Mouse action | Result |
+| --- | --- |
+| Left click | Highlight the entry under the pointer |
+| Double left click | Open the directory for browsing; `..` opens the parent |
+| Click `Change Directory` | Choose the highlighted directory and exit |
+| Wheel up / down | Move selection one entry up / down |
+
+Mouse actions work in the middle pane of tree view and both columns of compact
+view. Side previews, headers, dividers, and empty rows do not select anything.
+Double-click the same cell within 400 ms to open a directory without completing
+selection. Right-click has no action. Files cannot be opened or chosen. While
+filtering, double-click opens the directory and clears the filter. While entering
+a new directory name, mouse actions are ignored. Mouse reporting is disabled
+when the picker exits, including cancellation.
+
+The centered button above the keyboard shortcuts has three clickable rows:
+`Change Directory`, the platform shortcut, and the highlighted directory's
+destination path. Long paths are shortened from the left to preserve the directory
+name. It retains
+emphasis with `NO_COLOR`. For files it appears dim and asks you to choose a
+directory. The button is hidden while editing a filter or directory name, when
+Enter finishes input instead; modified Enter has no action in these modes.
+Small windows omit the entire button if it cannot fit beside the selected row
+and any input/error message.
+
+Cmd+Enter and Ctrl+Enter require a terminal that supports the
+[kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
+cdd enables disambiguated keys for the picker and restores the previous mode on
+exit. A terminal or desktop may intercept the shortcut; in that case free the
+binding in its settings or click the button. Legacy terminals may send the same
+bytes for plain and modified Enter; cdd treats those bytes as plain Enter,
+confirming `.` or opening another directory for browsing.
+
+The first row, `← ..`, points to the parent. The next row, `.`, selects the
+directory currently being viewed and is highlighted initially. Enter on `.`
+confirms that directory and exits, applying the shell directory change. On other
+directory rows, Enter opens them for further browsing, like Right or double-click.
+Opening `..` moves up and focuses the directory you came from, while the
+confirmation shortcut or button selects the parent as the destination.
+Both rows remain available regardless of the name filter or hidden-entry setting;
+the filesystem root omits `..`. Left, `h`, or Backspace first
 focuses `.` without leaving the directory or clearing a completed filter.
 Pressing it from `.` opens the parent, clears the filter, and focuses the
 directory you came from. While editing a filter, Backspace still deletes text.
 
-Press `/` again to clear the current filter. The `.` row remains available even
-when no child names match. While editing a filter, the first Enter or Esc finishes
-editing; a subsequent Enter selects, and a subsequent Esc cancels.
+Press `/` again to clear the current filter. The `.` and `..` rows remain available
+even when no child names match. While editing a filter, the first Enter or Esc finishes
+editing; a subsequent Enter confirms `.` or opens another highlighted directory,
+and a subsequent Esc cancels.
 While editing a filter, `?` is a literal part of the query. Opening a filter
-closes keyboard help. Navigation stays available while help is expanded; the
+closes controls help. Navigation stays available while help is expanded; the
 first Esc closes help without cancelling selection.
 
 Directory read errors appear inside the interface without changing the current
@@ -96,7 +139,8 @@ remain visible while the name stays editable, so you can correct it and retry.
 
 After creation, the list refreshes, the filter clears, and the new directory is
 highlighted. A name beginning with `.` enables hidden entries so the new directory
-is visible. Enter again selects it and exits; Right opens it for browsing.
+is visible. Enter or Right opens it for browsing; use the confirmation shortcut
+or `Change Directory` to select it and exit.
 Cancelling the picker after creation leaves the new directory on disk.
 
 ## Appearance
@@ -106,8 +150,8 @@ Cancelling the picker after creation leaves the new directory on disk.
 The middle pane is always active and lists the current directory's folders and
 files. The left pane shows its parent's entries as context. The right pane
 previews entries inside the highlighted directory, including directory symlinks.
-Highlighting the `.` row leaves Children blank, including after entering a
-directory.
+Highlighting the `.` or `..` row leaves Children blank, including after entering
+a directory.
 Highlighting a file shows no directory preview. File contents are never read or
 opened.
 
@@ -120,7 +164,7 @@ within their own column, preserving the directory name when space permits.
 Folders are cyan, files use the theme's dim foreground, and directory symlinks
 are magenta. Suffixes also distinguish entries without color: `/` for folders,
 `@/` for directory links, `@` for file links, and `@!` for broken or inaccessible
-links. A file may be highlighted, but Enter and Right cannot choose or open it.
+links. A file may be highlighted, but cannot be opened or chosen.
 Preview read errors stay in their side pane without preventing navigation in
 the middle.
 
@@ -150,7 +194,7 @@ The interface uses the terminal's own
 background, foreground, and palette instead of fixed RGB colors or custom fonts.
 
 The footer keeps essential controls visible, with more shortcuts available via
-`?`. Counts exclude the selectable `.` row. Filtered lists show a match count;
+`?`. Counts exclude the `.` and `..` rows. Filtered lists show a match count;
 long lists indicate when more rows are above or below the visible page.
 
 In compact view, lists that exceed the available height use two columns when the

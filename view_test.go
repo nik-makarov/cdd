@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -164,6 +166,8 @@ func TestPanePathsFollowDisplayedDirectories(t *testing.T) {
 		{"directory link", "/work/current", entry{path: "/work/current/link", kind: folderLink}, false, 120, 18,
 			[]string{"/work", "/work/current", "/work/current/link"}},
 		{"current row", "/work/current", entry{path: "/work/current"}, false, 120, 18,
+			[]string{"/work", "/work/current", ""}},
+		{"parent row", "/work/current", entry{name: "..", path: "/work"}, false, 120, 18,
 			[]string{"/work", "/work/current", ""}},
 		{"file", "/work/current", entry{path: "/work/current/file", kind: file}, false, 120, 18,
 			[]string{"/work", "/work/current", ""}},
@@ -351,11 +355,19 @@ func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
 }
 
 func TestViewStatusAndHelp(t *testing.T) {
-	m := browser{path: "/projects/cdd", width: 100, height: 24, visible: []entry{{name: "."}, {name: "docs"}}}
+	m := browser{path: "/projects/cdd", width: 100, height: 24, cursor: 1, visible: []entry{{name: ".."}, {name: "."}, {name: "docs"}}}
 	plain := m.view()
-	if !strings.Contains(plain, "1 directory") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
+	if !strings.Contains(plain, "1 directory") || !strings.Contains(plain, "\u2190 ..  parent directory") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
 		t.Fatalf("default view is not compact: %q", plain)
 	}
+	if !strings.Contains(plain, "Enter change dir") {
+		t.Fatal("Enter hint must describe confirming the current directory")
+	}
+	m.cursor = 2
+	if !strings.Contains(m.view(), "Enter open") {
+		t.Fatal("Enter hint must describe browsing other directories")
+	}
+	m.cursor = 1
 	m.showHelp = true
 	view := m.view()
 	for _, key := range []string{"Backspace", "Ctrl+R", "Ctrl+D", "Home / End", "close help"} {
@@ -364,9 +376,67 @@ func TestViewStatusAndHelp(t *testing.T) {
 		}
 	}
 	m.query = "missing"
-	m.visible = m.visible[:1]
+	m.visible = m.visible[:2]
 	if !strings.Contains(m.view(), "0 matches") || !strings.Contains(m.view(), "current directory") {
 		t.Fatal("empty filter must retain current-directory selection")
+	}
+}
+
+func TestSelectButtonAppearance(t *testing.T) {
+	for _, noColor := range []string{"", "1"} {
+		m := loadBrowser(t, fixture(t))
+		m.styles = terminalStyles(true, "xterm", noColor)
+		lines := m.selectButton()
+		button := lines[0].render(80)
+		if len(lines) != 3 || !strings.Contains(button, "Change Directory") || !strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.accent) {
+			t.Fatal("selection button must show its action and shortcut with visible emphasis")
+		}
+		if strings.TrimSpace(lines[1][1].text) != changeShortcut(runtime.GOOS) || !strings.HasSuffix(strings.TrimSpace(lines[2][1].text), filepath.Base(m.path)) {
+			t.Fatal("button must show the platform shortcut and destination")
+		}
+		width, _ := m.viewWidth()
+		left := textWidth(lines[0][0].text)
+		if right := width - left - textWidth(lines[0][1].text); right < left || right-left > 1 {
+			t.Fatal("button must be horizontally centered")
+		}
+		m.compact = false
+		m.refilter()
+		m = focus(t, m, "regular-file")
+		button = m.selectButton()[0].render(80)
+		if strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.muted) {
+			t.Fatal("selection button must look inactive for files")
+		}
+	}
+}
+
+func TestSelectButtonDestination(t *testing.T) {
+	m := browser{path: "/work/current", width: 100, height: 24}
+	m.visible = []entry{
+		{name: "..", path: "/work"},
+		{name: ".", path: m.path},
+		{name: "child", path: "/work/current/child"},
+		{name: "unsafe", path: "/work/current/\x1b[31munsafe\nname"},
+	}
+	for i, want := range []string{"/work", "/work/current", "/work/current/child", "/work/current/\ufffd[31munsafe\ufffdname"} {
+		m.cursor = i
+		button := m.selectButton()
+		if got := strings.TrimSpace(button[2][1].text); got != want {
+			t.Fatalf("destination = %q, want %q", got, want)
+		}
+		if strings.ContainsAny(button[2][1].text, "\x1b\n\r\t") {
+			t.Fatal("destination contains terminal controls")
+		}
+	}
+	m.visible = []entry{{name: "destination", path: "/" + strings.Repeat("long-parent/", 20) + "destination"}}
+	m.cursor = 0
+	m.width = 40
+	path := strings.TrimSpace(m.selectButton()[2][1].text)
+	if !strings.HasPrefix(path, "...") || !strings.HasSuffix(path, "/destination") {
+		t.Fatal("clipped destination must retain its final directory name")
+	}
+	view := strings.Split(plainFrame(m.view()), "\n")
+	if !strings.Contains(view[m.height-5], "Change Directory") || !strings.Contains(view[m.height-4], changeShortcut(runtime.GOOS)) || !strings.Contains(view[m.height-3], "destination") || !strings.Contains(view[m.height-2], "Enter open") {
+		t.Fatal("all three button rows must appear above the keyboard shortcuts")
 	}
 }
 

@@ -14,11 +14,13 @@ the highlighted directory. It does not execute external commands to list entries
 | `main.go` | Process entry point and exit status |
 | `cli.go` | Options, terminal selection, stdout/stderr contract |
 | `errors.go` | Operation context with an unwrap-compatible error chain |
-| `browser.go` | Directory listing, creation, filtering, navigation, and keyboard help state |
+| `browser.go` | Directory listing, creation, filtering, navigation, and help state |
 | `entry.go` | File/directory/link classification and directories-first sorting |
 | `view.go` | Layout, safe text clipping, theme colors, and contextual help |
 | `tree.go` | Parent/current/child panes with one active middle list |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
+| `keyboard.go` | Extended keyboard decoding and platform confirmation shortcuts |
+| `mouse.go` | Mouse report decoding, visible-row hit testing, and click handling |
 | `shell.go` | zsh/bash integration with literal path handling |
 
 The application's small argument parser preserves the previous `flag` syntax:
@@ -39,8 +41,38 @@ terminal resize events, and cancellation. Input decoding accepts fragmented UTF-
 and common CSI/SS3 key sequences. A short timeout distinguishes a standalone Esc
 from the start of an escape sequence. Unknown sequences are discarded.
 
+The alternate screen pushes the kitty keyboard protocol's disambiguation flag
+and pops it during cleanup. The decoder accepts CSI-u control keys, including
+Cmd+Enter on macOS and Ctrl+Enter on Linux, while retaining legacy UTF-8/CSI/SS3
+input. It ignores release events and confirmation repeats. Lock modifiers do not
+affect shortcuts. Plain Enter confirms the current directory on the `.` row
+and opens other directories for browsing. The confirmation shortcut and button
+select the highlighted directory. Legacy ambiguous Enter input follows the same
+rules as plain Enter. While editing a filter or directory name, Enter only
+finishes input.
+
+Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking),
+with legacy mouse packets consumed as a whole for terminals without SGR support.
+Hit testing shares the renderer's pane widths, row counts, and scroll position.
+The viewport stays stable when highlighting another visible row. Double-clicks
+require the same path and cell within 400 ms; navigation, keyboard input, and
+terminal resizing reset the click state. Double-clicks open directories using
+the keyboard navigation handler. Clicking any of the footer button's three rows
+invokes the same confirmation handler as modified Enter, including its directory
+checks. Button hit testing follows the centered rendered block after clipping,
+help expansion, and input-mode changes. The block shows its name, the platform
+shortcut, and the sanitized destination, and appears above the keyboard shortcuts
+in the footer.
+
+The parent row `← ..` precedes the current-directory row `.` and filesystem
+entries. The current row is highlighted initially; Home focuses the first row.
+Both navigation rows bypass name and hidden-entry filtering and do not contribute
+to entry counts or child previews. The root omits `..`; elsewhere it uses the logical parent path
+and restores focus to the directory being left when opened.
+
 The renderer controls the alternate screen and cursor visibility. Cleanup restores
-terminal settings on normal exit, cancellation, and handled termination signals.
+terminal settings and disables mouse reporting on normal exit, cancellation,
+and handled termination signals.
 An uncatchable process kill cannot run cleanup. Dynamic text is stripped of
 non-printable characters before display; selected paths retain their original
 bytes when passed back to the shell.

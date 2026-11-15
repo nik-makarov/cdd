@@ -28,18 +28,28 @@ Keys:
   ↑/↓, k/j       Move selection
   Tab, Shift+Tab Switch columns in a long list
   v              Switch tree/list view (tree is the default)
+  Enter          Open directory; on . change directory and exit
   →, l           Open highlighted directory
   ←, h, Backspace  Focus . first; from . go to parent
-  Enter          Select highlighted directory and exit
+  Cmd+Enter      Change directory and exit (macOS)
+  Ctrl+Enter     Change directory and exit (Linux)
   n              Create a directory in the current location
   /              Filter directory names (Enter/Esc finishes filtering)
   .              Toggle hidden directories
   ~              Go to home directory
   Ctrl+R         Refresh
-  ?              Toggle keyboard help (Esc closes help)
+  ?              Toggle controls help (Esc closes help)
   Esc, q, Ctrl+C Cancel without changing directory
 
-The first row (.) selects the current directory.
+Mouse (in compatible terminals):
+  Left click     Highlight an entry
+  Double click   Open a directory for browsing (.. opens the parent)
+  Wheel          Move selection up/down
+
+The first row (← ..) opens the parent; it is absent at the filesystem root.
+The next row (.) selects the current directory and is highlighted initially.
+The Change Directory button shows the shortcut and destination; click to confirm.
+Modified Enter needs a terminal that supports the kitty keyboard protocol.
 Tree view also lists files; they cannot be opened or selected as a destination.
 Shell integration is required to choose a directory and change the current shell.
 The binary returns only the selected absolute path, without a trailing newline.

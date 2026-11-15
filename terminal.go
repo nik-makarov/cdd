@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -21,6 +22,8 @@ var errCancelled = errors.New("selection cancelled")
 type keyEvent struct {
 	name string
 	text string
+	x, y int
+	when time.Time
 }
 
 func runTerminal(m *browser, input, output *os.File) (err error) {
@@ -36,17 +39,21 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		return wrapError("enable raw terminal mode", err)
 	}
 	defer func() {
-		_, screenErr := io.WriteString(output, "\x1b[0m\x1b[?25h\x1b[?1049l")
+		_, screenErr := io.WriteString(output, "\x1b[<u\x1b[?1000l\x1b[?1006l\x1b[0m\x1b[?25h\x1b[?1049l")
 		restoreErr := term.Restore(fd, state)
 		err = errors.Join(err, screenErr, restoreErr)
 	}()
-	if _, err := io.WriteString(output, "\x1b[?1049h\x1b[?25l"); err != nil {
+	if _, err := io.WriteString(output, "\x1b[?1049h\x1b[?25l\x1b[?1006h\x1b[?1000h\x1b[>1u"); err != nil {
 		return wrapError("open terminal screen", err)
 	}
 	redraw := func() error {
 		if width, height, err := term.GetSize(int(output.Fd())); err == nil && width > 0 && height > 0 {
+			if width != m.width || height != m.height {
+				m.lastClick = mouseClick{}
+			}
 			m.width, m.height = width, height
 		}
+		m.scroll = m.pageStart()
 		_, err := io.WriteString(output, "\x1b[H\x1b[2J"+strings.ReplaceAll(m.view(), "\n", "\r\n"))
 		return err
 	}
@@ -100,6 +107,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			if key.name == "" && key.text == "" {
 				continue
 			}
+			key.when = time.Now()
 			if m.handle(key) {
 				return nil
 			}
@@ -113,8 +121,8 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 	}
 }
 
-// decodeKey accepts fragmented UTF-8 and the usual CSI/SS3 terminal keys.
-// Unknown escape sequences are consumed, never inserted into the filter.
+// decodeKey accepts fragmented UTF-8, CSI/SS3 keys, and terminal mouse reports.
+// Unknown escape sequences are consumed, never inserted into text input.
 func decodeKey(data []byte, expired bool) (keyEvent, int) {
 	if len(data) == 0 {
 		return keyEvent{}, 0
@@ -134,9 +142,28 @@ func decodeKey(data []byte, expired bool) (keyEvent, int) {
 			_, n := utf8.DecodeRune(data[1:])
 			return keyEvent{}, 1 + n
 		}
+		// Consume the whole legacy packet if a terminal does not support SGR.
+		if len(data) >= 3 && data[1] == '[' && data[2] == 'M' {
+			if len(data) < 6 {
+				if expired {
+					return keyEvent{}, len(data)
+				}
+				return keyEvent{}, 0
+			}
+			if data[3] < 32 || data[4] < 33 || data[5] < 33 {
+				return keyEvent{}, 6
+			}
+			return mouseKey(int(data[3])-32, int(data[4])-33, int(data[5])-33, false), 6
+		}
 		for i := 2; i < len(data); i++ {
 			if data[i] >= 0x40 && data[i] <= 0x7e {
 				sequence := string(data[2 : i+1])
+				if data[1] == '[' && strings.HasPrefix(sequence, "<") {
+					return decodeMouse(sequence), i + 1
+				}
+				if data[1] == '[' {
+					return decodeCSIKey(sequence, runtime.GOOS), i + 1
+				}
 				name := ""
 				switch sequence {
 				case "A":

@@ -74,7 +74,7 @@ func (m browser) contextLine(items []entry, index, width int, message string) vi
 
 func (m browser) treeLines(rows, width, margin int) []string {
 	widths := treeWidths(width)
-	start := max(0, m.cursor-rows+1)
+	start := m.pageStart()
 	parent, children := m.contextEntries(m.parent), m.contextEntries(m.children)
 	parentStart := 0
 	for i, item := range parent {
@@ -88,7 +88,7 @@ func (m browser) treeLines(rows, width, margin int) []string {
 		parts := []viewLine{m.entryLine(start+row, widths[0])}
 		if len(widths) == 3 {
 			var child viewLine
-			if m.visible[m.cursor].path != m.path {
+			if !m.visible[m.cursor].isDotDir() && m.visible[m.cursor].path != m.path {
 				child = m.contextLine(children, row, widths[2], m.childErr)
 			}
 			parts = []viewLine{

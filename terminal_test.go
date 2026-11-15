@@ -19,6 +19,9 @@ func TestDecodeKeys(t *testing.T) {
 		{"\t", "tab", ""}, {"\x1b[Z", "backtab", ""},
 		{"\u754c", "\u754c", "\u754c"}, {"/", "/", "/"},
 		{"\x1b[999~", "", ""}, {"\x00", "", ""},
+		{"\x1b[13u", "enter", ""}, {"\x1b[27u", "esc", ""},
+		{"\x1b[99;5u", "ctrl+c", ""}, {"\x1b[9;2u", "backtab", ""},
+		{"\x1b[13;9:3u", "", ""}, {"\x1b[1;65A", "up", ""},
 	} {
 		t.Run(tt.input, func(t *testing.T) {
 			data := []byte(tt.input)
@@ -69,6 +72,11 @@ func FuzzDecodeKey(f *testing.F) {
 	f.Add([]byte("\x1b[A"), false)
 	f.Add([]byte("\u044f"), true)
 	f.Add([]byte("\xff\x1b["), true)
+	f.Add([]byte("\x1b[<0;23;5M\x1b[<0;23;5m"), false)
+	f.Add([]byte("\x1b[M !!"), false)
+	f.Add([]byte("\x1b[<0;999999999999999999999;1M"), true)
+	f.Add([]byte("\x1b[13;9u\x1b[13;5u\x1b[13;9:3u"), false)
+	f.Add([]byte("\x1b[114;5u\x1b[1;65A\x1b[9;2u"), false)
 	f.Fuzz(func(t *testing.T, data []byte, expired bool) {
 		for len(data) > 0 {
 			_, consumed := decodeKey(data, expired)

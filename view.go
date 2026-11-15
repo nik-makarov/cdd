@@ -2,6 +2,7 @@ package main
 
 import (
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"unicode"
@@ -64,12 +65,14 @@ type keyHint struct{ key, action string }
 
 var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "current, then parent"},
-	{"Enter", "select"}, {"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
+	{"Enter", "open; . changes directory"}, {changeShortcut(runtime.GOOS), "change directory"},
+	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"Tab / Shift+Tab", "switch column"},
 	{"n", "new directory"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
 	{"Esc / q / Ctrl+C / Ctrl+D", "cancel"},
+	{"Click", "highlight"}, {"Double click", "open"}, {"Wheel", "move"},
 }
 
 func (m browser) hints(hints []keyHint) viewLine {
@@ -90,12 +93,12 @@ func (m browser) shortHelp(width int) viewLine {
 	if m.filtering {
 		return m.hints([]keyHint{{"Enter / Esc", "finish filter"}, {"↑↓", "move"}})
 	}
-	leftAction := "parent"
-	if m.cursor != 0 {
-		leftAction = "current"
+	leftAction, enterAction := "current", "open"
+	if len(m.visible) > 0 && m.visible[m.cursor].name == "." {
+		leftAction, enterAction = "parent", "change dir"
 	}
-	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", leftAction}, {"Enter", "select"}, {"n", "new dir"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
-	// Preserve selection, help and exit, then opening a directory when space allows.
+	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", leftAction}, {"Enter", enterAction}, {"n", "new dir"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
+	// Preserve Enter, help and exit when space is limited.
 	for _, key := range []string{"↑↓", "←", "→", "/", "v", "n"} {
 		if textWidth(hintText(hints)) <= width {
 			break
@@ -160,6 +163,30 @@ func (m browser) pathLine(path string, width int, active bool) viewLine {
 	return viewLine{{text, m.styles.accent}}
 }
 
+func (m browser) selectButton() []viewLine {
+	width, _ := m.viewWidth()
+	if m.filtering || m.creating || width < 20 || len(m.visible) == 0 {
+		return nil
+	}
+	buttonWidth := min(width, 64)
+	left := strings.Repeat(" ", (width-buttonWidth)/2)
+	style := m.styles.selected + m.styles.accent
+	item := m.visible[m.cursor]
+	destination := tail(display(item.path), buttonWidth-4)
+	if !item.isDir() {
+		style = m.styles.muted
+		destination = "Choose a directory"
+	}
+	var lines []viewLine
+	for _, text := range []string{"Change Directory", changeShortcut(runtime.GOOS), destination} {
+		text = truncate(text, buttonWidth-2)
+		padding := max(0, buttonWidth-textWidth(text))
+		text = strings.Repeat(" ", padding/2) + text + strings.Repeat(" ", padding-padding/2)
+		lines = append(lines, viewLine{{left, ""}, {text, style}})
+	}
+	return lines
+}
+
 func (m browser) frame() (header, footer []viewLine) {
 	width, _ := m.viewWidth()
 	pathLine := m.pathLine(m.path, width, true)
@@ -171,32 +198,48 @@ func (m browser) frame() (header, footer []viewLine) {
 	if m.showHelp {
 		footer = m.helpLines(width)
 	}
+	var status []viewLine
 	if m.creating {
 		name := tail(display(m.newName)+"_", max(1, width-5))
-		footer = append([]viewLine{{{"New: ", m.styles.strong}, {name, m.styles.accent}}}, footer...)
+		status = append(status, viewLine{{"New: ", m.styles.strong}, {name, m.styles.accent}})
 	} else if m.filtering || m.query != "" {
 		query := "/ " + display(m.query)
 		if m.filtering {
 			query += "_"
 		}
-		footer = append([]viewLine{{{query, m.styles.accent}}}, footer...)
+		status = append(status, viewLine{{query, m.styles.accent}})
 	}
 	if m.message != "" {
-		footer = append([]viewLine{{{"Error: " + display(m.message), m.styles.failure}}}, footer...)
+		status = append([]viewLine{{{"Error: " + display(m.message), m.styles.failure}}}, status...)
 	}
 	// Even a tiny terminal must retain one row for the highlighted directory.
 	maxFooter := max(0, m.height-len(header)-1)
 	if m.height >= 8 {
 		maxFooter = max(0, maxFooter-3)
 	}
-	if len(footer) > maxFooter {
-		if m.showHelp && maxFooter > 0 {
-			footer = append(footer[:maxFooter-1], footer[len(footer)-1])
+	status = status[:min(len(status), maxFooter)]
+	button := m.selectButton()
+	if len(button) > maxFooter-len(status) {
+		button = nil
+	}
+	helpRows := maxFooter - len(status) - len(button)
+	if len(footer) > helpRows {
+		if m.showHelp && helpRows > 0 {
+			footer = append(footer[:helpRows-1], footer[len(footer)-1])
 		} else {
-			footer = footer[:maxFooter]
+			footer = footer[:helpRows]
 		}
 	}
+	footer = append(append(status, button...), footer...)
 	return header, footer
+}
+
+func (m browser) footerTop(footer []viewLine) int {
+	bottom := max(1, m.height)
+	if m.height >= 8 {
+		bottom--
+	}
+	return bottom - len(footer)
 }
 
 func (m browser) pageRows() int {
@@ -218,6 +261,17 @@ func (m browser) columns() int {
 }
 
 func (m browser) pageSize() int { return m.pageRows() * m.columns() }
+
+func (m browser) pageStart() int {
+	rows := m.pageRows()
+	if m.columns() == 2 {
+		return m.cursor / (rows * 2) * (rows * 2)
+	}
+	// Retain the viewport when focus moves to another visible row, including
+	// a mouse click above the current selection in a scrolled list.
+	start := max(0, min(m.scroll, m.cursor))
+	return max(start, m.cursor-rows+1)
+}
 
 func (m browser) paneWidths(width, columns int) []int {
 	if !m.compact {
@@ -242,7 +296,7 @@ func (m browser) panePaths(widths []int, margin int) string {
 		}
 		if m.cursor >= 0 && m.cursor < len(m.visible) {
 			item := m.visible[m.cursor]
-			if item.isDir() && item.path != m.path {
+			if item.isDir() && !item.isDotDir() && item.path != m.path {
 				child = item.path
 			}
 		}
@@ -271,9 +325,15 @@ func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 		style = m.styles.link
 	}
 	row := viewLine{{"  " + label, style}}
-	if item.name == "." {
-		label = ".  current directory"
-		row = viewLine{{"  .", ""}, {"  current directory", m.styles.muted}}
+	if item.isDotDir() {
+		name := item.name
+		description := "  current directory"
+		if item.name == ".." {
+			name = "← " + name
+			description = "  parent directory"
+		}
+		label = name + description
+		row = viewLine{{"  " + name, ""}, {description, m.styles.muted}}
 	}
 	if selected {
 		text := truncate("> "+display(label), width)
@@ -289,7 +349,7 @@ func (m browser) view() string {
 	rows, columns := m.pageRows(), m.columns()
 	widths := m.paneWidths(width, columns)
 	capacity := rows * columns
-	start := max(0, m.cursor-rows+1)
+	start := m.pageStart()
 	mode := "tree"
 	if m.compact {
 		mode = "list"
@@ -298,7 +358,6 @@ func (m browser) view() string {
 		header[0] = viewLine{{"cdd  " + mode, m.styles.muted}, {"   v", m.styles.strong}, {" view", m.styles.muted}}
 	}
 	if columns == 2 {
-		start = m.cursor / capacity * capacity
 		if m.height >= 8 {
 			header[0] = append(header[0], span{"   Tab", m.styles.strong}, span{" switch column", m.styles.muted})
 		}
@@ -339,7 +398,10 @@ func (m browser) view() string {
 			hidden = "on"
 		}
 		directories, files := 0, 0
-		for _, item := range m.visible[1:] {
+		for _, item := range m.visible {
+			if item.isDotDir() {
+				continue
+			}
 			if item.isDir() {
 				directories++
 			} else {
@@ -358,8 +420,8 @@ func (m browser) view() string {
 			}
 		}
 		if m.query != "" {
-			count = strconv.Itoa(len(m.visible)-1) + " matches"
-			if len(m.visible) == 2 {
+			count = strconv.Itoa(directories+files) + " matches"
+			if directories+files == 1 {
 				count = "1 match"
 			}
 		}
@@ -370,6 +432,9 @@ func (m browser) view() string {
 			count += "  |  more below"
 		}
 		lines = append(lines, render(nil), render(viewLine{{count + "  |  hidden " + hidden, m.styles.muted}}))
+	}
+	for len(lines) < m.footerTop(footer) {
+		lines = append(lines, render(nil))
 	}
 	for _, line := range footer {
 		lines = append(lines, render(line))

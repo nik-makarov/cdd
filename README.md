@@ -3,7 +3,7 @@
 Browse directories in your terminal, choose one, and `cd` into it in your current
 shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 
-- Keyboard navigation, filtering, hidden directories, and directory symlinks.
+- Keyboard and mouse navigation, filtering, hidden directories, and directory symlinks.
 - Create a directory in the current location with `n`, then choose it.
 - Three-pane browsing with colored files and directory links; `v` switches to
   a compact directory-only list with automatic two-column layout.
@@ -37,10 +37,14 @@ On Intel macOS or Linux, replace `/opt/homebrew` with the output of
 
 Use an interactive ANSI-compatible terminal.
 
-Use Up/Down to move, Right to open a directory, and Enter to choose it. Left
+Use Up/Down to move and Enter or Right to open a directory. Left
 first focuses the `.` row; pressing Left from that row opens the parent.
-The `.` row chooses the directory currently being viewed. Esc cancels;
-`/` filters names; `n` creates a directory; `?` opens keyboard help.
+Enter on `.` confirms the directory currently being viewed and exits. Esc cancels;
+`/` filters names; `n` creates a directory; `?` opens controls help.
+In mouse-compatible terminals, click to highlight and double-click to open a
+directory, including `..` to go up. Confirm with Cmd+Enter on macOS, Ctrl+Enter on
+Linux, or the centered `Change Directory` button, which shows the destination.
+The shortcut needs a compatible terminal; the wheel moves selection.
 
 ```sh
 cdd ~/projects

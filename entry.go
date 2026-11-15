@@ -26,6 +26,8 @@ type entry struct {
 
 func (e entry) isDir() bool { return e.kind == folder || e.kind == folderLink }
 
+func (e entry) isDotDir() bool { return e.name == "." || e.name == ".." }
+
 func (e entry) label() string {
 	switch e.kind {
 	case folder:

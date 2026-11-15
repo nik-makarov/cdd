@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -11,7 +12,9 @@ type browser struct {
 	entries   []entry
 	visible   []entry
 	cursor    int
+	scroll    int
 	compact   bool
+	lastClick mouseClick
 	hidden    bool
 	filtering bool
 	creating  bool
@@ -59,7 +62,14 @@ func (m *browser) open(path, focus string) error {
 
 func (m *browser) refilter() {
 	m.message = ""
-	m.visible = []entry{{name: ".", path: m.path}}
+	m.scroll, m.lastClick = 0, mouseClick{}
+	m.visible = nil
+	if parent := filepath.Dir(m.path); parent != m.path {
+		m.visible = append(m.visible, entry{name: "..", path: parent})
+	}
+	m.cursor = len(m.visible)
+	m.visible = append(m.visible, entry{name: ".", path: m.path})
+	firstMatch := len(m.visible)
 	for _, dir := range m.entries {
 		if m.compact && !dir.isDir() {
 			continue
@@ -71,9 +81,8 @@ func (m *browser) refilter() {
 			m.visible = append(m.visible, dir)
 		}
 	}
-	m.cursor = 0
-	if m.query != "" && len(m.visible) > 1 {
-		m.cursor = 1
+	if m.query != "" && len(m.visible) > firstMatch {
+		m.cursor = firstMatch
 	}
 }
 
@@ -82,7 +91,15 @@ func (m *browser) handle(key keyEvent) bool {
 	if key.name == "ctrl+c" || key.name == "ctrl+d" {
 		return true
 	}
-	defer m.refreshPreview(false)
+	m.scroll = m.pageStart()
+	defer func() {
+		m.scroll = m.pageStart()
+		m.refreshPreview(false)
+	}()
+	if strings.HasPrefix(key.name, "mouse-") {
+		return m.handleMouse(key)
+	}
+	m.lastClick = mouseClick{}
 	if m.creating {
 		switch key.name {
 		case "esc":
@@ -127,24 +144,24 @@ func (m *browser) handle(key keyEvent) bool {
 		m.showHelp = false
 		return false
 	}
+	if key.name == "enter" && m.visible[m.cursor].name == "." {
+		key.name = "confirm"
+	}
 	switch key.name {
 	case "esc", "q":
 		return true
 	case "up", "k", "down", "j", "home", "end", "pgup", "pgdown", "tab", "backtab":
 		m.move(key.name)
-	case "right", "l":
-		if m.visible[m.cursor].isDir() {
-			m.navigate(m.visible[m.cursor].path, "")
-		} else {
-			m.message = "Files cannot be opened; choose a directory"
-		}
+	case "right", "l", "enter":
+		m.openSelected()
 	case "left", "h", "backspace":
-		if m.cursor != 0 {
-			m.move("home")
+		if m.visible[m.cursor].name != "." {
+			m.cursor = slices.IndexFunc(m.visible, func(item entry) bool { return item.name == "." })
+			m.message = ""
 			break
 		}
 		m.navigate(filepath.Dir(m.path), filepath.Base(m.path))
-	case "enter":
+	case "confirm":
 		if !m.visible[m.cursor].isDir() {
 			m.message = "Only directories can be chosen as a destination"
 			break
@@ -248,7 +265,7 @@ func (m *browser) refreshPreview(force bool) {
 		m.childErr = "File"
 		return
 	}
-	if item.path == m.path {
+	if item.isDotDir() || item.path == m.path {
 		return
 	}
 	var err error
@@ -262,6 +279,19 @@ func (m *browser) navigate(path, focus string) {
 	if err := m.open(path, focus); err != nil {
 		m.message = err.Error()
 	}
+}
+
+func (m *browser) openSelected() {
+	item := m.visible[m.cursor]
+	if !item.isDir() {
+		m.message = "Files cannot be opened; choose a directory"
+		return
+	}
+	focus := ""
+	if item.name == ".." {
+		focus = filepath.Base(m.path)
+	}
+	m.navigate(item.path, focus)
 }
 
 func (m *browser) move(key string) {

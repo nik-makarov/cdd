@@ -61,13 +61,52 @@ func TestBrowseAndSelect(t *testing.T) {
 	if m.path != root || m.visible[m.cursor].name != "Alpha" {
 		t.Fatalf("parent did not preserve focus: %+v", m)
 	}
-	m = press(m, "enter", "")
+	m = press(m, "confirm", "")
 	if m.selected != filepath.Join(root, "Alpha") {
 		t.Fatalf("selected %q", m.selected)
 	}
 	m = press(loadBrowser(t, root), "enter", "")
 	if m.selected != root {
 		t.Fatalf("current directory selection = %q", m.selected)
+	}
+}
+
+func TestParentEntry(t *testing.T) {
+	for _, compact := range []bool{false, true} {
+		root := fixture(t)
+		m := loadBrowser(t, root)
+		m.compact = compact
+		for _, query := range []string{"", "Alpha", "missing"} {
+			for _, hidden := range []bool{false, true} {
+				m.query, m.hidden = query, hidden
+				m.refilter()
+				if m.visible[0].name != ".." || m.visible[1].name != "." || m.visible[0].path != filepath.Dir(root) {
+					t.Fatal("parent must precede current and both rows must bypass filters")
+				}
+				if query != "Alpha" && m.visible[m.cursor].name != "." {
+					t.Fatal("current directory must remain the default selection")
+				}
+				if query == "Alpha" && m.visible[m.cursor].name != "Alpha" {
+					t.Fatal("filter must focus the first matching child, not the parent")
+				}
+			}
+		}
+		m = focus(t, m, "..")
+		if !m.handle(keyEvent{name: "confirm"}) || m.selected != filepath.Dir(root) {
+			t.Fatal("confirmation on the parent row must choose the parent directory")
+		}
+		for _, key := range []string{"right", "l", "enter"} {
+			m = loadBrowser(t, filepath.Join(root, "Alpha"))
+			m.compact = compact
+			m = focus(t, m, "..")
+			if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != "Alpha" || m.selected != "" {
+				t.Fatal("opening .. must restore parent focus without completing selection")
+			}
+		}
+	}
+	m := loadBrowser(t, string(filepath.Separator))
+	if slices.ContainsFunc(m.visible, func(item entry) bool { return item.name == ".." }) {
+		t.Fatal("filesystem root must not offer a parent row")
 	}
 }
 
@@ -118,8 +157,8 @@ func TestCreateDirectory(t *testing.T) {
 				if !m.compact && (m.preview != target || len(m.children) != 0 || m.childErr != "") {
 					t.Fatal("preview did not refresh to the new empty directory")
 				}
-				if !m.handle(keyEvent{name: "enter"}) || m.selected != target {
-					t.Fatal("Enter must select the new directory")
+				if !m.handle(keyEvent{name: "confirm"}) || m.selected != target {
+					t.Fatal("confirmation must select the new directory")
 				}
 				if _, err := os.Stat(filepath.Join(root, "INJECTED")); !os.IsNotExist(err) {
 					t.Fatal("directory name was interpreted as a shell command")
@@ -265,7 +304,7 @@ func TestCreateDirectoryThroughLogicalSymlink(t *testing.T) {
 	m = press(m, "n", "n")
 	m = press(m, "text", "child")
 	m = press(m, "enter", "")
-	m = press(m, "enter", "")
+	m = press(m, "confirm", "")
 	if m.selected != filepath.Join(link, "child") {
 		t.Fatal("creation lost the logical symlink path")
 	}
@@ -299,7 +338,7 @@ func TestLeftFocusesCurrentBeforeParent(t *testing.T) {
 					m = focus(t, m, target)
 					m.refreshPreview(false)
 					m.message = "Previous error"
-					if m.handle(keyEvent{name: key}) || m.path != root || m.cursor != 0 || m.message != "" || m.selected != "" {
+					if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != "." || m.message != "" || m.selected != "" {
 						t.Fatalf("first %s must focus . without leaving or selecting: path %q, cursor %d", key, m.path, m.cursor)
 					}
 					if !compact && (len(m.children) != 0 || m.childErr != "" || m.preview != root) {
@@ -324,7 +363,7 @@ func TestLeftPreservesFilterUntilParentNavigation(t *testing.T) {
 			m = press(m, "text", "Al")
 			m = press(m, "esc", "")
 			m = press(m, "left", "")
-			if m.path != root || m.cursor != 0 || m.query != "Al" || len(m.visible) != 2 {
+			if m.path != root || m.visible[m.cursor].name != "." || m.query != "Al" || len(m.visible) != 3 {
 				t.Fatal("focusing . must preserve the completed filter and listing")
 			}
 			selected := press(m, "enter", "")
@@ -351,7 +390,7 @@ func TestFilterHiddenAndSymlinks(t *testing.T) {
 	for _, d := range m.visible {
 		names = append(names, d.name)
 	}
-	want := []string{".", "Alpha", "beta", "link", "with spaces", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439"}
+	want := []string{"..", ".", "Alpha", "beta", "link", "with spaces", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439"}
 	if !slices.Equal(names, want) {
 		t.Fatalf("directories = %v, want %v", names, want)
 	}
@@ -359,7 +398,7 @@ func TestFilterHiddenAndSymlinks(t *testing.T) {
 	m = focus(t, m, ".hidden")
 	m = press(m, "/", "/")
 	m = press(m, "\u0420\u0423\u0421", "\u0420\u0423\u0421")
-	if len(m.visible) != 2 || m.visible[m.cursor].name != "\u0420\u0443\u0441\u0441\u043a\u0438\u0439" {
+	if len(m.visible) != 3 || m.visible[m.cursor].name != "\u0420\u0443\u0441\u0441\u043a\u0438\u0439" {
 		t.Fatalf("unicode filter: %v", m.visible)
 	}
 	m = press(m, "backspace", "")
@@ -370,7 +409,7 @@ func TestFilterHiddenAndSymlinks(t *testing.T) {
 	if m.filtering || m.selected != "" {
 		t.Fatalf("escape should finish filtering: %+v", m)
 	}
-	m = press(m, "enter", "")
+	m = press(m, "confirm", "")
 	if m.selected != filepath.Join(root, "\u0420\u0443\u0441\u0441\u043a\u0438\u0439") {
 		t.Fatalf("filtered selection = %q", m.selected)
 	}
@@ -392,7 +431,7 @@ func TestCancellationAndFailedNavigation(t *testing.T) {
 	if m.path != root || m.message == "" {
 		t.Fatalf("failed navigation lost state: %+v", m)
 	}
-	m = press(m, "enter", "")
+	m = press(m, "confirm", "")
 	if m.selected != "" {
 		t.Fatalf("selected a removed directory: %q", m.selected)
 	}
@@ -402,10 +441,16 @@ func TestEmptyFilterAndSmallTerminal(t *testing.T) {
 	m := loadBrowser(t, fixture(t))
 	m = press(m, "/", "/")
 	m = press(m, "no-match", "no-match")
-	if len(m.visible) != 1 || m.cursor != 0 {
+	if len(m.visible) != 2 || m.visible[m.cursor].name != "." || m.visible[0].name != ".." {
 		t.Fatalf("no-match filter must allow selecting current directory: %+v", m)
 	}
-	m = press(m, "esc", "")
+	if m.handle(keyEvent{name: "enter"}) || m.filtering || m.selected != "" {
+		t.Fatal("Enter while filtering must finish input without selecting .")
+	}
+	current := m
+	if !current.handle(keyEvent{name: "enter"}) || current.selected != m.path {
+		t.Fatal("Enter after finishing the filter must confirm .")
+	}
 	m = press(m, "down", "")
 	m.width, m.height = 12, 5
 	lines := strings.Split(m.view(), "\n")
@@ -428,7 +473,7 @@ func TestKeyboardHelpPreservesNavigationAndFilterInput(t *testing.T) {
 		t.Fatal("help should open without exiting")
 	}
 	m = press(m, "down", "")
-	if m.cursor != 1 {
+	if m.visible[m.cursor].name != "Alpha" {
 		t.Fatal("help should leave navigation available")
 	}
 	if m.handle(keyEvent{name: "esc"}) || m.showHelp || m.selected != "" {
@@ -459,7 +504,7 @@ func TestColumnNavigation(t *testing.T) {
 		}
 	}
 	m := loadBrowser(t, root)
-	m.width, m.height = 80, 12
+	m.width, m.height = 80, 16
 	rows, page := m.pageRows(), m.pageSize()
 	for _, tt := range []struct {
 		name, key   string
@@ -475,7 +520,6 @@ func TestColumnNavigation(t *testing.T) {
 		{"previous page", "pgup", page + 2, 2},
 		{"first entry", "home", page + 2, 0},
 		{"last entry", "end", 0, len(m.visible) - 1},
-		{"empty other column", "tab", (len(m.visible) - 1) / page * page, (len(m.visible) - 1) / page * page},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			m := m
@@ -487,6 +531,13 @@ func TestColumnNavigation(t *testing.T) {
 		})
 	}
 	partial := m
+	partial.visible = partial.visible[:page+rows]
+	partial.cursor = page
+	partial = press(partial, "tab", "")
+	if partial.cursor != page {
+		t.Fatal("switching to an empty column must preserve selection")
+	}
+	partial = m
 	partial.visible = partial.visible[:page+rows+2]
 	partial.cursor = page + rows - 1
 	partial = press(partial, "tab", "")
@@ -497,10 +548,10 @@ func TestColumnNavigation(t *testing.T) {
 	m = press(m, "tab", "")
 	wantPath := m.visible[m.cursor].path
 	current := press(m, "left", "")
-	if current.path != root || current.cursor != 0 {
+	if current.path != root || current.visible[current.cursor].name != "." {
 		t.Fatal("Left from the second column must focus . in the same directory")
 	}
-	selected := press(m, "enter", "")
+	selected := press(m, "confirm", "")
 	if selected.selected != wantPath {
 		t.Fatal("right column selected the wrong directory")
 	}
@@ -537,7 +588,7 @@ func TestDefaultTreeViewAndModeSwitch(t *testing.T) {
 		t.Fatal("tree must be the default view")
 	}
 	m = focus(t, m, "regular-file")
-	for _, key := range []string{"right", "l", "enter"} {
+	for _, key := range []string{"right", "l", "enter", "confirm"} {
 		t.Run("file/"+key, func(t *testing.T) {
 			copy := m
 			if copy.handle(keyEvent{name: key}) || copy.path != root || copy.selected != "" || copy.message == "" {
@@ -588,7 +639,7 @@ func TestTreeContextAndSymlinkNavigation(t *testing.T) {
 	if len(m.children) != 1 || m.children[0].name != "nested" || m.preview != filepath.Join(root, "link") {
 		t.Fatalf("link preview missing: %+v", m.children)
 	}
-	selected := press(m, "enter", "")
+	selected := press(m, "confirm", "")
 	if selected.selected != filepath.Join(root, "link") {
 		t.Fatal("directory symlink must be selectable using its logical path")
 	}
@@ -601,7 +652,7 @@ func TestTreeContextAndSymlinkNavigation(t *testing.T) {
 	}
 	m = focus(t, m, "nested")
 	m = press(m, "left", "")
-	if m.path != filepath.Join(root, "link") || m.cursor != 0 {
+	if m.path != filepath.Join(root, "link") || m.visible[m.cursor].name != "." {
 		t.Fatal("first Left must focus . without resolving or leaving the directory link")
 	}
 	m = press(m, "left", "")
@@ -654,11 +705,17 @@ func TestTreePreviewClearsOnCurrentDirectory(t *testing.T) {
 		t.Fatal("directory was not opened")
 	}
 	checkEmpty("enter directory")
+	m = press(m, "up", "")
+	if m.visible[m.cursor].name != ".." || len(m.children) != 0 {
+		t.Fatal("parent row must leave the children preview empty")
+	}
+	m = press(m, "down", "")
+	checkEmpty("return from parent row")
 	m = press(m, "down", "")
 	if len(m.children) != 1 || m.children[0].name != "leaf" {
 		t.Fatal("highlighting a child directory must populate its preview")
 	}
-	m = press(m, "home", "")
+	m = press(m, "left", "")
 	checkEmpty("return to current row")
 	m = press(m, "ctrl+r", "")
 	checkEmpty("refresh")

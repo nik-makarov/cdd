@@ -18,7 +18,8 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 			t.Errorf("tree missing %q: %q", text, plain)
 		}
 	}
-	if strings.Count(view, "\x1b[7m") != 1 || strings.Count(plain, ">") != 1 {
+	body := strings.Join(strings.Split(view, "\n")[3:3+m.pageRows()], "\n")
+	if strings.Count(body, "\x1b[7m") != 1 || strings.Count(plain, ">") != 1 {
 		t.Fatal("only the active middle row should have a selection bar")
 	}
 	width, margin := m.viewWidth()

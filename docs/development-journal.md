@@ -356,3 +356,118 @@ entries, keep private data out, and distinguish local work from publication.
   displayed the colored setup message and returned status 1. No dependencies
   or user shell configuration changed. Paths: `cli.go`, `shell.go`,
   `shell_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/development-journal.md`.
+- `2026-11-15T18:43:16Z` — Add mouse navigation in the active tree pane and both
+  compact columns: click to highlight, double-click to select, right-click to
+  browse, and wheel to move selection. Decode fragmented SGR and legacy mouse
+  packets, ignore non-entry regions, preserve input-mode behavior, and reuse
+  directory-selection guards. Keep scrolled rows stable under the pointer and
+  disable mouse reporting during terminal cleanup. Add controls help and usage,
+  architecture, testing, and release documentation. Formatting, vet, shuffled
+  race-enabled application/tool tests, and host build passed with a temporary
+  Go build cache; the build retained the nonfatal module-cache write warning.
+  gopls reported no diagnostics. Decoder fuzzing passed 970,426 executions.
+  Tests cover rendered-row hit testing across sizes and modes, both compact
+  columns, empty regions, current-directory selection, stale directories, files,
+  click-state resets, filtering, and directory-name input. Native PTY checks
+  injected mouse reports into the host binary and verified highlighting,
+  right-click browsing, double-click selection with a zsh directory change,
+  second-column selection with a bash directory change, wheel movement, and
+  cancellation without a directory change. Selection and cancellation emitted
+  mouse-disable sequences. Physical pointing-device behavior was not tested.
+  No dependencies changed or hosted CI/publication ran for this change. Paths:
+  `browser.go`, `terminal.go`, `terminal_test.go`, `mouse.go`, `mouse_test.go`,
+  `tree.go`, `view.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T19:17:26Z` — Add a persistent parent-directory row after the current
+  row, except at the filesystem root. Keep both rows outside filtering and entry
+  counts, leave their Children preview blank, and restore focus to the previous
+  directory when opening the logical parent. Change double-clicks to browse
+  directories without completing selection and remove right-click navigation.
+  Add a prominent footer button labeled Select directory with its Enter shortcut;
+  clicking it reuses Enter's directory validation and completes selection.
+  Shorten the label for narrow windows, dim it for files, and hide it during
+  filter/name editing. Update controls, usage, architecture, and release notes.
+  Formatting, vet, shuffled race-enabled application/tool tests, and host build
+  passed with a temporary Go build cache; the build retained the nonfatal
+  module-cache write warning. gopls reported no diagnostics. Tests cover root
+  behavior, filtering, hidden entries, logical symlink parents, focus restoration,
+  counts/previews, double-click browsing, Enter selection, and button geometry
+  across terminal sizes, modes, help, and clipping. Button tests also cover
+  NO_COLOR emphasis, inactive file styling, and file/removed-directory guards.
+  Native PTY checks injected mouse reports to open a child, return through ..,
+  and confirm with the button through zsh; a bash check opened a directory from
+  the second compact column and confirmed with Enter. Both changed the shell
+  directory as expected and disabled mouse reporting on exit. Terminal output
+  showed the button with color and with bold-only emphasis. No dependencies
+  changed or hosted CI/publication ran. Paths: `browser.go`, `browser_test.go`,
+  `entry.go`, `mouse.go`, `mouse_test.go`, `view.go`, `view_test.go`, `tree.go`,
+  `tree_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T19:33:01Z` — Place the parent row above the current-directory row
+  and prefix it with a left arrow in both views. Preserve initial focus on the
+  current directory, including empty filters and the filesystem root. Make Left,
+  h, Backspace, and their contextual hint identify the current row by name rather
+  than its previous position. Update ordering/navigation assertions and usage
+  text. Formatting, vet, shuffled race-enabled application/tool tests, and host
+  build passed with a temporary Go build cache; the build retained the nonfatal
+  module-cache write warning. gopls reported no diagnostics. A native zsh PTY
+  check displayed the parent arrow above the highlighted current row in tree
+  and compact views, injected a double-click on the first row to open the parent
+  and restore child focus, then confirmed with Enter and verified the resulting
+  shell directory. No dependencies changed or hosted CI/publication ran. Paths:
+  `browser.go`, `browser_test.go`, `view.go`, `view_test.go`, `mouse_test.go`,
+  `cli.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/development-journal.md`.
+- `2026-11-15T19:46:10Z` — Replace the single-line selection button with a centered
+  three-line Change Directory block at the bottom, showing the platform shortcut
+  and highlighted destination. Sanitize and clip long paths from the left, keep
+  every button row clickable, retain NO_COLOR emphasis, and omit the complete
+  block when input mode or available space prevents displaying it. Make plain
+  Enter browse like Right; confirm only through the button or Cmd+Enter on macOS
+  and Ctrl+Enter on Linux. Push/pop the kitty keyboard disambiguation mode and
+  decode extended Enter, cancellation, refresh, Tab, and navigation keys; ignore
+  confirmation repeats and key releases. Document terminal compatibility and
+  update help, usage, architecture, testing, and release notes. Formatting, vet,
+  shuffled race-enabled application/tool tests, and host build passed with a
+  temporary Go build cache; the build retained the nonfatal module-cache write
+  warning. gopls reported no diagnostics. Decoder fuzzing passed 4,130,011
+  executions. Tests cover both platform modifiers, browsing/confirmation
+  separation, input modes, centered button geometry, all three clickable rows,
+  destination updates/sanitization/clipping, and file/stale-directory guards.
+  An isolated background agterm session showed the new layout, updated the button
+  path after Enter browsing, and exited after an injected Cmd+Enter report; the
+  temporary session closed and the user's keymap was only read. Native PTY checks
+  verified a zsh directory change after Enter browsing and an injected Cmd+Enter,
+  a bash directory change from clicking the destination row, and extended Ctrl+C
+  cancellation without changing directory. Cleanup emitted keyboard-mode pop and
+  mouse-disable sequences. Physical modifier-key presses and a Linux runtime were
+  not tested. No dependencies changed or hosted CI/publication ran. Paths:
+  `browser.go`, `browser_test.go`, `terminal.go`, `terminal_test.go`, `keyboard.go`,
+  `keyboard_test.go`, `mouse.go`, `mouse_test.go`, `view.go`, `view_test.go`, `cli.go`,
+  `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T19:51:08Z` — Confirm the current directory and exit when plain Enter
+  is pressed on the `.` row, reusing destination validation. Keep Enter browsing
+  other directories and finishing filter or directory-name input. Make the
+  compact controls hint reflect the highlighted row and document the exception
+  in CLI help, usage, architecture, testing, and release notes. Formatting, vet,
+  shuffled race-enabled application/tool tests, and host build passed with a
+  temporary Go build cache; the build retained the nonfatal module-cache write
+  warning. gopls reported no diagnostics. Regression cases cover current-row
+  confirmation in both views, after Left, and after finishing an unmatched
+  filter, while retaining child/parent browsing and modified confirmation. A
+  native zsh PTY check confirmed that Enter on `.` exits and changes the shell's
+  working directory to the displayed location. No dependencies changed or hosted
+  CI/publication ran. Paths: `browser.go`, `browser_test.go`, `keyboard_test.go`,
+  `view.go`, `view_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T19:55:33Z` — Move the three-row Change Directory button above the
+  keyboard shortcuts in the footer, including expanded help. Update the existing
+  rendered-position assertion, usage, architecture, and release notes. Formatting,
+  vet, shuffled race-enabled application/tool tests, and host build passed with
+  a temporary Go build cache; the build retained the nonfatal module-cache write
+  warning. Existing mouse tests verified all three clickable rows against their
+  rendered positions across views, terminal sizes, and input/help modes. gopls
+  reported no diagnostics. No dependencies changed or hosted CI/publication ran.
+  Paths: `view.go`, `view_test.go`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/development-journal.md`.

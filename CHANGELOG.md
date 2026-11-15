@@ -8,13 +8,21 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Browse directories with the mouse: click to highlight, double-click to open,
+  and use the wheel to move through either view. The `← ..` row above the current
+  directory opens the parent.
+- Confirm the highlighted directory with a centered, three-line `Change Directory`
+  button above the keyboard shortcuts, showing its destination and Cmd+Enter
+  (macOS) or Ctrl+Enter (Linux) shortcut. Modified Enter uses the kitty keyboard
+  protocol in compatible terminals.
 - Create a directory in the current location with `n`, edit its name, and focus
   it after creation; cancel name input with Esc or correct creation errors.
 - Show each column's directory path in tree and compact views, with clipped
   paths that follow navigation and the highlighted directory preview.
 - Install through the source-built `nik-makarov/tap` Homebrew tap, with automatic
   versioned releases and formula updates after successful pushes to main.
-- Browse directories with arrow keys or `hjkl`, then choose one with Enter.
+- Browse directories with Enter, arrow keys, or `hjkl`, then confirm the destination
+  with the `Change Directory` button or its shortcut.
 - Filter directory names, show hidden directories, and follow directory symlinks.
 - Change the current shell's directory through zsh or bash integration.
 - Report the original and destination paths after a successful shell directory
@@ -29,6 +37,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Confirm the current directory and exit with Enter on the `.` row; Enter on
+  other directories continues browsing.
 - Focus the current-directory row first with Left, `h`, or Backspace; navigate
   to the parent only when that row is already highlighted.
 - Make the current directory's address more prominent with a bold final name,

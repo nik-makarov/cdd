@@ -26,6 +26,13 @@ metacharacters, hidden entries, existing files/directories/symlinks, invalid
 paths, editing and retry, cancellation, a removed parent, and logical symlink
 paths. Creation prompt checks cover long names, terminal-control sanitization,
 and small terminal sizes.
+Mouse tests cover fragmented SGR and legacy reports, invalid coordinates, rendered
+row and button hit testing across layouts and input modes, stable scrolling,
+single/double clicks, parent navigation through logical symlinks, wheel movement,
+and file/stale-directory guards. Parent-row tests cover filtering, hidden entries,
+root behavior, focus restoration, counts, and child previews. Button checks cover
+confirmation-shortcut equivalence, inactive file styling, NO_COLOR, centered
+three-row geometry, destination clipping, and all clickable rows.
 Column tests cover ordered two-column pages, automatic fallback for short/narrow
 lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
 filter-mode switching, full-page navigation, and selection/opening from the right.
@@ -40,7 +47,11 @@ notifications, escaped terminal controls, and silence on unchanged directories,
 cancellation, empty selection, picker failure, and failed `cd`.
 
 Input-decoder tests cover complete and fragmented terminal sequences, Unicode,
-malformed input, and Esc timeout behavior. For decoder changes, also run:
+malformed input, and Esc timeout behavior. Extended-key tests cover both platform
+shortcuts, lock modifiers, release/repeat handling, and control-key compatibility.
+Enter tests cover browsing other directories, confirming the current-directory
+row, and preserving filter and directory-name input modes.
+For decoder changes, also run:
 
 ```sh
 go test -run '^$' -fuzz FuzzDecodeKey -fuzztime=10s
@@ -95,9 +106,18 @@ Use a disposable directory tree and a real interactive terminal:
    Compare dark and light terminal themes, then try `NO_COLOR=1 cdd` and confirm
    that the selection remains visible without added colors.
 6. Cancel with Esc, `q`, and Ctrl+C. Confirm the working directory is unchanged,
-   normal input and echo return, and the cursor is visible.
+   normal input and echo return, the cursor is visible, and mouse reporting stops.
 7. Check handled termination signals and restore behavior separately from an
    uncatchable kill. Do not use a production shell for destructive process tests.
+8. Click a directory to highlight it, double-click to browse it, and double-click
+   `..` to return to its parent. Enter must browse other directories without
+   exiting; on `.` it must confirm the current directory and exit. Confirm with
+   each row of the Change Directory button, Cmd+Enter on macOS, or Ctrl+Enter on
+   Linux in a compatible terminal. Check that the shown path follows the
+   highlighted directory and that terminal keyboard mode is restored on exit.
+   Repeat in tree view and both compact columns, including after scrolling and
+   resizing. Check the wheel, inert side previews and blank rows, file selection
+   guards, filtering, and directory-name input.
 
 Automated model tests do not verify visual layout or real terminal restoration.
 Terminal emulators can differ in key sequences and Unicode display width.

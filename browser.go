@@ -40,10 +40,11 @@ type browser struct {
 	preview     string
 	filePreview *filePreview
 	action      externalAction
+	config      configuration
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
-	m := browser{origin: path, hidden: hidden, width: 80, height: 24}
+	m := browser{origin: path, hidden: hidden, width: 80, height: 24, config: defaultConfiguration()}
 	if err := m.open(path, ""); err != nil {
 		return browser{}, err
 	}
@@ -125,6 +126,13 @@ func (m *browser) handle(key keyEvent) bool {
 		return true
 	}
 	if m.filePreview != nil {
+		if m.config.Keys.OpenInZed != "" && key.name == m.config.Keys.OpenInZed {
+			m.openInZed(runtime.GOOS)
+			if m.action.kind != "" {
+				m.filePreview = nil
+			}
+			return false
+		}
 		if key.name == "enter" {
 			m.filePreview = nil
 			m.openFile()
@@ -193,6 +201,10 @@ func (m *browser) handle(key keyEvent) bool {
 	}
 	if m.showHelp && key.name == "esc" {
 		m.showHelp = false
+		return false
+	}
+	if m.config.Keys.OpenInZed != "" && key.name == m.config.Keys.OpenInZed {
+		m.openInZed(runtime.GOOS)
 		return false
 	}
 	if key.name == "enter" && m.visible[m.cursor].name == "." {

@@ -697,3 +697,23 @@ entries, keep private data out, and distinguish local work from publication.
   `terminal.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-15T22:31:36Z` — Add Zed launching through its installed CLI, passing
+  a folder as a project or only the selected file with `--new --`. Ignore missing
+  CLI installations and support Linux's `zeditor` alias. Embed default key settings
+  from JSON and merge validated user overrides without rewriting them; use the
+  configured key in input handling and help, including built-in preview. Update
+  project scope and configuration documentation. Tests cover custom/disabled keys,
+  malformed/conflicting settings, text-input precedence, missing CLI, new-window
+  arguments, and retained browsing state. `make check build cross-build` passed
+  for the host and Linux/macOS amd64/arm64 targets; builds retained the nonfatal
+  module-cache write warning. gopls and `git diff --check` passed. Native PTY
+  acceptance with temporary configuration and fake desktop CLIs verified default
+  tree startup, root-button and breadcrumb clicks, Space/Enter/configured editor
+  dispatch, folder versus file arguments, the two-view cycle, saved mode, empty
+  cancellation stdout, directory-only selection output, and terminal cleanup.
+  Desktop applications were not opened by these acceptance checks. No dependencies
+  changed or publication ran. Paths: `config.go`, `config/default.json`,
+  `config_test.go`, `zed_test.go`, `actions.go`, `browser.go`, `preferences.go`,
+  `cli.go`, `view.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
+  `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

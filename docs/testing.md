@@ -60,6 +60,9 @@ and cancellation without opening a desktop application during automated tests.
 Default-application tests cover both platform commands, literal Unicode and
 metacharacter paths, Enter from preview, stale-file rejection, retained focus,
 and independent directory-only confirmation guards.
+Configuration/Zed tests cover defaults, custom and disabled keys, malformed and
+conflicting overrides, literal filter/name input, dynamic help, missing CLI,
+Linux's `zeditor` alias, and new-window arguments for a folder versus one file.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough. Separate stdout/stderr assertions verify move

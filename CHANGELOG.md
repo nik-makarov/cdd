@@ -8,6 +8,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Open a folder as a project or a single file in a new Zed window through its
+  installed CLI. Configure the binding in `config.json` (shipped default: `z`);
+  ignore it when Zed is unavailable.
 - Open highlighted files in the default application with Enter, preserving
   browsing state and keeping files out of shell directory selection.
 - Preview files with Space: native Quick Look on macOS and a bounded, scrollable

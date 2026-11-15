@@ -42,6 +42,13 @@ func actionCommand(action externalAction, platform string) (string, []string, er
 			return "xdg-open", []string{action.path}, nil
 		}
 	}
+	if action.kind == "zed" {
+		program := zedCLI(platform)
+		if program == "" {
+			return "", nil, nil
+		}
+		return program, []string{"--new", "--", action.path}, nil
+	}
 	return "", nil, errors.New("Unsupported file action")
 }
 
@@ -55,11 +62,14 @@ func (b *actionOutput) Write(p []byte) (int, error) {
 }
 
 func runExternalAction(ctx context.Context, action externalAction, platform string) error {
-	if err := regularFile(action.path); err != nil {
-		return err
-	}
 	program, args, err := actionCommand(action, platform)
 	if err != nil {
+		return err
+	}
+	if program == "" {
+		return nil
+	}
+	if err := validateActionPath(action); err != nil {
 		return err
 	}
 	cmd := exec.CommandContext(ctx, program, args...)
@@ -76,6 +86,45 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 		return fmt.Errorf("%s: %w", program, err)
 	}
 	return nil
+}
+
+func validateActionPath(action externalAction) error {
+	if action.kind != "zed" {
+		return regularFile(action.path)
+	}
+	info, err := os.Stat(action.path)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() && !info.Mode().IsRegular() {
+		return errors.New("Zed requires a dir or regular file")
+	}
+	return nil
+}
+
+func zedCLI(platform string) string {
+	if program, err := exec.LookPath("zed"); err == nil {
+		return program
+	}
+	if platform == "linux" {
+		if program, err := exec.LookPath("zeditor"); err == nil {
+			return program
+		}
+	}
+	return ""
+}
+
+func (m *browser) openInZed(platform string) {
+	if zedCLI(platform) == "" {
+		return
+	}
+	action := externalAction{kind: "zed", path: m.focusedPath()}
+	if err := validateActionPath(action); err != nil {
+		m.message = err.Error()
+		return
+	}
+	m.message = ""
+	m.action = action
 }
 
 func (m *browser) openFile() {

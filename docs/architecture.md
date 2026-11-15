@@ -23,6 +23,7 @@ the highlighted directory. It does not execute external commands to list entries
 | `preferences.go` | Last-view storage, validation, and startup restoration |
 | `preview.go` | Bounded text preview, scrolling, and platform preview selection |
 | `actions.go` | Direct external CLI invocation with cancellation and bounded diagnostics |
+| `config.go`, `config/default.json` | Embedded key defaults and validated user overrides |
 | `terminal.go` | Raw terminal mode, key decoding, rendering, resize and signal handling |
 | `keyboard.go` | Extended keyboard decoding and platform confirmation shortcuts |
 | `mouse.go` | Mouse report decoding, visible-row hit testing, and click handling |
@@ -148,6 +149,14 @@ one absolute argument and no shell interpolation. The terminal keeps browsing
 state; a new action cancels and joins the previous launcher first. File opening
 does not pass through directory confirmation. Linux opener behavior follows
 the [xdg-open specification](https://portland.freedesktop.org/doc/xdg-open.html).
+
+The CLI also reads optional `config.json` beside the view preference, after
+startup validation. It merges typed overrides onto embedded JSON defaults and
+rejects unknown keys, invalid letters, and collisions with built-in shortcuts.
+Browser key handling and help use the resulting binding, never a literal Zed key.
+The Zed action resolves its installed CLI through PATH (`zed`, then Linux
+`zeditor`), validates an existing folder or regular file, and passes only that
+path with `--new --`. Absence is a no-op. No parent folder is added for a file.
 
 The expandable tree follows the arrow-key model from the
 [WAI-ARIA tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/): Right

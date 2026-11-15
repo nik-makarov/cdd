@@ -7,6 +7,8 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 - Create a directory with `n`, then choose it.
 - Preview a file with Space: Quick Look on macOS, a text viewer on Linux.
 - Open a file in its default application with Enter while keeping cdd open.
+- Open a folder or file in a new Zed window with the configurable `z` binding.
+  See [configuration](docs/configuration.md) to change or disable the shortcut.
 - Expandable directory tree and three-pane browsing with colored files and
   directory links; `v` switches between the two views.
 - Reads one directory at a time without recursively scanning the filesystem.

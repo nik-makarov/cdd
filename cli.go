@@ -34,6 +34,7 @@ Keys:
   Ctrl+Enter     Change dir and exit (Linux)
   n              Create a dir in the current location
   Space          Preview file (Quick Look on macOS; text preview on Linux)
+  Configured key Open dir/file in a new Zed window (see config.json)
   /              Filter names (Esc finishes; Enter confirms in tree)
   .              Toggle hidden dirs
   ~              Go to home dir
@@ -59,6 +60,8 @@ In panes, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
 The Change Dir button shows the shortcut and destination; click to confirm.
 The last used view is restored on startup; tree is the default.
+Customize keys.open_in_zed in cdd/config.json under the user config directory.
+The binding is ignored when the Zed CLI is not installed.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.
 Files open in the default application with Enter; they cannot be a cd destination.
 Shell integration is required to choose a dir and change the current shell.
@@ -192,6 +195,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 		input, output = tty, tty
 	}
 	m.restoreViewPreference(viewPreferencePath())
+	config, configErr := readConfiguration(configurationPath("config.json"))
+	m.config = config
+	if configErr != nil {
+		if m.message != "" {
+			m.message += "; "
+		}
+		m.message += "Could not load config: " + configErr.Error()
+	}
 	if err := runTerminal(&m, input, output); err != nil {
 		if errors.Is(err, errCancelled) {
 			return 130

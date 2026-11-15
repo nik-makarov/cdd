@@ -14,12 +14,14 @@ Keep this small CLI simple. UI and diagnostics go to the terminal/stderr;
 stdout is reserved for the selected path. Preserve shell integration tests,
 especially cancellation and filenames containing shell metacharacters.
 The application's scope is directory navigation and selection, creating a
-directory as a navigation destination, explicit file preview/opening, and shell
-integration for cd. Do not add other file management, background services, networking, or
-unrelated capabilities.
-Features must directly support choosing a directory.
+directory as a navigation destination, explicit file preview/opening, Zed project
+or single-file launching, and shell integration for cd. Do not add other file
+management, background services, networking, or unrelated capabilities.
+Features must directly support browsing and choosing a directory or the explicit
+file actions listed above.
 File contents may be read only for an explicitly requested preview. Opening a
-file must use the operating system's default application on explicit input.
+file must use the operating system's default application or the configured Zed
+binding on explicit input. Launch Zed only through its installed CLI.
 Never execute a selected file directly, modify it inside cdd, or return it as a
 selected directory. File actions preserve browsing state and the stdout contract.
 

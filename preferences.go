@@ -8,11 +8,7 @@ import (
 )
 
 func viewPreferencePath() string {
-	dir, err := os.UserConfigDir()
-	if err != nil || !filepath.IsAbs(dir) {
-		return ""
-	}
-	return filepath.Join(dir, "cdd", "last-view")
+	return configurationPath("last-view")
 }
 
 func readViewPreference(path string) viewMode {

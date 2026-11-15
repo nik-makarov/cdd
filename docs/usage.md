@@ -61,7 +61,9 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Key | Action |
 | --- | --- |
 | Up / Down, `k` / `j` | Move selection |
-| Enter | In tree, choose the highlighted directory; in panes, confirm `.` or open another directory |
+| Enter | Open a file; in tree, choose a directory; in panes, confirm `.` or browse another directory |
+| Space | Preview a file: Quick Look on macOS, built-in viewer on Linux |
+| Configured Zed key (default `z`) | Open the highlighted folder as a project or a file by itself in a new Zed window |
 | Right, `l` | Open the highlighted directory |
 | Left, `h`, Backspace | Focus `..` first; from `..` go to the parent directory |
 | Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
@@ -77,6 +79,10 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Ctrl+R | Refresh the listing |
 | `?` | Show or hide controls help; Esc also closes help |
 | Esc, `q`, Ctrl+C / Ctrl+D | Cancel |
+
+The Zed key comes from [configuration](configuration.md). It is ignored when the
+CLI is absent and remains literal during text input. It also works from the
+built-in file preview. File and editor actions keep cdd open.
 
 In terminals that support mouse reporting:
 

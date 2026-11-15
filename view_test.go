@@ -87,11 +87,11 @@ func TestTerminalStyles(t *testing.T) {
 }
 
 func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
-	for _, compact := range []bool{false, true} {
+	{
 		for _, size := range [][2]int{{120, 30}, {80, 24}, {73, 12}, {60, 18}, {56, 8}, {55, 8}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
 			for _, mode := range []string{"normal", "filter", "help", "error", "create", "create error"} {
-				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
-					m := browser{path: "/long/parent/projects", mode: testView(compact), width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
+				t.Run(fmt.Sprintf("%dx%d/%s", size[0], size[1], mode), func(t *testing.T) {
+					m := browser{path: "/long/parent/projects", mode: panesView, width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
 					for i := range 60 {
 						m.visible = append(m.visible, entry{name: fmt.Sprintf("folder-%02d-\u754c", i) + strings.Repeat("long", 20)})
 					}
@@ -157,39 +157,32 @@ func TestPanePathsFollowDisplayedDirectories(t *testing.T) {
 	for _, tt := range []struct {
 		name, current string
 		item          entry
-		compact       bool
 		width, height int
 		want          []string
 	}{
-		{"directory preview", "/work/current", entry{path: "/work/current/child"}, false, 120, 18,
+		{"directory preview", "/work/current", entry{path: "/work/current/child"}, 120, 18,
 			[]string{"/work", "/work/current", "/work/current/child"}},
-		{"directory link", "/work/current", entry{path: "/work/current/link", kind: folderLink}, false, 120, 18,
+		{"directory link", "/work/current", entry{path: "/work/current/link", kind: folderLink}, 120, 18,
 			[]string{"/work", "/work/current", "/work/current/link"}},
-		{"current row", "/work/current", entry{path: "/work/current"}, false, 120, 18,
+		{"current row", "/work/current", entry{path: "/work/current"}, 120, 18,
 			[]string{"/work", "/work/current", ""}},
-		{"parent row", "/work/current", entry{name: "..", path: "/work"}, false, 120, 18,
+		{"parent row", "/work/current", entry{name: "..", path: "/work"}, 120, 18,
 			[]string{"/work", "/work/current", ""}},
-		{"file", "/work/current", entry{path: "/work/current/file", kind: file}, false, 120, 18,
+		{"file", "/work/current", entry{path: "/work/current/file", kind: file}, 120, 18,
 			[]string{"/work", "/work/current", ""}},
-		{"file link", "/work/current", entry{path: "/work/current/link", kind: fileLink}, false, 120, 18,
+		{"file link", "/work/current", entry{path: "/work/current/link", kind: fileLink}, 120, 18,
 			[]string{"/work", "/work/current", ""}},
-		{"broken link", "/work/current", entry{path: "/work/current/link", kind: brokenLink}, false, 120, 18,
+		{"broken link", "/work/current", entry{path: "/work/current/link", kind: brokenLink}, 120, 18,
 			[]string{"/work", "/work/current", ""}},
-		{"filesystem root", "/", entry{path: "/child"}, false, 120, 18,
+		{"filesystem root", "/", entry{path: "/child"}, 120, 18,
 			[]string{"", "/", "/child"}},
-		{"narrow tree", "/work/current", entry{path: "/work/current/child"}, false, 40, 18,
+		{"narrow tree", "/work/current", entry{path: "/work/current/child"}, 40, 18,
 			[]string{"/work/current"}},
-		{"short tree", "/work/current", entry{path: "/work/current/child"}, false, 120, 5,
+		{"short tree", "/work/current", entry{path: "/work/current/child"}, 120, 5,
 			[]string{"/work", "/work/current", "/work/current/child"}},
-		{"compact columns", "/work/current", entry{path: "/work/current/child"}, true, 120, 18,
-			[]string{"/work/current", "/work/current"}},
-		{"narrow compact", "/work/current", entry{path: "/work/current/child"}, true, 40, 18,
-			[]string{"/work/current"}},
-		{"short compact", "/work/current", entry{path: "/work/current/child"}, true, 120, 5,
-			[]string{"/work/current", "/work/current"}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			m := browser{path: tt.current, mode: testView(tt.compact), width: tt.width, height: tt.height, cursor: 1}
+			m := browser{path: tt.current, mode: panesView, width: tt.width, height: tt.height, cursor: 1}
 			m.visible = []entry{{name: ".", path: tt.current}, tt.item}
 			for range 30 {
 				m.visible = append(m.visible, entry{name: "other"})
@@ -197,7 +190,7 @@ func TestPanePathsFollowDisplayedDirectories(t *testing.T) {
 			row := 0
 			if m.height >= 8 {
 				row = 1
-				if m.mode != listView {
+				if m.mode == panesView {
 					row = 2
 				}
 			}
@@ -288,78 +281,11 @@ func TestStyledViewSanitizesDynamicText(t *testing.T) {
 	}
 }
 
-func TestTwoColumnListing(t *testing.T) {
-	m := browser{path: "/projects", mode: listView, width: 80, height: 12}
-	m.visible = []entry{{name: "."}}
-	for i := 1; i <= 20; i++ {
-		m.visible = append(m.visible, entry{name: fmt.Sprintf("dir-%02d", i)})
-	}
-	rows := m.pageRows()
-	if m.columns() != 2 || m.pageSize() != rows*2 {
-		t.Fatal("long listing should use both columns")
-	}
-	first := strings.Split(plainFrame(m.view()), "\n")[3]
-	if !strings.Contains(first, "(current dir)") || !strings.Contains(first, fmt.Sprintf("dir-%02d", rows)) || !strings.Contains(first, " | ") {
-		t.Fatalf("first page is not column-major: %q", first)
-	}
-	m.cursor = rows
-	first = strings.Split(plainFrame(m.view()), "\n")[3]
-	if strings.Count(first, ">") != 1 || !strings.Contains(first, fmt.Sprintf("> dir-%02d", rows)) {
-		t.Fatalf("right column selection missing: %q", first)
-	}
-	m.cursor = rows * 2
-	view := plainFrame(m.view())
-	if !strings.Contains(view, fmt.Sprintf("> dir-%02d", m.cursor)) || strings.Contains(view, "dir-01") || !strings.Contains(view, "more above") {
-		t.Fatalf("next page did not advance both columns: %q", view)
-	}
-	m.width = 55
-	body := strings.Join(strings.Split(m.view(), "\n")[3:3+m.pageRows()], "\n")
-	if m.columns() != 1 || columnPattern.MatchString(body) {
-		t.Fatal("narrow windows should use a single column")
-	}
-	m.width = 80
-	m.cursor = 0
-	m.visible = m.visible[:rows]
-	if m.columns() != 1 || strings.Contains(m.view(), "switch column") {
-		t.Fatal("short listings should use a single column")
-	}
-}
-
-func TestTwoColumnsAnchorUnicodeAndResetStyles(t *testing.T) {
-	m := browser{path: "/projects", mode: listView, width: 80, height: 12, styles: terminalStyles(true, "xterm", "")}
-	for i := range 30 {
-		m.visible = append(m.visible, entry{name: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439-\u754c-" + strconv.Itoa(i)})
-	}
-	m.cursor = 1
-	view := m.view()
-	rows := strings.Split(view, "\n")[3 : 3+m.pageRows()]
-	wantColumn := -1
-	for _, row := range rows {
-		positions := columnPattern.FindAllStringSubmatch(row, -1)
-		if len(positions) != 1 {
-			t.Fatalf("each row must anchor its divider once: %q", row)
-		}
-		column, _ := strconv.Atoi(positions[0][1])
-		if wantColumn < 0 {
-			wantColumn = column
-		}
-		if column != wantColumn {
-			t.Fatal("Unicode names shifted the column divider")
-		}
-		if strings.Contains(row, "\x1b[7m") {
-			left := strings.SplitN(row, positions[0][0], 2)[0]
-			if !strings.HasSuffix(left, "\x1b[0m") {
-				t.Fatal("selection style leaked into the second column")
-			}
-		}
-	}
-}
-
 func TestViewStatusAndHelp(t *testing.T) {
 	m := browser{path: "/projects/cdd", width: 100, height: 24, cursor: 1, visible: []entry{{name: ".."}, {name: "."}, {name: "docs"}}}
 	plain := m.view()
 	if !strings.Contains(plain, "1 dir") || !strings.Contains(plain, "\u2190 Back to parent") || strings.Contains(plain, "1/2") || strings.Contains(plain, "Ctrl+R") {
-		t.Fatalf("default view is not compact: %q", plain)
+		t.Fatalf("pane status or parent row is incorrect: %q", plain)
 	}
 	if !strings.Contains(plain, "Enter change dir") {
 		t.Fatal("Enter hint must describe confirming the current directory")

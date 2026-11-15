@@ -14,7 +14,7 @@ func TestReadViewPreference(t *testing.T) {
 	}{
 		{"panes", "panes\n", panesView},
 		{"tree", "tree\n", outlineView},
-		{"list", "list\n", listView},
+		{"removed list", "list\n", outlineView},
 		{"whitespace", " tree\r\n", outlineView},
 		{"unknown", "removed-view\n", outlineView},
 		{"old ordinal", "1\n", outlineView},
@@ -54,7 +54,7 @@ func TestViewPreferenceSurvivesCancellationAndRestart(t *testing.T) {
 	if m.mode != outlineView {
 		t.Fatal("first run must use tree")
 	}
-	for _, want := range []viewMode{panesView, listView, outlineView} {
+	for _, want := range []viewMode{panesView, outlineView} {
 		m = press(m, "v", "v")
 		if m.mode != want || readViewPreference(path) != want {
 			t.Fatalf("switch to %s was not persisted immediately", want)
@@ -68,13 +68,6 @@ func TestViewPreferenceSurvivesCancellationAndRestart(t *testing.T) {
 		}
 		if want == outlineView && m.treeRoot != root {
 			t.Fatal("restored tree must initialize its home root and branches")
-		}
-		if want == listView {
-			for _, item := range m.visible {
-				if !item.isDir() {
-					t.Fatal("restored list must omit files")
-				}
-			}
 		}
 	}
 	data, err := os.ReadFile(path)

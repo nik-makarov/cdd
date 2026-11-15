@@ -13,15 +13,12 @@ type viewMode uint8
 const (
 	panesView viewMode = iota
 	outlineView
-	listView
 )
 
 func (v viewMode) String() string {
 	switch v {
 	case outlineView:
 		return "tree"
-	case listView:
-		return "list"
 	default:
 		return "panes"
 	}
@@ -64,11 +61,8 @@ func (m *browser) cycleView() {
 	}()
 	focus := m.visible[m.cursor]
 	next := outlineView
-	switch m.mode {
-	case outlineView:
+	if m.mode == outlineView {
 		next = panesView
-	case panesView:
-		next = listView
 	}
 	if next == outlineView {
 		if err := m.prepareOutline(focus.path); err != nil {

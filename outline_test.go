@@ -101,7 +101,7 @@ func TestOutlineModeOrderAndNestedFocus(t *testing.T) {
 	m = press(m, "right", "")
 	m = press(m, "right", "")
 	nested := m.focusedPath()
-	for _, mode := range []viewMode{panesView, listView, outlineView} {
+	for _, mode := range []viewMode{panesView, outlineView} {
 		m = press(m, "v", "v")
 		if m.mode != mode || m.focusedPath() != nested || m.selected != "" {
 			t.Fatalf("switching to %s lost nested focus", mode)
@@ -110,7 +110,7 @@ func TestOutlineModeOrderAndNestedFocus(t *testing.T) {
 	// Cycling without changing the tree root retains expanded branches.
 	m = focus(t, m, "nested")
 	m = press(m, "right", "")
-	for range 3 {
+	for range 2 {
 		m = press(m, "v", "v")
 	}
 	if _, loaded := m.branches[nested]; !loaded || m.mode != outlineView {
@@ -292,7 +292,7 @@ func TestOutlineRenderingAndHitTesting(t *testing.T) {
 				m.styles = terminalStyles(true, "xterm", noColor)
 				view := m.view()
 				lines := strings.Split(plainFrame(view), "\n")
-				if len(lines) != m.height || !utf8.ValidString(view) || m.columns() != 1 || !strings.Contains(view, m.styles.selected) {
+				if len(lines) != m.height || !utf8.ValidString(view) || !strings.Contains(view, m.styles.selected) {
 					t.Fatal("tree lost its selected row or terminal bounds")
 				}
 				for _, line := range lines {
@@ -407,7 +407,7 @@ func TestOutlineRevealsStartingDirAndKeepsItsIdentity(t *testing.T) {
 	if m.origin != origin || m.treeRoot != home || !visiblePath(m, origin) {
 		t.Fatal("browsing must not move the starting-dir marker")
 	}
-	for range 3 {
+	for range 2 {
 		m = press(m, "v", "v")
 	}
 	if m.origin != origin || m.treeRoot != home || !visiblePath(m, origin) {
@@ -472,7 +472,6 @@ func TestOutlineOutsideHomeAndParentFocus(t *testing.T) {
 		t.Fatal(err)
 	}
 	m = focus(t, m, "..")
-	m = press(m, "v", "v")
 	m = press(m, "v", "v")
 	if m.treeRoot != "/" || m.focusedPath() != base {
 		t.Fatal("entering the tree with home's parent selected must retain that destination")

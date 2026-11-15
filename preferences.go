@@ -23,8 +23,6 @@ func readViewPreference(path string) viewMode {
 	switch strings.TrimSpace(string(data)) {
 	case "tree":
 		return outlineView
-	case "list":
-		return listView
 	case "panes":
 		return panesView
 	default:
@@ -33,7 +31,7 @@ func readViewPreference(path string) viewMode {
 }
 
 func writeViewPreference(path string, mode viewMode) error {
-	if mode > listView {
+	if mode != panesView && mode != outlineView {
 		return errors.New("unknown view mode")
 	}
 	dir := filepath.Dir(path)
@@ -59,8 +57,5 @@ func (m *browser) restoreViewPreference(path string) {
 		if err := m.prepareOutline(m.path); err != nil {
 			m.message = "Could not restore tree view: " + err.Error()
 		}
-	case listView:
-		m.mode = listView
-		m.refilter()
 	}
 }

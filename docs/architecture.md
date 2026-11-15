@@ -48,11 +48,11 @@ The alternate screen pushes the kitty keyboard protocol's disambiguation flag
 and pops it during cleanup. The decoder accepts CSI-u control keys, including
 Cmd+Enter on macOS and Ctrl+Enter on Linux, while retaining legacy UTF-8/CSI/SS3
 input. It ignores release events and confirmation repeats. Lock modifiers do not
-affect shortcuts. In panes/list views, plain Enter confirms the current directory
+affect shortcuts. In panes views, plain Enter confirms the current directory
 on the `.` row and opens other directories for browsing. In tree view, Enter
 confirms any highlighted directory, including while filtering. The confirmation shortcut and button
 select the highlighted directory. Legacy ambiguous Enter input follows the same
-rules as plain Enter. While naming a directory, Enter creates it; in panes/list
+rules as plain Enter. While naming a directory, Enter creates it; in panes
 filters, Enter only finishes input.
 
 Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking),
@@ -71,8 +71,8 @@ checks. Button hit testing follows the centered rendered block after clipping,
 help expansion, and input-mode changes. The outlined block pairs the action and
 platform shortcut on one line, with the sanitized destination beneath it and its
 final name emphasized. It appears above the keyboard shortcuts in the footer.
-Its shortcut label is Enter for tree directories and the panes/list current row,
-the platform confirmation shortcut for other panes/list directories, and empty for files. Short controls
+Its shortcut label is Enter for tree directories and the panes current row,
+the platform confirmation shortcut for other panes directories, and empty for files. Short controls
 omit opening and confirmation hints for files. Button size stays stable as the label changes.
 Box-drawing glyphs and UI arrows use one cell; other non-ASCII text retains
 conservative two-cell budgeting. The button's right edge is anchored explicitly
@@ -85,10 +85,10 @@ and generous pointer targets recommended by
 [W3C](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum).
 These principles inform the terminal layout; CSS pixel thresholds are not treated
 as terminal-cell measurements. The entire outlined block is clickable. A double-click
-confirms a shell change only on the panes/list current-directory row; tree
+confirms a shell change only on the panes current-directory row; tree
 double-clicks always toggle branches.
 
-In panes/list views, the emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
+In panes views, the emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
 entries. The current row is highlighted initially; Home focuses the first row.
 Both navigation rows bypass name and hidden-entry filtering and do not contribute
 to entry counts or child previews. The root omits `..`; elsewhere it uses the logical parent path
@@ -119,13 +119,13 @@ Symlink targets are checked for directory status without resolving their logical
 paths. Colors distinguish entry types; suffixes mark symlinks. Folder labels
 have no trailing slash.
 
-The `v` key cycles expandable tree, panes, and directory-only compact list,
+The `v` key switches between expandable tree and panes,
 preserving folder focus. Leaving the tree with a nested selection opens its
 containing directory in the flat view, keeping the same selected logical path.
 
 After terminal availability and startup validation, the CLI loads `cdd/last-view`
-from `os.UserConfigDir`. The file contains a stable name (`panes`, `tree`, or
-`list`), not an enum ordinal. Missing, unreadable, or unknown values use tree;
+from `os.UserConfigDir`. The file contains a stable name (`panes` or `tree`),
+not an enum ordinal. Missing, unreadable, removed `list`, or unknown values use tree;
 an unavailable saved tree keeps panes and reports its initialization
 error. Each successful view change atomically replaces the preference through a
 private temporary file in the same directory. Failed changes do not save, while
@@ -160,13 +160,9 @@ visible ancestor when focus disappears. Tree creation uses the highlighted
 directory or a file's parent and expands the destination to reveal the new child.
 Long indentation is clipped from the left so deep labels retain usable space.
 
-In compact view, when the list exceeds the available row count and each column can keep
-at least 24 cells, the renderer uses two columns separated by a three-cell
-divider. Both columns share one ordered list and one cursor. Page navigation
-uses their combined capacity; Tab moves between corresponding rows without
-changing directory navigation keys. Short lists and narrow terminals keep one
-column. Horizontal terminal positioning anchors the divider independently of
-Unicode glyph widths. Dynamic text still passes through sanitization and clipping.
+Both modes keep one active selection column. Page navigation moves by its visible
+row count; Tab does not change focus. Pane dividers use absolute terminal columns
+independently of Unicode glyph widths. Dynamic text is sanitized and clipped.
 
 Color detection uses the actual UI terminal, not stdout: stdout is commonly
 captured by shell integration. Standard ANSI cyan and red inherit the terminal

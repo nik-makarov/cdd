@@ -14,7 +14,7 @@ version is published on GitHub. Development history is recorded separately in
   the highlighted path and allowing navigation above home.
 - Remember the last successfully chosen view, including after cancellation.
   Restore it on startup; missing or unknown preferences fall back to tree.
-- Add an expandable tree as the default view: cycle tree, panes, and list with
+- Add an expandable tree as the default view: cycle tree and panes with
   `v`. Browse nested branches with arrows or the mouse, load folders on demand,
   filter expanded branches with ancestor context, and create a directory inside
   the highlighted folder. Anchor the tree at home or `/`, reveal the browsing
@@ -30,7 +30,7 @@ version is published on GitHub. Development history is recorded separately in
   protocol in compatible terminals.
 - Create a directory in the current location with `n`, edit its name, and focus
   it after creation; cancel name input with Esc or correct creation errors.
-- Show each column's directory path in panes and compact views, with clipped
+- Show each column's directory path in panes view, with clipped
   paths that follow navigation and the highlighted directory preview.
 - Install through the source-built `nik-makarov/tap` Homebrew tap, with automatic
   versioned releases and formula updates after successful pushes to main.
@@ -44,17 +44,16 @@ version is published on GitHub. Development history is recorded separately in
 - Use a theme-aware directory picker with a full-row selection bar, highlighted
   current path, compact controls, and expandable keyboard help via `?`.
 - Disable added UI colors with `NO_COLOR` while retaining a visible selection.
-- View long lists in two automatic columns, switch columns with Tab, and page
-  through both together; short lists and narrow windows keep one column.
 - Install from portable archives for Linux x64/arm64 and macOS Intel/Apple Silicon.
 
 ### Changed
 
-- Use tree as the default view, followed by panes and then the compact list.
+- Use tree as the default view, followed by panes. Remove the compact list mode;
+  saved `list` preferences now fall back to tree.
   Continue restoring a valid saved mode.
 - Display folder names without a trailing slash in all views and side panes.
 - Shorten interface wording to dir/dirs and label the current row `(current dir)`.
-- In panes/list views, confirm the current directory and exit with Enter or a
+- In panes views, confirm the current directory and exit with Enter or a
   double-click on the `.` row; Enter and double-clicks on other directories continue browsing. Show Enter
   on the confirmation button when the current-directory row is highlighted; hide
   the shortcut and opening hints for files.
@@ -69,7 +68,7 @@ version is published on GitHub. Development history is recorded separately in
 - Use dim theme-aware text for files so directory entries remain more prominent.
 - Start in a three-pane view with an active middle list, parent/child
   context, colored files, and distinctly marked directory symlinks. Press `v`
-  to cycle through the views, ending with the compact directory-only list.
+  to switch between panes and the expandable tree.
 - Reduce executable size with a small compatible argument parser and simpler
   message formatting, preserving error causes and shell integration.
 

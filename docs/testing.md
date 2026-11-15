@@ -35,9 +35,8 @@ and file/stale-directory guards. Parent-row tests cover filtering, hidden entrie
 root behavior, focus restoration, counts, and child previews. Button checks cover
 confirmation-shortcut equivalence, inactive file styling, NO_COLOR, centered
 outlined geometry, destination clipping, and all four clickable rows.
-Column tests cover ordered two-column pages, automatic fallback for short/narrow
-lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
-filter-mode switching, full-page navigation, and selection/opening from the right.
+Both modes retain one active selection column, with page navigation and stable
+selection while resizing. Removed `list` preferences restore tree view.
 Panes-mode tests verify default mode, a single active middle pane, file-action
 guards, parent and child context, file/link colors and suffixes, directory-link
 navigation, preview failures, and focus across view changes. Both views are
@@ -113,8 +112,7 @@ Use a disposable directory tree and a real interactive terminal:
 4. Toggle hidden directories, open a directory symlink, and remove a selected
    directory from another shell to check recovery after an error.
 5. Resize the terminal while browsing. Check narrow windows and long names.
-   Use a long listing to check automatic two-column layout, Tab/Shift+Tab, and
-   Page Up/Down. Verify that Right opens a directory selected in either column.
+   Use a long listing to check scrolling and Page Up/Down in both modes.
    Open help with `?`, navigate with it expanded, and close it with Esc. Check
    that the selected row stays visible and the help does not cancel the picker.
    Compare dark and light terminal themes, then try `NO_COLOR=1 cdd` and confirm
@@ -129,7 +127,7 @@ Use a disposable directory tree and a real interactive terminal:
    exit. Confirm with each row of the Change Dir button, Cmd+Enter on macOS, or Ctrl+Enter on
    Linux in a compatible terminal. Check that the shown path follows the
    highlighted directory and that terminal keyboard mode is restored on exit.
-   Repeat in panes view and both compact columns, including after scrolling and
+   Repeat in panes view, including after scrolling and
    resizing. Check the wheel, inert side previews and blank rows, file selection
    guards, filtering, and directory-name input.
 9. Press `v` once from panes view to open the expandable tree. Expand two sibling

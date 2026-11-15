@@ -26,9 +26,8 @@ Options:
 
 Keys:
   ↑/↓, k/j       Move selection
-  Tab, Shift+Tab Switch columns in a long list
-  v              Cycle views: tree, panes, list
-  Enter          Change dir in tree; open in panes/list (. confirms)
+  v              Cycle views: tree, panes
+  Enter          Change dir in tree; open in panes (. confirms)
   →, l           Open highlighted dir
   ←, h, Backspace  Focus parent first; press again to go up
   Cmd+Enter      Change dir and exit (macOS)
@@ -55,7 +54,7 @@ Click a disclosure arrow or double-click a dir to toggle its branch.
 The tree filter matches expanded branches and keeps their ancestors visible.
 In tree view, n creates inside the highlighted dir (or a file's parent).
 
-In panes/list, the first row (← Back to parent) goes up; it is absent at /.
+In panes, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
 The Change Dir button shows the shortcut and destination; click to confirm.
 The last used view is restored on startup; tree is the default.

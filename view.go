@@ -68,7 +68,6 @@ var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "focus parent, then open"},
 	{"Enter", "open; . changes dir"}, {changeShortcut(runtime.GOOS), "change dir"},
 	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
-	{"Tab / Shift+Tab", "switch column"},
 	{"n", "new dir"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
@@ -173,9 +172,6 @@ func (m browser) helpLines(width int) []viewLine {
 				hint.action = "filter expanded branches"
 			}
 		}
-		if hint.key == "Tab / Shift+Tab" && m.mode != listView {
-			continue
-		}
 		candidate := append(append([]keyHint(nil), row...), hint)
 		if len(row) > 0 && textWidth(hintText(candidate)) > width {
 			lines = append(lines, m.hints(row))
@@ -186,9 +182,7 @@ func (m browser) helpLines(width int) []viewLine {
 	if len(row) > 0 {
 		lines = append(lines, m.hints(row))
 	}
-	if m.mode != listView {
-		lines = append(lines, viewLine{{"folder  ", m.styles.directory}, {"file  ", m.styles.file}, {"dir-link@", m.styles.link}})
-	}
+	lines = append(lines, viewLine{{"folder  ", m.styles.directory}, {"file  ", m.styles.file}, {"dir-link@", m.styles.link}})
 	return append(lines, m.hints([]keyHint{{"? / Esc", "close help"}}))
 }
 
@@ -338,37 +332,21 @@ func (m browser) pageRows() int {
 	return max(1, m.height-len(header)-len(footer)-extra)
 }
 
-func (m browser) columns() int {
-	width, _ := m.viewWidth()
-	// Leave at least 24 cells per column and three cells for the divider.
-	if m.mode == listView && width >= 2*24+3 && len(m.visible) > m.pageRows() {
-		return 2
-	}
-	return 1
-}
-
-func (m browser) pageSize() int { return m.pageRows() * m.columns() }
+func (m browser) pageSize() int { return m.pageRows() }
 
 func (m browser) pageStart() int {
 	rows := m.pageRows()
-	if m.columns() == 2 {
-		return m.cursor / (rows * 2) * (rows * 2)
-	}
 	// Retain the viewport when focus moves to another visible row, including
 	// a mouse click above the current selection in a scrolled list.
 	start := max(0, min(m.scroll, m.cursor))
 	return max(start, m.cursor-rows+1)
 }
 
-func (m browser) paneWidths(width, columns int) []int {
+func (m browser) paneWidths(width int) []int {
 	if m.mode == panesView {
 		return treeWidths(width)
 	}
-	if columns == 1 {
-		return []int{width}
-	}
-	left := (width - 3) / 2
-	return []int{left, width - 3 - left}
+	return []int{width}
 }
 
 func (m browser) paneLocations(widths []int) []string {
@@ -378,9 +356,6 @@ func (m browser) paneLocations(widths []int) []string {
 		if len(m.visible) > 0 && !m.visible[m.cursor].isDir() {
 			paths[0] = filepath.Dir(paths[0])
 		}
-	}
-	if m.mode == listView && len(widths) == 2 {
-		paths = append(paths, m.path)
 	}
 	if m.mode == panesView && len(widths) == 3 {
 		parent, child := "", ""
@@ -458,20 +433,15 @@ func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 func (m browser) view() string {
 	width, margin := m.viewWidth()
 	header, footer := m.frame()
-	rows, columns := m.pageRows(), m.columns()
-	widths := m.paneWidths(width, columns)
-	capacity := rows * columns
+	rows := m.pageRows()
+	widths := m.paneWidths(width)
+	capacity := rows
 	start := m.pageStart()
 	if m.height >= 8 {
-		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" tree / panes / list", m.styles.muted}}
+		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" tree / panes", m.styles.muted}}
 		if m.mode == outlineView && width >= 14 {
-			title := truncate("cdd  tree   v tree / panes / list", width-len(rootButton)-1)
+			title := truncate("cdd  tree   v tree / panes", width-len(rootButton)-1)
 			header[0] = viewLine{{title + strings.Repeat(" ", width-len(rootButton)-textWidth(title)), m.styles.muted}, {rootButton, m.styles.accent}}
-		}
-	}
-	if columns == 2 {
-		if m.height >= 8 {
-			header[0] = append(header[0], span{"   Tab", m.styles.strong}, span{" switch column", m.styles.muted})
 		}
 	}
 	end := min(len(m.visible), start+capacity)
@@ -494,12 +464,7 @@ func (m browser) view() string {
 		lines = append(lines, m.treeLines(rows, width, margin)...)
 	}
 	for row := 0; m.mode != panesView && row < min(rows, end-start); row++ {
-		if columns == 1 {
-			lines = append(lines, render(m.entryLine(start+row, width)))
-			continue
-		}
-		parts := []viewLine{m.entryLine(start+row, widths[0]), m.entryLine(start+rows+row, widths[1])}
-		lines = append(lines, m.paneRow(parts, widths, margin))
+		lines = append(lines, render(m.entryLine(start+row, width)))
 	}
 	if m.height >= 8 {
 		for len(lines) < m.height-len(footer)-3 {
@@ -524,12 +489,10 @@ func (m browser) view() string {
 		if directories == 1 {
 			count = "1 dir"
 		}
-		if m.mode != listView {
-			if files == 1 {
-				count += " / 1 file"
-			} else {
-				count += " / " + strconv.Itoa(files) + " files"
-			}
+		if files == 1 {
+			count += " / 1 file"
+		} else {
+			count += " / " + strconv.Itoa(files) + " files"
 		}
 		if m.query != "" && m.mode != outlineView {
 			count = strconv.Itoa(directories+files) + " matches"

@@ -52,7 +52,7 @@ func (m browser) breadcrumbAt(x, y int) string {
 		return ""
 	}
 	width, margin := m.viewWidth()
-	widths := m.paneWidths(width, m.columns())
+	widths := m.paneWidths(width)
 	paths := m.paneLocations(widths)
 	left := margin
 	for i, cells := range widths {

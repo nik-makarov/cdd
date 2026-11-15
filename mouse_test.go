@@ -54,11 +54,11 @@ func TestDecodeMouseReports(t *testing.T) {
 }
 
 func TestMouseEntryMatchesRenderedRows(t *testing.T) {
-	for _, compact := range []bool{false, true} {
+	{
 		for _, size := range [][2]int{{120, 24}, {80, 12}, {58, 8}, {40, 7}, {20, 5}} {
 			for _, mode := range []string{"normal", "filter", "help", "error"} {
-				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
-					m := browser{path: "/projects", mode: testView(compact), width: size[0], height: size[1], cursor: 37}
+				t.Run(fmt.Sprintf("%dx%d/%s", size[0], size[1], mode), func(t *testing.T) {
+					m := browser{path: "/projects", mode: panesView, width: size[0], height: size[1], cursor: 37}
 					for i := range 60 {
 						name := fmt.Sprintf("dir-%02d", i)
 						m.visible = append(m.visible, entry{name: name, path: filepath.Join(m.path, name)})
@@ -101,8 +101,8 @@ func TestMouseIgnoresNonEntryAreas(t *testing.T) {
 			t.Fatalf("non-entry cell %v maps to %d", cell, got)
 		}
 	}
-	for _, compact := range []bool{false, true} {
-		m.mode, m.width, m.height = testView(compact), 1, 1
+	{
+		m.mode, m.width, m.height = panesView, 1, 1
 		m.cursor = 2
 		if got := m.mouseEntry(0, 0); got != m.cursor {
 			t.Fatalf("single-cell terminal maps to %d, want %d", got, m.cursor)
@@ -122,17 +122,17 @@ func mouseOn(t *testing.T, m browser, label, button string, when time.Time) keyE
 }
 
 func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
-	for _, mode := range []string{"tree", "list"} {
+	for _, mode := range []string{"panes"} {
 		t.Run(mode, func(t *testing.T) {
 			root := fixture(t)
 			m := loadBrowser(t, root)
-			m.mode = testView(mode == "list")
+			m.mode = panesView
 			m.refilter()
 			click := mouseOn(t, m, "Alpha", "mouse-left", time.Unix(100, 0))
 			if m.handle(click) || m.selected != "" || m.path != root || m.visible[m.cursor].name != "Alpha" {
 				t.Fatal("single click must only highlight the directory")
 			}
-			if m.mode != listView && m.preview != filepath.Join(root, "Alpha") {
+			if m.mode == panesView && m.preview != filepath.Join(root, "Alpha") {
 				t.Fatal("click did not refresh the directory preview")
 			}
 			selected := m
@@ -150,8 +150,8 @@ func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
 }
 
 func TestMouseKeepsScrolledRowsStable(t *testing.T) {
-	for _, compact := range []bool{false, true} {
-		m := browser{path: "/projects", mode: testView(compact), width: 80, height: 16, cursor: 37}
+	{
+		m := browser{path: "/projects", mode: panesView, width: 80, height: 16, cursor: 37}
 		for i := range 60 {
 			m.visible = append(m.visible, entry{name: fmt.Sprintf("dir-%02d", i), path: fmt.Sprintf("/projects/dir-%02d", i)})
 		}
@@ -165,12 +165,12 @@ func TestMouseKeepsScrolledRowsStable(t *testing.T) {
 }
 
 func TestMouseDoubleClickConfirmsCurrentDirectory(t *testing.T) {
-	for _, compact := range []bool{false, true} {
+	{
 		for _, mode := range []string{"normal", "filter", "removed directory"} {
-			t.Run(fmt.Sprintf("compact=%t/%s", compact, mode), func(t *testing.T) {
+			t.Run(mode, func(t *testing.T) {
 				root := t.TempDir()
 				m := loadBrowser(t, root)
-				m.mode = testView(compact)
+				m.mode = panesView
 				if mode == "filter" {
 					m = press(m, "/", "/")
 					m = press(m, "text", "missing")
@@ -197,44 +197,6 @@ func TestMouseDoubleClickConfirmsCurrentDirectory(t *testing.T) {
 				}
 			})
 		}
-	}
-}
-
-func TestMouseOpensSecondColumn(t *testing.T) {
-	root := t.TempDir()
-	for i := range 40 {
-		if err := os.Mkdir(filepath.Join(root, fmt.Sprintf("dir-%02d", i)), 0o700); err != nil {
-			t.Fatal(err)
-		}
-	}
-	for _, target := range []string{"dir-20", "dir-39"} {
-		t.Run(target, func(t *testing.T) {
-			m := loadBrowser(t, root)
-			m.mode = listView
-			if target == "dir-39" {
-				m.cursor = len(m.visible) - 1
-			}
-			width, margin := m.viewWidth()
-			panes := m.paneWidths(width, m.columns())
-			header, _ := m.frame()
-			if target == "dir-39" && m.mouseEntry(margin+panes[0]+3, len(header)+m.pageRows()-1) != -1 {
-				t.Fatal("empty second column must not select a directory")
-			}
-			click := mouseOn(t, m, target, "mouse-left", time.Unix(100, 0))
-			if target == "dir-20" && click.x < margin+panes[0]+3 {
-				t.Fatal("expected a directory in the second column")
-			}
-			if m.handle(click) {
-				t.Fatal("single click selected a directory")
-			}
-			click.when = click.when.Add(200 * time.Millisecond)
-			if m.handle(click) || m.selected != "" || m.path != filepath.Join(root, target) {
-				t.Fatalf("double click opened %q, want %q without selecting", m.path, filepath.Join(root, target))
-			}
-			if !m.handle(keyEvent{name: "confirm"}) || m.selected != filepath.Join(root, target) {
-				t.Fatal("confirmation must choose the opened directory")
-			}
-		})
 	}
 }
 
@@ -339,7 +301,7 @@ func TestMouseBrowsingAndInputModes(t *testing.T) {
 }
 
 func TestMouseOpensParent(t *testing.T) {
-	for _, compact := range []bool{false, true} {
+	{
 		for _, name := range []string{"Alpha", "link"} {
 			for _, query := range []string{"", "missing"} {
 				root := fixture(t)
@@ -348,7 +310,7 @@ func TestMouseOpensParent(t *testing.T) {
 				}
 				start := filepath.Join(root, name)
 				m := loadBrowser(t, start)
-				m.mode, m.query, m.filtering = testView(compact), query, query != ""
+				m.mode, m.query, m.filtering = panesView, query, query != ""
 				m.refilter()
 				click := mouseOn(t, m, "\u2190 Back to parent", "mouse-left", time.Unix(100, 0))
 				if m.handle(click) || m.path != start || m.selected != "" || m.visible[m.cursor].name != ".." {
@@ -365,12 +327,12 @@ func TestMouseOpensParent(t *testing.T) {
 
 func TestSelectButtonMatchesRenderedPosition(t *testing.T) {
 	root := fixture(t)
-	for _, compact := range []bool{false, true} {
+	{
 		for _, size := range [][2]int{{120, 24}, {80, 12}, {40, 7}, {20, 5}, {12, 5}, {20, 2}, {4, 2}} {
 			for _, mode := range []string{"normal", "filter", "completed filter", "help", "error", "create"} {
-				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
+				t.Run(fmt.Sprintf("%dx%d/%s", size[0], size[1], mode), func(t *testing.T) {
 					m := loadBrowser(t, root)
-					m.mode, m.width, m.height = testView(compact), size[0], size[1]
+					m.mode, m.width, m.height = panesView, size[0], size[1]
 					m.filtering, m.creating, m.showHelp = mode == "filter", mode == "create", mode == "help"
 					if mode == "completed filter" {
 						m.query = "missing"

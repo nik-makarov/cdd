@@ -80,7 +80,7 @@ func (m browser) mouseEntry(x, y int) int {
 		return -1
 	}
 	width, margin := m.viewWidth()
-	widths := m.paneWidths(width, m.columns())
+	widths := m.paneWidths(width)
 	left := margin
 	for column, width := range widths {
 		if x >= left && x < left+width {
@@ -88,9 +88,6 @@ func (m browser) mouseEntry(x, y int) int {
 				return -1
 			}
 			index := m.pageStart() + row
-			if m.mode == listView {
-				index += column * rows
-			}
 			if index >= len(m.visible) {
 				return -1
 			}

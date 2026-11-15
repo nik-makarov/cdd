@@ -104,9 +104,6 @@ func (m *browser) refilter() {
 	m.visible = append(m.visible, entry{name: ".", path: m.path})
 	firstMatch := len(m.visible)
 	for _, dir := range m.entries {
-		if m.mode == listView && !dir.isDir() {
-			continue
-		}
 		if !m.hidden && strings.HasPrefix(dir.name, ".") {
 			continue
 		}
@@ -373,18 +370,6 @@ func (m *browser) move(key string) {
 		m.cursor -= m.pageSize()
 	case "pgdown":
 		m.cursor += m.pageSize()
-	case "tab", "backtab":
-		if m.columns() == 2 {
-			rows := m.pageRows()
-			pageStart := m.cursor / (rows * 2) * (rows * 2)
-			if m.cursor-pageStart < rows {
-				if pageStart+rows < len(m.visible) {
-					m.cursor = min(m.cursor+rows, len(m.visible)-1)
-				}
-			} else {
-				m.cursor -= rows
-			}
-		}
 	}
 	m.cursor = max(0, min(m.cursor, len(m.visible)-1))
 }

@@ -659,3 +659,15 @@ entries, keep private data out, and distinguish local work from publication.
   `outline_test.go`, `browser_test.go`, `view.go`, `cli.go`, `README.md`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/development-journal.md`.
+- `2026-11-15T22:18:16Z` — Remove compact directory-only mode, its two-column
+  layout, column-switching controls, and obsolete mode-specific tests. Retain
+  pane navigation coverage and tree/pane focus preservation. Treat saved `list`
+  values as unknown and restore tree. Update current documentation while keeping
+  historical verification records. `make check build`, gopls diagnostics, and
+  `git diff --check` passed; the build retained the nonfatal module-cache write
+  warning. No dependencies changed or publication ran. Paths: `outline.go`,
+  `preferences.go`, `browser.go`, `view.go`, `mouse.go`, `breadcrumb.go`, `cli.go`,
+  `browser_test.go`, `outline_test.go`, `preferences_test.go`, `view_test.go`,
+  `mouse_test.go`, `keyboard_test.go`, `tree_test.go`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

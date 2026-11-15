@@ -57,10 +57,10 @@ func TestExtendedKeyboard(t *testing.T) {
 
 func TestEnterBrowsesAndModifiedEnterConfirms(t *testing.T) {
 	for _, goos := range []string{"darwin", "linux"} {
-		for _, compact := range []bool{false, true} {
+		{
 			root := fixture(t)
 			m := focus(t, loadBrowser(t, root), "Alpha")
-			m.mode = testView(compact)
+			m.mode = panesView
 			if m.handle(keyEvent{name: "enter"}) || m.path != filepath.Join(root, "Alpha") || m.selected != "" {
 				t.Fatal("Enter must only open the highlighted directory")
 			}

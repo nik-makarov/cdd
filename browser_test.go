@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -28,21 +27,13 @@ func press(m browser, name, text string) browser {
 	return m
 }
 
-func testView(compact bool) viewMode {
-	if compact {
-		return listView
-	}
-	return panesView
-}
-
 func loadBrowser(t *testing.T, root string) browser {
 	t.Helper()
 	m, err := newBrowser(root, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Existing directory-only cases exercise the compact list mode.
-	m.mode = listView
+	m.mode = panesView
 	m.refilter()
 	return m
 }
@@ -80,10 +71,10 @@ func TestBrowseAndSelect(t *testing.T) {
 }
 
 func TestParentEntry(t *testing.T) {
-	for _, compact := range []bool{false, true} {
+	{
 		root := fixture(t)
 		m := loadBrowser(t, root)
-		m.mode = testView(compact)
+		m.mode = panesView
 		for _, query := range []string{"", "Alpha", "missing"} {
 			for _, hidden := range []bool{false, true} {
 				m.query, m.hidden = query, hidden
@@ -105,7 +96,7 @@ func TestParentEntry(t *testing.T) {
 		}
 		for _, key := range []string{"right", "l", "enter"} {
 			m = loadBrowser(t, filepath.Join(root, "Alpha"))
-			m.mode = testView(compact)
+			m.mode = panesView
 			m = focus(t, m, "..")
 			if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != "Alpha" || m.selected != "" {
 				t.Fatal("opening .. must restore parent focus without completing selection")
@@ -124,7 +115,7 @@ func TestParentEntry(t *testing.T) {
 }
 
 func TestCreateDirectory(t *testing.T) {
-	for _, mode := range []string{"tree", "list"} {
+	for _, mode := range []string{"panes"} {
 		for _, tt := range []struct{ name, directory string }{
 			{"plain", "new-directory"},
 			{"spaces", " with spaces "},
@@ -138,7 +129,7 @@ func TestCreateDirectory(t *testing.T) {
 			t.Run(mode+"/"+tt.name, func(t *testing.T) {
 				root := fixture(t)
 				m := loadBrowser(t, root)
-				m.mode = testView(mode == "list")
+				m.mode = panesView
 				m = press(m, "/", "/")
 				m = press(m, "text", "Alpha")
 				m = press(m, "enter", "")
@@ -167,7 +158,7 @@ func TestCreateDirectory(t *testing.T) {
 				if strings.HasPrefix(tt.directory, ".") && !m.hidden {
 					t.Fatal("a newly created hidden directory must become visible")
 				}
-				if m.mode != listView && (m.preview != target || len(m.children) != 0 || m.childErr != "") {
+				if m.mode == panesView && (m.preview != target || len(m.children) != 0 || m.childErr != "") {
 					t.Fatal("preview did not refresh to the new empty directory")
 				}
 				if !m.handle(keyEvent{name: "confirm"}) || m.selected != target {
@@ -328,15 +319,9 @@ func TestCreateDirectoryThroughLogicalSymlink(t *testing.T) {
 
 func TestLeftFocusesParentBeforeOpening(t *testing.T) {
 	for _, key := range []string{"left", "h", "backspace"} {
-		for _, compact := range []bool{false, true} {
+		{
 			mode := "tree"
-			if compact {
-				mode = "list"
-			}
 			for _, target := range []string{".", "Alpha", "regular-file", "link"} {
-				if compact && target == "regular-file" {
-					continue
-				}
 				t.Run(key+"/"+mode+"/"+target, func(t *testing.T) {
 					root := fixture(t)
 					if err := os.Symlink("Alpha", filepath.Join(root, "link")); err != nil {
@@ -346,7 +331,7 @@ func TestLeftFocusesParentBeforeOpening(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					m.mode = testView(compact)
+					m.mode = panesView
 					m.refilter()
 					m = focus(t, m, target)
 					m.refreshPreview(false)
@@ -354,7 +339,7 @@ func TestLeftFocusesParentBeforeOpening(t *testing.T) {
 					if m.handle(keyEvent{name: key}) || m.path != root || m.visible[m.cursor].name != ".." || m.message != "" || m.selected != "" {
 						t.Fatalf("first %s must focus .. without leaving or selecting: path %q, cursor %d", key, m.path, m.cursor)
 					}
-					if !compact && (len(m.children) != 0 || m.childErr != "" || m.preview != filepath.Dir(root)) {
+					if len(m.children) != 0 || m.childErr != "" || m.preview != filepath.Dir(root) {
 						t.Fatal("focusing .. must clear the child preview")
 					}
 					if m.handle(keyEvent{name: key}) || m.path != filepath.Dir(root) || m.visible[m.cursor].path != root {
@@ -367,11 +352,11 @@ func TestLeftFocusesParentBeforeOpening(t *testing.T) {
 }
 
 func TestLeftPreservesFilterUntilParentNavigation(t *testing.T) {
-	for _, mode := range []string{"tree", "list"} {
+	for _, mode := range []string{"panes"} {
 		t.Run(mode, func(t *testing.T) {
 			root := fixture(t)
 			m := loadBrowser(t, root)
-			m.mode = testView(mode == "list")
+			m.mode = panesView
 			m = press(m, "/", "/")
 			m = press(m, "text", "Al")
 			m = press(m, "esc", "")
@@ -403,7 +388,7 @@ func TestFilterHiddenAndSymlinks(t *testing.T) {
 	for _, d := range m.visible {
 		names = append(names, d.name)
 	}
-	want := []string{"..", ".", "Alpha", "beta", "link", "with spaces", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439"}
+	want := []string{"..", ".", "Alpha", "beta", "link", "with spaces", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439", "broken", "file-link", "regular-file"}
 	if !slices.Equal(names, want) {
 		t.Fatalf("directories = %v, want %v", names, want)
 	}
@@ -509,89 +494,6 @@ func TestKeyboardHelpPreservesNavigationAndFilterInput(t *testing.T) {
 	}
 }
 
-func TestColumnNavigation(t *testing.T) {
-	root := fixture(t)
-	for i := range 40 {
-		if err := os.Mkdir(filepath.Join(root, "dir-"+strconv.Itoa(i)), 0o755); err != nil {
-			t.Fatal(err)
-		}
-	}
-	m := loadBrowser(t, root)
-	m.width, m.height = 80, 16
-	rows, page := m.pageRows(), m.pageSize()
-	for _, tt := range []struct {
-		name, key   string
-		start, want int
-	}{
-		{"switch right", "tab", 2, rows + 2},
-		{"switch left", "tab", rows + 2, 2},
-		{"reverse switch", "backtab", 2, rows + 2},
-		{"reverse return", "backtab", rows + 2, 2},
-		{"down enters second column", "down", rows - 1, rows},
-		{"up returns to first column", "up", rows, rows - 1},
-		{"next page", "pgdown", 2, page + 2},
-		{"previous page", "pgup", page + 2, 2},
-		{"first entry", "home", page + 2, 0},
-		{"last entry", "end", 0, len(m.visible) - 1},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			m := m
-			m.cursor = tt.start
-			m = press(m, tt.key, "")
-			if m.cursor != tt.want || m.path != root {
-				t.Fatalf("cursor %d, path %q; want cursor %d in %q", m.cursor, m.path, tt.want, root)
-			}
-		})
-	}
-	partial := m
-	partial.visible = partial.visible[:page+rows]
-	partial.cursor = page
-	partial = press(partial, "tab", "")
-	if partial.cursor != page {
-		t.Fatal("switching to an empty column must preserve selection")
-	}
-	partial = m
-	partial.visible = partial.visible[:page+rows+2]
-	partial.cursor = page + rows - 1
-	partial = press(partial, "tab", "")
-	if partial.cursor != len(partial.visible)-1 {
-		t.Fatal("switching to a shorter column should select its last entry")
-	}
-	m.cursor = 2
-	m = press(m, "tab", "")
-	wantPath := m.visible[m.cursor].path
-	parent := press(m, "left", "")
-	if parent.path != root || parent.visible[parent.cursor].name != ".." {
-		t.Fatal("Left from the second column must focus .. in the same directory")
-	}
-	selected := press(m, "confirm", "")
-	if selected.selected != wantPath {
-		t.Fatal("right column selected the wrong directory")
-	}
-	m = press(m, "right", "")
-	if m.path != wantPath {
-		t.Fatal("Right must still open the directory")
-	}
-	m = press(m, "left", "")
-	m = press(m, "left", "")
-	if m.path != root || m.visible[m.cursor].path != wantPath {
-		t.Fatal("Left must restore parent focus")
-	}
-	m = press(m, "/", "/")
-	m = press(m, "dir-", "dir-")
-	before, query := m.cursor, m.query
-	m = press(m, "tab", "")
-	if m.cursor != before+m.pageRows() || m.query != query || !m.filtering {
-		t.Fatal("filter-mode Tab should switch columns without changing the query")
-	}
-	m.width = 40
-	before = m.cursor
-	m = press(m, "tab", "")
-	if m.cursor != before {
-		t.Fatal("Tab in a single column should keep selection")
-	}
-}
-
 func TestPanesAndModeSwitch(t *testing.T) {
 	root := fixture(t)
 	m, err := newBrowser(root, false)
@@ -615,17 +517,12 @@ func TestPanesAndModeSwitch(t *testing.T) {
 		})
 	}
 	m = press(m, "v", "v")
-	if m.mode != listView || m.visible[m.cursor].path != root {
-		t.Fatal("switching from a file should focus current directory in compact mode")
-	}
-	for _, item := range m.visible {
-		if !item.isDir() {
-			t.Fatal("compact mode must retain directory-only behavior")
-		}
+	if m.mode != outlineView || m.visible[m.cursor].name != "regular-file" {
+		t.Fatal("switching to tree must retain file focus")
 	}
 	m = focus(t, m, "Alpha")
 	m = press(m, "v", "v")
-	if m.mode == listView || m.visible[m.cursor].name != "Alpha" {
+	if m.mode != panesView || m.visible[m.cursor].name != "Alpha" {
 		t.Fatal("mode switch lost directory focus")
 	}
 	m = press(m, "tab", "")
@@ -634,7 +531,7 @@ func TestPanesAndModeSwitch(t *testing.T) {
 	}
 	m = press(m, "/", "/")
 	m = press(m, "v", "v")
-	if m.mode == listView || m.query != "v" || !m.filtering {
+	if m.mode != panesView || m.query != "v" || !m.filtering {
 		t.Fatal("v must remain literal while filtering")
 	}
 }
@@ -737,7 +634,7 @@ func TestTreePreviewClearsOnCurrentDirectory(t *testing.T) {
 	checkEmpty("return to current row")
 	m = press(m, "ctrl+r", "")
 	checkEmpty("refresh")
-	for range 3 {
+	for range 2 {
 		m = press(m, "v", "v")
 	}
 	checkEmpty("view round trip")

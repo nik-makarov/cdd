@@ -640,3 +640,12 @@ entries, keep private data out, and distinguish local work from publication.
   or publication ran. Paths: `browser.go`, `outline.go`, `outline_test.go`,
   `view.go`, `mouse.go`, `cli.go`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/development-journal.md`.
+- `2026-11-15T22:11:05Z` — Make visible header path components clickable for
+  browsing, with tree paths following the highlighted directory or file parent.
+  Share pane locations between rendering and hit testing; ignore ellipses,
+  separators, margins, and hidden headers. Cover clipped, Unicode, control-bearing,
+  and literal paths plus navigation without shell confirmation. `make check build`
+  and `git diff --check` passed; the build retained the nonfatal module-cache write
+  warning. No dependencies changed or publication ran. Paths: `breadcrumb.go`,
+  `breadcrumb_test.go`, `view.go`, `mouse.go`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/development-journal.md`.

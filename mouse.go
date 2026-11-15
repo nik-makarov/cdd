@@ -135,6 +135,12 @@ func (m *browser) handleMouse(key keyEvent) bool {
 		m.showRootTree()
 		return false
 	}
+	if key.name == "mouse-left" {
+		if path := m.breadcrumbAt(key.x, key.y); path != "" {
+			m.navigate(path, "")
+			return false
+		}
+	}
 	if key.name == "mouse-left" && m.selectButtonAt(key.x, key.y) {
 		return m.handle(keyEvent{name: "confirm"})
 	}

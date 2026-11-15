@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Click visible folder components in header paths to navigate without changing
+  the shell directory. Tree breadcrumbs follow the highlighted directory.
 - Show the tree from `/` using the header's `[/ Root]` button or `\`, retaining
   the highlighted path and allowing navigation above home.
 - Remember the last successfully chosen view, including after cancellation.

@@ -281,6 +281,11 @@ determined, cdd runs with the default view without persisting switches.
 
 ### Shared styling and controls
 
+Click any visible folder name in a header path to browse there without confirming
+a shell directory change. In tree view the path follows the highlighted directory
+(or a file's parent); this also exposes ancestors above the initial home root.
+The `/` component navigates to the filesystem root. Clipped ellipses are inert.
+
 The path highlights the directory currently being viewed; long paths are
 shortened from the left. A reverse-video bar and a `>` marker identify the
 selected row. Errors use the terminal's red and secondary labels use dim text.

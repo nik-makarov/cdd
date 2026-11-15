@@ -371,10 +371,13 @@ func (m browser) paneWidths(width, columns int) []int {
 	return []int{left, width - 3 - left}
 }
 
-func (m browser) panePaths(widths []int, margin int) string {
+func (m browser) paneLocations(widths []int) []string {
 	paths := []string{m.path}
 	if m.mode == outlineView {
-		paths[0] = m.treeRoot
+		paths[0] = m.focusedPath()
+		if len(m.visible) > 0 && !m.visible[m.cursor].isDir() {
+			paths[0] = filepath.Dir(paths[0])
+		}
 	}
 	if m.mode == listView && len(widths) == 2 {
 		paths = append(paths, m.path)
@@ -392,6 +395,11 @@ func (m browser) panePaths(widths []int, margin int) string {
 		}
 		paths = []string{parent, m.path, child}
 	}
+	return paths
+}
+
+func (m browser) panePaths(widths []int, margin int) string {
+	paths := m.paneLocations(widths)
 	parts := make([]viewLine, len(paths))
 	for i, path := range paths {
 		parts[i] = m.pathLine(path, widths[i], path == m.path || m.mode == outlineView)

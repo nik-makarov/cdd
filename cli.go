@@ -34,6 +34,7 @@ Keys:
   Ctrl+Enter     Change dir and exit (Linux)
   n              Create a dir in the current location
   Shift+N        Create an empty file in the highlighted dir (or file's parent)
+  r              Rename the highlighted file/dir without overwriting
   Space          Preview file (Quick Look on macOS; text preview on Linux)
   Configured key Open dir/file in editor (Zed, then VS Code)
   /              Filter names (Esc finishes; Enter confirms in tree)

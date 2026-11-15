@@ -766,3 +766,20 @@ entries, keep private data out, and distinguish local work from publication.
   `editor_test.go`, `actions.go`, `view.go`, `cli.go`, `README.md`, `CHANGELOG.md`,
   `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T23:09:49Z` — Add a Rename footer button and `r` shortcut with
+  prefilled, replace-on-type modal input. Rename a literal child name using native
+  exclusive operations on macOS/Linux, preserving contents and refusing existing
+  destinations. Capture and recheck entry identity without following the final
+  symlink; protect navigation rows and current/starting locations and ancestors.
+  Refresh tree caches and focus after success. Update scope, help, and docs.
+  Tests cover both modes, nonempty dirs, links, hidden/Unicode/metacharacter names,
+  invalid names, overwrite refusal, stale sources, cancellation, mouse activation,
+  sanitization, input precedence, and footer ordering. `make check build
+  cross-build`, gopls diagnostics, and `git diff --check` passed for the host and
+  Linux/macOS amd64/arm64; builds retained the nonfatal module-cache write warning.
+  No dependencies changed or publication ran. Paths: `mutation.go`,
+  `mutation_test.go`, `rename_darwin.go`, `rename_linux.go`, `entry_buttons.go`,
+  `browser.go`, `mouse.go`, `view.go`, `view_test.go`, `config.go`, `config_test.go`,
+  `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `docs/configuration.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

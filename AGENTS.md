@@ -14,7 +14,8 @@ Keep this small CLI simple. UI and diagnostics go to the terminal/stderr;
 stdout is reserved for the selected path. Preserve shell integration tests,
 especially cancellation and filenames containing shell metacharacters.
 The application's scope is directory navigation and selection, creating a
-directory as a navigation destination, creating an empty named file, explicit file
+directory as a navigation destination, creating an empty named file, renaming a
+selected file or directory without replacing existing entries, explicit file
 preview/opening, editor project or single-file launching, and shell integration
 for cd. Do not add other file management, background services, networking, or
 unrelated capabilities.

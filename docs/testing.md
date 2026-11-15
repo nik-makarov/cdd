@@ -31,6 +31,9 @@ logical directory symlinks, literal Unicode/metacharacter names, hidden files,
 zero-byte contents, non-overwrite behavior for files and symlinks, invalid names,
 cancellation, missing-parent retry, input precedence, and directory-selection
 guards. Shifted ASCII keys are covered in legacy and CSI-u input.
+Rename checks cover both modes, literal and hidden names, nonempty dirs, symlinks,
+overwrite refusal, invalid names, replaced-source detection, protected locations,
+button hit testing, cancellation, terminal sanitization, and text-input precedence.
 Mouse tests cover fragmented SGR and legacy reports, invalid coordinates, rendered
 row and button hit testing across layouts and input modes, stable scrolling,
 single/double clicks with small pointer drift, current-directory confirmation

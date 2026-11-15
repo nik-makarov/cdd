@@ -42,6 +42,7 @@ type browser struct {
 	filePreview  *filePreview
 	action       externalAction
 	config       configuration
+	mutation     *entryMutation
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
@@ -149,6 +150,10 @@ func (m *browser) handle(key keyEvent) bool {
 		m.scroll = m.pageStart()
 		m.refreshPreview(false)
 	}()
+	if m.mutation != nil {
+		m.handleMutationInput(key)
+		return false
+	}
 	if strings.HasPrefix(key.name, "mouse-") {
 		return m.handleMouse(key)
 	}
@@ -263,6 +268,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.creating, m.showHelp = true, false
 		m.creatingFile = key.name == "N"
 		m.newName, m.message = "", ""
+	case "r":
+		m.beginRename()
 	case ".":
 		m.hidden = !m.hidden
 		m.refilter()

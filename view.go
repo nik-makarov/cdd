@@ -70,6 +70,7 @@ var helpHints = []keyHint{
 	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"n", "new dir"},
 	{"Shift+N", "new file"},
+	{"r", "rename file/dir"},
 	{"Space", "preview file"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
@@ -89,6 +90,9 @@ func (m browser) hints(hints []keyHint) viewLine {
 }
 
 func (m browser) shortHelp(width int) viewLine {
+	if m.mutation != nil {
+		return m.hints([]keyHint{{"Enter", "rename"}, {"Esc", "cancel"}})
+	}
 	if m.creating {
 		return m.hints([]keyHint{{"Enter", "create"}, {"Esc", "cancel"}})
 	}
@@ -226,7 +230,7 @@ func (m browser) selectButton() []viewLine {
 	width, margin := m.viewWidth()
 	shortcut := changeShortcut(runtime.GOOS)
 	label := "Change Dir"
-	if m.filtering || m.creating || width < textWidth(label+shortcut)+6 || len(m.visible) == 0 {
+	if m.filtering || m.creating || m.mutation != nil || width < textWidth(label+shortcut)+6 || len(m.visible) == 0 {
 		return nil
 	}
 	buttonWidth := min(width, 54)
@@ -288,7 +292,10 @@ func (m browser) frame() (header, footer []viewLine) {
 		footer = m.helpLines(width)
 	}
 	var status []viewLine
-	if m.creating {
+	if m.mutation != nil {
+		status = append(status, viewLine{{"Rename: " + tail(display(m.mutation.path), max(1, width-8)), m.styles.muted}})
+		status = append(status, viewLine{{"New name: ", m.styles.strong}, {tail(display(m.mutation.input)+"_", max(1, width-10)), m.styles.accent}})
+	} else if m.creating {
 		if m.mode == outlineView || m.creatingFile {
 			status = append(status, viewLine{{"New in: " + tail(display(m.creationPath()), max(1, width-8)), m.styles.muted}})
 		}
@@ -320,6 +327,9 @@ func (m browser) frame() (header, footer []viewLine) {
 	button := m.selectButton()
 	if len(button) > maxFooter-len(status) {
 		button = nil
+	}
+	if actions := m.entryButtons(); len(actions) <= maxFooter-len(status)-len(button)-1 {
+		button = append(button, actions...)
 	}
 	helpRows := maxFooter - len(status) - len(button)
 	if len(footer) > helpRows {

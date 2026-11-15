@@ -74,6 +74,7 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Enter / Esc while filtering | In panes, finish editing; in tree, Enter chooses the highlighted directory and Esc finishes editing |
 | `n` | Enter a name for a new directory in the current location |
 | Shift+N | Enter a name for an empty file inside the highlighted directory (or beside a highlighted file) |
+| `r` / Rename button | Rename the highlighted file or dir; Enter saves, Esc cancels |
 | Enter / Esc while naming | Create the directory or file / cancel name input |
 | `.` | Toggle hidden directories |
 | `~` | Go to the home directory |
@@ -182,6 +183,19 @@ is visible. Right opens it for browsing; use the confirmation shortcut or
 `Change Dir` to select it and exit. Enter confirms it in tree view and opens it
 for browsing in panes views.
 Cancelling the picker after creation leaves the new directory on disk.
+
+## Rename a file or dir
+
+Highlight an entry and press `r` or click Rename above the shortcut hints. The
+existing name is prefilled; typing replaces it, and Backspace clears it before
+editing. Enter applies one literal name in the same parent dir. Esc cancels.
+Existing entries, including broken symlinks, are never overwritten. Errors leave
+the name editable. Renaming a symlink changes the link itself, not its target.
+
+Navigation rows and the current/starting dirs and their ancestors are protected.
+The prompt keeps the original target fixed and rejects an entry replaced while
+input was open. After success, the listing refreshes and selects the renamed
+entry; hidden names become visible. Shell directory selection stays unchanged.
 
 ## Create an empty file
 

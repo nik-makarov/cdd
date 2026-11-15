@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Rename the highlighted file, folder, or symlink with `r` or the Rename button,
+  preserving contents and refusing to overwrite existing entries.
 - Create an empty named file with Shift+N inside the highlighted folder or beside
   the highlighted file. Focus the new file without opening it or overwriting
   existing entries.

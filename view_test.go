@@ -377,7 +377,16 @@ func TestSelectButtonDestination(t *testing.T) {
 		t.Fatal("clipped destination must retain its final directory name")
 	}
 	view := strings.Split(plainFrame(m.view()), "\n")
-	if !strings.Contains(view[m.height-5], "Change Dir") || !strings.Contains(view[m.height-5], changeShortcut(runtime.GOOS)) || !strings.Contains(view[m.height-4], "destination") || !strings.Contains(view[m.height-2], "Enter open") {
+	buttonRow, hintRow := -1, -1
+	for row, line := range view {
+		if strings.Contains(line, "Change Dir") {
+			buttonRow = row
+		}
+		if strings.Contains(line, "Enter open") {
+			hintRow = row
+		}
+	}
+	if buttonRow < 0 || hintRow <= buttonRow || !strings.Contains(view[buttonRow], changeShortcut(runtime.GOOS)) || !strings.Contains(view[buttonRow+1], "destination") {
 		t.Fatal("the button must appear above the keyboard shortcuts")
 	}
 }

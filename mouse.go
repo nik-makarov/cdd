@@ -128,6 +128,11 @@ func (m *browser) handleMouse(key keyEvent) bool {
 	}
 	previous := m.lastClick
 	m.lastClick = mouseClick{}
+	if key.name == "mouse-left" {
+		if action := m.entryButtonAt(key.x, key.y); action != "" {
+			return m.handle(keyEvent{name: action})
+		}
+	}
 	if key.name == "mouse-left" && m.rootButtonAt(key.x, key.y) {
 		m.showRootTree()
 		return false

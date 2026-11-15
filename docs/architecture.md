@@ -9,6 +9,13 @@ Empty-file creation uses the same literal-name input with Shift+N, targeting the
 highlighted directory in both modes or the highlighted file's parent. It uses
 `os.OpenFile` with `O_CREATE|O_EXCL`, never truncation, closes immediately, and
 refreshes focus without returning a file as a directory destination.
+Rename uses an exclusive native rename (`RENAME_EXCL` on macOS,
+`RENAME_NOREPLACE` on Linux). It captures the entry with `Lstat`, resolves the
+parent without following the final symlink, and rechecks identity before moving.
+No overwrite fallback is used. Current/starting locations and ancestors are
+protected. Modal input freezes the target; successful renames invalidate affected
+tree branches and refresh selection. Footer action hit testing shares rendered
+button rows and respects clipped layouts.
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 

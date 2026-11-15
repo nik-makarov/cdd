@@ -324,3 +324,22 @@ entries, keep private data out, and distinguish local work from publication.
   check and CLI assertions confirmed no ANSI styling outside a terminal. No
   dependencies changed. Paths: `cli.go`, `cli_test.go`, `shell.go`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/development-journal.md`.
+- `2026-11-15T13:39:35Z` — Add directory creation with n, editable name input,
+  Enter to create, and Esc to dismiss. Create one literal child of the current
+  directory with os.Mkdir, preserve existing entries, and keep failed names
+  editable. Refresh and focus the new directory, clear completed filters, and
+  reveal newly created hidden directories. Add footer/help controls, clipped
+  input rendering, usage instructions, release notes, and the requested narrow
+  scope exception for creating navigation destinations. Formatting, vet,
+  shuffled race-enabled application/tool tests, and host build passed with a
+  temporary Go build cache; the build retained the nonfatal module-cache write
+  warning. Tests cover both views, Unicode editing, literal metacharacters,
+  cancellation, invalid names, existing files/directories/symlinks, filesystem
+  failure and retry, logical symlink paths, and terminal-size constraints.
+  A native zsh PTY check verified an existing-name error, creation and focus of
+  a space-containing name, and a successful shell directory change. A bash PTY
+  check verified cancellation in compact mode without creation or a directory
+  change. No dependencies changed or hosted CI/publication ran for this change.
+  Paths: `AGENTS.md`, `browser.go`, `browser_test.go`, `view.go`, `view_test.go`,
+  `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

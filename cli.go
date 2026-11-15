@@ -31,6 +31,7 @@ Keys:
   →, l           Open highlighted directory
   ←, h, Backspace  Focus . first; from . go to parent
   Enter          Select highlighted directory and exit
+  n              Create a directory in the current location
   /              Filter directory names (Enter/Esc finishes filtering)
   .              Toggle hidden directories
   ~              Go to home directory

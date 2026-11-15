@@ -14,8 +14,10 @@ type browser struct {
 	compact   bool
 	hidden    bool
 	filtering bool
+	creating  bool
 	showHelp  bool
 	query     string
+	newName   string
 	message   string
 	selected  string
 	width     int
@@ -43,6 +45,7 @@ func (m *browser) open(path, focus string) error {
 	}
 	m.path, m.entries = path, entries
 	m.query, m.message, m.filtering = "", "", false
+	m.newName, m.creating = "", false
 	m.refilter()
 	for i, dir := range m.visible {
 		if dir.name == focus {
@@ -80,6 +83,26 @@ func (m *browser) handle(key keyEvent) bool {
 		return true
 	}
 	defer m.refreshPreview(false)
+	if m.creating {
+		switch key.name {
+		case "esc":
+			m.creating, m.newName, m.message = false, "", ""
+		case "enter":
+			m.createDirectory()
+		case "backspace":
+			runes := []rune(m.newName)
+			if len(runes) > 0 {
+				m.newName = string(runes[:len(runes)-1])
+			}
+			m.message = ""
+		default:
+			if key.text != "" {
+				m.newName += key.text
+				m.message = ""
+			}
+		}
+		return false
+	}
 	if m.filtering {
 		switch key.name {
 		case "esc", "enter":
@@ -143,6 +166,9 @@ func (m *browser) handle(key keyEvent) bool {
 		m.filtering = true
 		m.query = ""
 		m.refilter()
+	case "n":
+		m.creating, m.showHelp = true, false
+		m.newName, m.message = "", ""
 	case ".":
 		m.hidden = !m.hidden
 		m.refilter()
@@ -171,6 +197,25 @@ func (m *browser) handle(key keyEvent) bool {
 		m.refreshContext()
 	}
 	return false
+}
+
+func (m *browser) createDirectory() {
+	name := m.newName
+	if name == "" || name == "." || name == ".." || strings.ContainsAny(name, "/\x00") {
+		m.message = "Enter a single directory name, not a path, . or .."
+		return
+	}
+	if err := os.Mkdir(filepath.Join(m.path, name), 0o755); err != nil {
+		m.message = wrapError("create directory", err).Error()
+		return
+	}
+	m.creating, m.newName = false, ""
+	if strings.HasPrefix(name, ".") {
+		m.hidden = true
+	}
+	if err := m.open(m.path, name); err != nil {
+		m.message = "Directory created, but refreshing failed: " + err.Error()
+	}
 }
 
 func (m *browser) refreshContext() {

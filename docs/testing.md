@@ -21,6 +21,11 @@ hidden directories, symlinks, removed directories, cancellation, narrow views,
 and display sanitization. Styled-view tests cover terminal color policy,
 non-empty `NO_COLOR` (including `0`), tiny windows, scrolling with expanded help,
 literal `?` filter input, and sanitization of dynamic text before styling.
+Directory-creation tests cover both views, literal names with spaces/Unicode/
+metacharacters, hidden entries, existing files/directories/symlinks, invalid
+paths, editing and retry, cancellation, a removed parent, and logical symlink
+paths. Creation prompt checks cover long names, terminal-control sanitization,
+and small terminal sizes.
 Column tests cover ordered two-column pages, automatic fallback for short/narrow
 lists, stable Unicode dividers, isolated selection styles, Tab and Shift+Tab,
 filter-mode switching, full-page navigation, and selection/opening from the right.

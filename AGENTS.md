@@ -13,9 +13,10 @@ without any personal agent skills or local tooling configuration.
 Keep this small CLI simple. UI and diagnostics go to the terminal/stderr;
 stdout is reserved for the selected path. Preserve shell integration tests,
 especially cancellation and filenames containing shell metacharacters.
-The application's scope is directory navigation and selection plus shell
-integration for cd. Do not add file management, background services, networking,
-or unrelated capabilities. Features must directly support choosing a directory.
+The application's scope is directory navigation and selection, creating a
+directory as a navigation destination, and shell integration for cd. Do not add
+other file management, background services, networking, or unrelated capabilities.
+Features must directly support choosing a directory.
 File names may be displayed as browsing context, but files must never be opened,
 executed, modified, or returned as a selected directory.
 

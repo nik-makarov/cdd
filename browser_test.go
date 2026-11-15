@@ -71,6 +71,209 @@ func TestBrowseAndSelect(t *testing.T) {
 	}
 }
 
+func TestCreateDirectory(t *testing.T) {
+	for _, mode := range []string{"tree", "list"} {
+		for _, tt := range []struct{ name, directory string }{
+			{"plain", "new-directory"},
+			{"spaces", " with spaces "},
+			{"unicode", "\u041d\u043e\u0432\u0430\u044f \u65e5\u672c\u8a9e"},
+			{"hidden", ".new-hidden"},
+			{"leading dash", "-new"},
+			{"backslash", `back\slash`},
+			{"metacharacters", "quote'\" $() `touch INJECTED` ; * [x]"},
+			{"shortcut letters", "nqvjhkl.?~"},
+		} {
+			t.Run(mode+"/"+tt.name, func(t *testing.T) {
+				root := fixture(t)
+				m := loadBrowser(t, root)
+				m.compact = mode == "list"
+				m = press(m, "/", "/")
+				m = press(m, "text", "Alpha")
+				m = press(m, "enter", "")
+				m = press(m, "?", "?")
+				m = press(m, "n", "n")
+				if !m.creating || m.showHelp || m.query != "Alpha" {
+					t.Fatal("new-directory input must close help and preserve the listing until confirmation")
+				}
+				for _, r := range tt.directory {
+					m = press(m, string(r), string(r))
+				}
+				target := filepath.Join(root, tt.directory)
+				if _, err := os.Stat(target); !os.IsNotExist(err) {
+					t.Fatal("typing a name must not create the directory")
+				}
+				if m.handle(keyEvent{name: "enter"}) {
+					t.Fatal("creating a directory must keep the picker open")
+				}
+				info, err := os.Stat(target)
+				if err != nil || !info.IsDir() {
+					t.Fatalf("directory was not created: %v", err)
+				}
+				if m.creating || m.newName != "" || m.path != root || m.query != "" || m.message != "" || m.selected != "" || m.visible[m.cursor].path != target {
+					t.Fatalf("new directory is not ready to choose: %+v", m)
+				}
+				if strings.HasPrefix(tt.directory, ".") && !m.hidden {
+					t.Fatal("a newly created hidden directory must become visible")
+				}
+				if !m.compact && (m.preview != target || len(m.children) != 0 || m.childErr != "") {
+					t.Fatal("preview did not refresh to the new empty directory")
+				}
+				if !m.handle(keyEvent{name: "enter"}) || m.selected != target {
+					t.Fatal("Enter must select the new directory")
+				}
+				if _, err := os.Stat(filepath.Join(root, "INJECTED")); !os.IsNotExist(err) {
+					t.Fatal("directory name was interpreted as a shell command")
+				}
+			})
+		}
+	}
+}
+
+func TestCreateDirectoryCancellation(t *testing.T) {
+	for _, key := range []string{"esc", "ctrl+c", "ctrl+d"} {
+		t.Run(key, func(t *testing.T) {
+			root := fixture(t)
+			m := loadBrowser(t, root)
+			m.query = "Alpha"
+			m.refilter()
+			cursor := m.cursor
+			m = press(m, "n", "n")
+			m = press(m, "text", "cancelled")
+			if done := m.handle(keyEvent{name: key}); done != (key != "esc") {
+				t.Fatalf("unexpected exit behavior for %s", key)
+			}
+			if m.path != root || m.cursor != cursor || m.query != "Alpha" || m.hidden || m.selected != "" {
+				t.Fatal("cancellation changed the browsing state")
+			}
+			if key == "esc" && (m.creating || m.newName != "") {
+				t.Fatal("Esc did not dismiss the name input")
+			}
+			if _, err := os.Stat(filepath.Join(root, "cancelled")); !os.IsNotExist(err) {
+				t.Fatal("cancellation created a directory")
+			}
+		})
+	}
+}
+
+func TestCreateDirectoryRejectsInvalidNamesAndExistingEntries(t *testing.T) {
+	for _, tt := range []struct{ name, directory string }{
+		{"empty", ""}, {"current", "."}, {"parent", ".."},
+		{"nested", "Alpha/nested-new"}, {"outside", "../outside"},
+		{"trailing slash", "Alpha/"}, {"nul", "bad\x00name"},
+		{"existing directory", "Alpha"}, {"existing file", "regular-file"},
+		{"directory link", "directory-link"}, {"file link", "file-link"},
+		{"broken link", "broken-link"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			root := fixture(t)
+			for name, target := range map[string]string{"directory-link": "Alpha", "file-link": "regular-file", "broken-link": "missing"} {
+				if err := os.Symlink(target, filepath.Join(root, name)); err != nil {
+					t.Fatal(err)
+				}
+			}
+			m := focus(t, loadBrowser(t, root), "Alpha")
+			cursor := m.cursor
+			m = press(m, "n", "n")
+			m = press(m, "text", tt.directory)
+			if m.handle(keyEvent{name: "enter"}) || !m.creating || m.message == "" || m.newName != tt.directory || m.path != root || m.cursor != cursor || m.selected != "" {
+				t.Fatalf("invalid creation did not retain editable input: %+v", m)
+			}
+			content, err := os.ReadFile(filepath.Join(root, "regular-file"))
+			if err != nil || string(content) != "text" {
+				t.Fatal("existing file was changed")
+			}
+			for _, path := range []string{filepath.Join(root, "Alpha", "nested-new"), filepath.Join(root, "..", "outside"), filepath.Join(root, "missing")} {
+				if _, err := os.Stat(path); !os.IsNotExist(err) {
+					t.Fatalf("invalid name created %q", path)
+				}
+			}
+			m = press(m, "esc", "")
+			if m.creating || m.message != "" {
+				t.Fatal("Esc must dismiss failed creation")
+			}
+		})
+	}
+}
+
+func TestCreateDirectoryEditingAndRetry(t *testing.T) {
+	root := fixture(t)
+	m := loadBrowser(t, root)
+	m = press(m, "n", "n")
+	m = press(m, "text", "Alpha")
+	m = press(m, "enter", "")
+	if m.message == "" {
+		t.Fatal("existing directory must report a creation error")
+	}
+	m = press(m, "text", "\u754c")
+	if m.message != "" {
+		t.Fatal("editing must clear the previous error")
+	}
+	m = press(m, "backspace", "")
+	if m.newName != "Alpha" {
+		t.Fatal("Backspace split a Unicode rune")
+	}
+	for range 6 {
+		m = press(m, "backspace", "")
+	}
+	if m.newName != "" || m.path != root {
+		t.Fatal("Backspace on empty input must not navigate")
+	}
+	m = press(m, "text", "retry")
+	for _, key := range []string{"up", "down", "left", "right", "home", "end", "pgup", "pgdown", "tab", "backtab", "ctrl+r"} {
+		m = press(m, key, "")
+	}
+	if !m.creating || m.newName != "retry" || m.path != root {
+		t.Fatal("navigation keys changed the creation input or location")
+	}
+	m = press(m, "enter", "")
+	if m.creating || m.message != "" || m.visible[m.cursor].name != "retry" {
+		t.Fatal("corrected name was not created and focused")
+	}
+}
+
+func TestCreateDirectoryAfterParentDisappears(t *testing.T) {
+	root := t.TempDir()
+	m := loadBrowser(t, root)
+	m = press(m, "n", "n")
+	m = press(m, "text", "child")
+	if err := os.Remove(root); err != nil {
+		t.Fatal(err)
+	}
+	m = press(m, "enter", "")
+	if !m.creating || m.message == "" || m.selected != "" {
+		t.Fatal("filesystem error must keep the name editable")
+	}
+	if err := os.Mkdir(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	m = press(m, "enter", "")
+	if m.creating || m.message != "" || m.visible[m.cursor].name != "child" {
+		t.Fatal("creation could not recover after the parent returned")
+	}
+}
+
+func TestCreateDirectoryThroughLogicalSymlink(t *testing.T) {
+	base := t.TempDir()
+	real, link := filepath.Join(base, "real"), filepath.Join(base, "link")
+	if err := os.Mkdir(real, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(real, link); err != nil {
+		t.Fatal(err)
+	}
+	m := loadBrowser(t, link)
+	m = press(m, "n", "n")
+	m = press(m, "text", "child")
+	m = press(m, "enter", "")
+	m = press(m, "enter", "")
+	if m.selected != filepath.Join(link, "child") {
+		t.Fatal("creation lost the logical symlink path")
+	}
+	if info, err := os.Stat(filepath.Join(real, "child")); err != nil || !info.IsDir() {
+		t.Fatalf("directory missing from symlink target: %v", err)
+	}
+}
+
 func TestLeftFocusesCurrentBeforeParent(t *testing.T) {
 	for _, key := range []string{"left", "h", "backspace"} {
 		for _, compact := range []bool{false, true} {
@@ -241,6 +444,10 @@ func TestKeyboardHelpPreservesNavigationAndFilterInput(t *testing.T) {
 	m = press(m, "?", "?")
 	if m.showHelp || m.query != "?" || !m.filtering {
 		t.Fatal("question mark must remain literal input in filter mode")
+	}
+	m = press(m, "n", "n")
+	if m.creating || m.query != "?n" || !m.filtering {
+		t.Fatal("n must remain literal input in filter mode")
 	}
 }
 

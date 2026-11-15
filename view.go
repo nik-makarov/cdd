@@ -66,6 +66,7 @@ var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "current, then parent"},
 	{"Enter", "select"}, {"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"Tab / Shift+Tab", "switch column"},
+	{"n", "new directory"},
 	{"v", "switch view"},
 	{"/", "filter"}, {".", "hidden"}, {"~", "home"}, {"Ctrl+R", "refresh"},
 	{"Esc / q / Ctrl+C / Ctrl+D", "cancel"},
@@ -83,6 +84,9 @@ func (m browser) hints(hints []keyHint) viewLine {
 }
 
 func (m browser) shortHelp(width int) viewLine {
+	if m.creating {
+		return m.hints([]keyHint{{"Enter", "create"}, {"Esc", "cancel"}})
+	}
 	if m.filtering {
 		return m.hints([]keyHint{{"Enter / Esc", "finish filter"}, {"↑↓", "move"}})
 	}
@@ -90,9 +94,9 @@ func (m browser) shortHelp(width int) viewLine {
 	if m.cursor != 0 {
 		leftAction = "current"
 	}
-	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", leftAction}, {"Enter", "select"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
+	hints := []keyHint{{"↑↓", "move"}, {"→", "open"}, {"←", leftAction}, {"Enter", "select"}, {"n", "new dir"}, {"/", "filter"}, {"v", "view"}, {"?", "help"}, {"Esc", "cancel"}}
 	// Preserve selection, help and exit, then opening a directory when space allows.
-	for _, key := range []string{"↑↓", "←", "→", "/", "v"} {
+	for _, key := range []string{"↑↓", "←", "→", "/", "v", "n"} {
 		if textWidth(hintText(hints)) <= width {
 			break
 		}
@@ -167,7 +171,10 @@ func (m browser) frame() (header, footer []viewLine) {
 	if m.showHelp {
 		footer = m.helpLines(width)
 	}
-	if m.filtering || m.query != "" {
+	if m.creating {
+		name := tail(display(m.newName)+"_", max(1, width-5))
+		footer = append([]viewLine{{{"New: ", m.styles.strong}, {name, m.styles.accent}}}, footer...)
+	} else if m.filtering || m.query != "" {
 		query := "/ " + display(m.query)
 		if m.filtering {
 			query += "_"

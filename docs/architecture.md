@@ -2,7 +2,9 @@
 
 cdd has one application package and no background service or persistent state.
 Browsing reads directory entries without recursive indexing or file-content
-reads. Tree view caches the current listing, its parent, and one level inside
+reads. Directory creation uses one literal child name with `os.Mkdir`; it does
+not overwrite existing entries or create intermediate directories.
+Tree view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 
 ## Application
@@ -12,7 +14,7 @@ the highlighted directory. It does not execute external commands to list entries
 | `main.go` | Process entry point and exit status |
 | `cli.go` | Options, terminal selection, stdout/stderr contract |
 | `errors.go` | Operation context with an unwrap-compatible error chain |
-| `browser.go` | Directory listing, filtering, navigation, and keyboard help state |
+| `browser.go` | Directory listing, creation, filtering, navigation, and keyboard help state |
 | `entry.go` | File/directory/link classification and directories-first sorting |
 | `view.go` | Layout, safe text clipping, theme colors, and contextual help |
 | `tree.go` | Parent/current/child panes with one active middle list |

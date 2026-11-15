@@ -56,6 +56,8 @@ broken symlinks, and links to regular files.
 | Tab / Shift+Tab | Switch columns in the compact list view |
 | `/` | Filter names, ignoring case |
 | Enter / Esc while filtering | Finish editing and keep the filter |
+| `n` | Enter a name for a new directory in the current location |
+| Enter / Esc while naming | Create the directory / cancel name input |
 | `.` | Toggle hidden directories |
 | `~` | Go to the home directory |
 | Ctrl+R | Refresh the listing |
@@ -77,6 +79,24 @@ first Esc closes help without cancelling selection.
 
 Directory read errors appear inside the interface without changing the current
 browsing location. Continue navigating or cancel to return to your shell.
+
+## Create a directory
+
+Press `n`, type a name, and press Enter to create one directory inside the current
+location (the middle pane in tree view). Backspace edits the name; Esc dismisses
+the input without creating anything. While naming, letters such as `q`, `v`, and
+`n` are ordinary text. Ctrl+C or Ctrl+D cancels the picker. Finish an active filter
+before pressing `n` to start creation.
+
+Names may include spaces, Unicode, and shell metacharacters, which remain literal.
+Use a single name: empty names, `.`, `..`, and paths containing `/` are rejected.
+Existing files, directories, and symlinks are never overwritten. Creation errors
+remain visible while the name stays editable, so you can correct it and retry.
+
+After creation, the list refreshes, the filter clears, and the new directory is
+highlighted. A name beginning with `.` enables hidden entries so the new directory
+is visible. Enter again selects it and exits; Right opens it for browsing.
+Cancelling the picker after creation leaves the new directory on disk.
 
 ## Appearance
 

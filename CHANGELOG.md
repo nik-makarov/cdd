@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Create a directory in the current location with `n`, edit its name, and focus
+  it after creation; cancel name input with Esc or correct creation errors.
 - Show each column's directory path in tree and compact views, with clipped
   paths that follow navigation and the highlighted directory preview.
 - Install through the source-built `nik-makarov/tap` Homebrew tap, with automatic

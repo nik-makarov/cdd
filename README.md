@@ -4,13 +4,15 @@ Browse directories in your terminal, choose one, and `cd` into it in your curren
 shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 
 - Keyboard navigation, filtering, hidden directories, and directory symlinks.
+- Create a directory in the current location with `n`, then choose it.
 - Three-pane browsing with colored files and directory links; `v` switches to
   a compact directory-only list with automatic two-column layout.
 - Reads one directory at a time without recursively scanning the filesystem.
 - Two application dependencies, both maintained within the Go project.
 
-The scope is directory selection and shell integration. Features must directly
-support that task while keeping the program and its dependency graph small.
+The scope is choosing or creating a destination directory and shell integration.
+Features must directly support that task while keeping the program and its
+dependency graph small.
 
 ## Install with Homebrew
 
@@ -38,7 +40,7 @@ Use an interactive ANSI-compatible terminal.
 Use Up/Down to move, Right to open a directory, and Enter to choose it. Left
 first focuses the `.` row; pressing Left from that row opens the parent.
 The `.` row chooses the directory currently being viewed. Esc cancels;
-`/` filters names; `?` opens keyboard help.
+`/` filters names; `n` creates a directory; `?` opens keyboard help.
 
 ```sh
 cdd ~/projects

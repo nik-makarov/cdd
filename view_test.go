@@ -87,7 +87,7 @@ func TestTerminalStyles(t *testing.T) {
 func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
 	for _, compact := range []bool{false, true} {
 		for _, size := range [][2]int{{120, 30}, {80, 24}, {73, 12}, {60, 18}, {56, 8}, {55, 8}, {40, 10}, {20, 8}, {12, 5}, {4, 2}, {1, 1}} {
-			for _, mode := range []string{"normal", "filter", "help", "error"} {
+			for _, mode := range []string{"normal", "filter", "help", "error", "create", "create error"} {
 				t.Run(fmt.Sprintf("compact=%t/%dx%d/%s", compact, size[0], size[1], mode), func(t *testing.T) {
 					m := browser{path: "/long/parent/projects", compact: compact, width: size[0], height: size[1], styles: terminalStyles(true, "xterm", "")}
 					for i := range 60 {
@@ -97,10 +97,14 @@ func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
 					m.cursor = 59
 					m.filtering = mode == "filter"
 					m.showHelp = mode == "help"
+					m.creating = mode == "create" || mode == "create error"
+					if m.creating {
+						m.newName = strings.Repeat("long-name-", 20) + "\u754c"
+					}
 					if m.filtering {
 						m.query = "folder"
 					}
-					if mode == "error" {
+					if mode == "error" || mode == "create error" {
 						m.message = "Permission denied"
 					}
 					view := m.view()
@@ -123,6 +127,27 @@ func TestViewFitsTerminalAndRetainsSelection(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+func TestCreateDirectoryPrompt(t *testing.T) {
+	m := loadBrowser(t, fixture(t))
+	m.width, m.height = 40, 10
+	m.styles = terminalStyles(true, "xterm", "")
+	m = press(m, "n", "n")
+	m.newName = strings.Repeat("long-", 20) + "\x1b[31m\n\u754c-tail"
+	plain := plainFrame(m.view())
+	for _, want := range []string{"New: ", "\u754c-tail_", "Enter create", "Esc cancel"} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("creation prompt missing %q: %q", want, plain)
+		}
+	}
+	if strings.ContainsRune(plain, '\x1b') {
+		t.Fatal("creation input injected terminal controls")
+	}
+	m = press(m, "esc", "")
+	if strings.Contains(plainFrame(m.view()), "New: ") {
+		t.Fatal("cancelled creation prompt remains visible")
 	}
 }
 

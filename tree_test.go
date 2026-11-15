@@ -13,7 +13,7 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 	m.children = []entry{{name: "nested"}, {name: "readme.txt", kind: file}}
 	view := m.view()
 	plain := plainFrame(view)
-	for _, text := range []string{"Parent", "Current", "Children", "sibling/", "nested/", "readme.txt", "> selected/"} {
+	for _, text := range []string{"Parent", "Current", "Children", "sibling", "nested", "readme.txt", "> selected"} {
 		if !strings.Contains(plain, text) {
 			t.Errorf("tree missing %q: %q", text, plain)
 		}
@@ -43,7 +43,7 @@ func TestTreeViewKeepsOnlyMiddleColumnActive(t *testing.T) {
 	}
 	m.width = 40
 	plain = plainFrame(m.view())
-	if !strings.Contains(plain, "> selected/") || strings.Contains(plain, "sibling/") || strings.Contains(plain, "nested/") || m.compact {
+	if !strings.Contains(plain, "> selected") || strings.Contains(plain, "sibling") || strings.Contains(plain, "nested") || m.compact {
 		t.Fatal("narrow tree view must retain the active list without changing view mode")
 	}
 }

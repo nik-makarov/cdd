@@ -34,9 +34,9 @@ func TestEntryKindsAndDirectoryLinks(t *testing.T) {
 		kind        entryKind
 		directory   bool
 	}{
-		{"Alpha", "Alpha/", folder, true},
+		{"Alpha", "Alpha", folder, true},
 		{"regular-file", "regular-file", file, false},
-		{"folder-link", "folder-link@/", folderLink, true},
+		{"folder-link", "folder-link@", folderLink, true},
 		{"file-link", "file-link@", fileLink, false},
 		{"broken", "broken@!", brokenLink, false},
 		{"loop", "loop@!", brokenLink, false},

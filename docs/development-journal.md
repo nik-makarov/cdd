@@ -545,3 +545,14 @@ entries, keep private data out, and distinguish local work from publication.
   `browser.go`, `cli.go`, `entry.go`, `view_test.go`, `mouse_test.go`,
   `keyboard_test.go`, `errors_test.go`, `README.md`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T20:48:35Z` — Remove trailing slashes from folder labels in tree
+  and compact views, side panes, and the entry-type help legend. Retain `@` for
+  directory symlinks and preserve filesystem paths. Update existing entry, view,
+  tree, and mouse assertions; restrict mouse row matching to the list body so
+  destination paths are not mistaken for entries. Update usage, architecture,
+  and release notes. Application/tool tests and the host build passed; the build
+  retained the nonfatal module-cache write warning. gopls reported no diagnostics,
+  and `git diff --check` passed. No dependencies changed or hosted CI/publication
+  ran. Paths: `entry.go`, `view.go`, `entry_test.go`, `view_test.go`, `tree_test.go`,
+  `mouse_test.go`, `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/development-journal.md`.

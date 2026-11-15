@@ -238,9 +238,9 @@ func TestEntryColorsAndMarkers(t *testing.T) {
 		name, marker, color string
 		kind                entryKind
 	}{
-		{"directory", "/", "\x1b[36m", folder},
+		{"directory", "", "\x1b[36m", folder},
 		{"file", "", "\x1b[2m", file},
-		{"directory link", "@/", "\x1b[35m", folderLink},
+		{"directory link", "@", "\x1b[35m", folderLink},
 		{"file link", "@", "\x1b[2m", fileLink},
 		{"broken link", "@!", "\x1b[2m", brokenLink},
 	} {
@@ -299,17 +299,17 @@ func TestTwoColumnListing(t *testing.T) {
 		t.Fatal("long listing should use both columns")
 	}
 	first := strings.Split(plainFrame(m.view()), "\n")[3]
-	if !strings.Contains(first, "(current dir)") || !strings.Contains(first, fmt.Sprintf("dir-%02d/", rows)) || !strings.Contains(first, " | ") {
+	if !strings.Contains(first, "(current dir)") || !strings.Contains(first, fmt.Sprintf("dir-%02d", rows)) || !strings.Contains(first, " | ") {
 		t.Fatalf("first page is not column-major: %q", first)
 	}
 	m.cursor = rows
 	first = strings.Split(plainFrame(m.view()), "\n")[3]
-	if strings.Count(first, ">") != 1 || !strings.Contains(first, fmt.Sprintf("> dir-%02d/", rows)) {
+	if strings.Count(first, ">") != 1 || !strings.Contains(first, fmt.Sprintf("> dir-%02d", rows)) {
 		t.Fatalf("right column selection missing: %q", first)
 	}
 	m.cursor = rows * 2
 	view := plainFrame(m.view())
-	if !strings.Contains(view, fmt.Sprintf("> dir-%02d/", m.cursor)) || strings.Contains(view, "dir-01/") || !strings.Contains(view, "more above") {
+	if !strings.Contains(view, fmt.Sprintf("> dir-%02d", m.cursor)) || strings.Contains(view, "dir-01") || !strings.Contains(view, "more above") {
 		t.Fatalf("next page did not advance both columns: %q", view)
 	}
 	m.width = 55

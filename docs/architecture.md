@@ -107,7 +107,8 @@ panes are read-only context. Navigation and refresh update their cached entries,
 and cursor movement refreshes child context only when its path changes. Files
 can be highlighted but never opened or returned as a selected destination.
 Symlink targets are checked for directory status without resolving their logical
-paths. Colors and suffixes distinguish file and directory-link entries.
+paths. Colors distinguish entry types; suffixes mark symlinks. Folder labels
+have no trailing slash.
 
 The `v` key switches to a directory-only compact list, preserving folder focus.
 In compact view, when the list exceeds the available row count and each column can keep

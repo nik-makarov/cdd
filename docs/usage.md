@@ -170,8 +170,8 @@ path is blank at the filesystem root. Long paths are shortened from the left
 within their own column, preserving the directory name when space permits.
 
 Folders are cyan, files use the theme's dim foreground, and directory symlinks
-are magenta. Suffixes also distinguish entries without color: `/` for folders,
-`@/` for directory links, `@` for file links, and `@!` for broken or inaccessible
+are magenta. Folder names have no trailing slash. Symlink markers remain visible
+without color: `@` for directory and file links, and `@!` for broken or inaccessible
 links. A file may be highlighted, but cannot be opened or chosen.
 Preview read errors stay in their side pane without preventing navigation in
 the middle.

@@ -30,11 +30,7 @@ func (e entry) isDotDir() bool { return e.name == "." || e.name == ".." }
 
 func (e entry) label() string {
 	switch e.kind {
-	case folder:
-		return e.name + "/"
-	case folderLink:
-		return e.name + "@/"
-	case fileLink:
+	case folderLink, fileLink:
 		return e.name + "@"
 	case brokenLink:
 		return e.name + "@!"

@@ -68,7 +68,11 @@ func TestMouseEntryMatchesRenderedRows(t *testing.T) {
 						m.message = "Example error"
 					}
 					matched := 0
+					header, _ := m.frame()
 					for y, line := range strings.Split(plainFrame(m.view()), "\n") {
+						if y < len(header) || y >= len(header)+m.pageRows() {
+							continue
+						}
 						for i, item := range m.visible {
 							if x := strings.Index(line, item.label()); x >= 0 {
 								matched++
@@ -124,7 +128,7 @@ func TestMouseHighlightsAndOpensDirectory(t *testing.T) {
 			m := loadBrowser(t, root)
 			m.compact = mode == "list"
 			m.refilter()
-			click := mouseOn(t, m, "Alpha/", "mouse-left", time.Unix(100, 0))
+			click := mouseOn(t, m, "Alpha", "mouse-left", time.Unix(100, 0))
 			if m.handle(click) || m.selected != "" || m.path != root || m.visible[m.cursor].name != "Alpha" {
 				t.Fatal("single click must only highlight the directory")
 			}
@@ -184,7 +188,7 @@ func TestMouseOpensCurrentAndSecondColumn(t *testing.T) {
 			if target == "." {
 				click = mouseOn(t, m, ".  (current dir)", "mouse-left", time.Unix(100, 0))
 			} else {
-				click = mouseOn(t, m, target+"/", "mouse-left", time.Unix(100, 0))
+				click = mouseOn(t, m, target, "mouse-left", time.Unix(100, 0))
 			}
 			if target == "dir-20" && click.x < margin+panes[0]+3 {
 				t.Fatal("expected a directory in the second column")
@@ -211,7 +215,7 @@ func TestMouseDoubleClickDoesNotOpenFilesOrStaleDirectories(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			label := "beta/"
+			label := "beta"
 			if mode == "file" {
 				label = "regular-file"
 			}
@@ -240,7 +244,7 @@ func TestMouseDoubleClickResets(t *testing.T) {
 		t.Run(action, func(t *testing.T) {
 			root := fixture(t)
 			m := loadBrowser(t, root)
-			click := mouseOn(t, m, "Alpha/", "mouse-left", time.Unix(100, 0))
+			click := mouseOn(t, m, "Alpha", "mouse-left", time.Unix(100, 0))
 			m.handle(click)
 			click.when = click.when.Add(200 * time.Millisecond)
 			switch action {
@@ -257,7 +261,7 @@ func TestMouseDoubleClickResets(t *testing.T) {
 			case "large pointer drift":
 				click.x += 3
 			case "different entry":
-				click = mouseOn(t, m, "beta/", "mouse-left", click.when)
+				click = mouseOn(t, m, "beta", "mouse-left", click.when)
 			}
 			if m.handle(click) || m.selected != "" || m.path != root {
 				t.Fatal("unrelated clicks were treated as a double click")
@@ -269,13 +273,13 @@ func TestMouseDoubleClickResets(t *testing.T) {
 func TestMouseBrowsingAndInputModes(t *testing.T) {
 	root := fixture(t)
 	m := loadBrowser(t, root)
-	click := mouseOn(t, m, "Alpha/", "mouse-right", time.Unix(100, 0))
+	click := mouseOn(t, m, "Alpha", "mouse-right", time.Unix(100, 0))
 	m.handle(click)
 	if m.path != root || m.selected != "" || m.visible[m.cursor].name != "." {
 		t.Fatal("right click must not open, highlight, or select a directory")
 	}
 	m = loadBrowser(t, root)
-	click = mouseOn(t, m, "Alpha/", "mouse-down", time.Unix(100, 0))
+	click = mouseOn(t, m, "Alpha", "mouse-down", time.Unix(100, 0))
 	m.handle(click)
 	if m.visible[m.cursor].name != "Alpha" {
 		t.Fatal("wheel down must move one entry")
@@ -287,7 +291,7 @@ func TestMouseBrowsingAndInputModes(t *testing.T) {
 	}
 	m = press(m, "/", "/")
 	m = press(m, "text", "Alpha")
-	click = mouseOn(t, m, "Alpha/", "mouse-left", time.Unix(100, 0))
+	click = mouseOn(t, m, "Alpha", "mouse-left", time.Unix(100, 0))
 	m.handle(click)
 	click.when = click.when.Add(200 * time.Millisecond)
 	if m.handle(click) || m.filtering || m.selected != "" || m.query != "" || m.path != filepath.Join(root, "Alpha") {

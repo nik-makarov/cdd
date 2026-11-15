@@ -145,7 +145,7 @@ func (m browser) helpLines(width int) []viewLine {
 		lines = append(lines, m.hints(row))
 	}
 	if !m.compact {
-		lines = append(lines, viewLine{{"folder/  ", m.styles.directory}, {"file  ", m.styles.file}, {"dir-link@/", m.styles.link}})
+		lines = append(lines, viewLine{{"folder  ", m.styles.directory}, {"file  ", m.styles.file}, {"dir-link@", m.styles.link}})
 	}
 	return append(lines, m.hints([]keyHint{{"? / Esc", "close help"}}))
 }

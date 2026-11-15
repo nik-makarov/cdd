@@ -37,6 +37,7 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Display folder names without a trailing slash in both views and side panes.
 - Shorten interface wording to dir/dirs and label the current row `(current dir)`.
 - Confirm the current directory and exit with Enter on the `.` row; Enter on
   other directories continues browsing. Show Enter on the confirmation button

@@ -68,9 +68,11 @@ and independent directory-only confirmation guards.
 Configuration/editor tests cover defaults, custom and disabled keys/commands,
 legacy key compatibility, malformed and conflicting overrides, literal
 filter/name input, dynamic help, and missing CLIs. Fake editors verify Zed,
-`zeditor`, and VS Code priority, literal paths, custom quoted arguments, new-window
-arguments for a folder versus one file, preview dispatch, bounded failures,
-stale paths, and cancellation. Parser checks reject malformed fallback chains
+`zeditor`, and VS Code priority, literal paths, custom quoted arguments, classic
+project versus new-file-window flags, preview dispatch, bounded failures,
+stale paths, and cancellation. Separate-command checks cover both views, dir/file
+symlinks, independent disabling, legacy shared overrides, and per-type precedence.
+Parser checks reject malformed fallback chains
 and unsupported shell operators. Tests do not launch desktop applications.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output

@@ -158,9 +158,14 @@ The CLI also reads optional `config.json` beside the view preference, after
 startup validation. It merges typed overrides onto embedded JSON defaults and
 rejects unknown keys, invalid letters, and collisions with built-in shortcuts.
 Browser key handling and help use the resulting editor binding, retaining the
-old `keys.open_in_zed` alias. One `editor_command` string provides quoted arguments
-and `||` alternatives: defaults prefer `zed`, then `zeditor`, then `code`. The
-launcher resolves the first installed CLI through PATH and validates an existing
+old `keys.open_in_zed` alias. Separate `editor_dir_command` and
+`editor_file_command` strings provide quoted arguments and `||` alternatives:
+defaults prefer `zed`, then `zeditor`, then `code`. The selected entry's type
+chooses the command, including symlinks and preview dispatch. Each can be
+disabled independently. Legacy `editor_command` initializes both, with explicit
+dir/file settings taking precedence. Zed dir defaults use `--classic` to match
+open projects; file defaults retain `--new`. The launcher resolves the first
+installed CLI through PATH and validates an existing
 folder or regular file. It appends `--` and the selected absolute path as literal
 arguments; no shell, variable expansion, or path interpolation is involved.
 Absence is a no-op; an installed editor's launch failure is reported without

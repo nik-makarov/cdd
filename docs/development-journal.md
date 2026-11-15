@@ -749,3 +749,20 @@ entries, keep private data out, and distinguish local work from publication.
   `config.go`, `config/default.json`, `config_test.go`, `cli.go`, `AGENTS.md`,
   `README.md`, `CHANGELOG.md`, `docs/configuration.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-15T23:00:13Z` — Split editor configuration into independent dir and
+  file commands. Use Zed's `--classic` for dirs to reuse an open project or open
+  a new project window; retain `--new` for individual files and VS Code fallback
+  in both chains. Select the command from the highlighted entry type, including
+  symlinks, and hide hints for independently disabled actions. Preserve the legacy
+  shared command as an override for both types, with explicit per-type values
+  taking precedence. Update help and documentation. Fake CLI checks verified
+  default flags, custom commands in both views, symlink dispatch, independent
+  disabling, preview behavior, and configuration precedence. Zed 1.28.1 accepted
+  `--classic --help`; project matching was checked against its tagged source and
+  VS Code's source, without opening desktop applications. `make check build`,
+  gopls diagnostics, and `git diff --check` passed; the build retained the nonfatal
+  module-cache write warning. No dependencies changed or publication ran. Paths:
+  `config/default.json`, `config.go`, `config_test.go`, `editor.go`,
+  `editor_test.go`, `actions.go`, `view.go`, `cli.go`, `README.md`, `CHANGELOG.md`,
+  `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

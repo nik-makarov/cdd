@@ -15,8 +15,9 @@ import (
 var defaultConfigJSON []byte
 
 type configuration struct {
-	EditorCommand string `json:"editor_command"`
-	Keys          struct {
+	EditorDirCommand  string `json:"editor_dir_command"`
+	EditorFileCommand string `json:"editor_file_command"`
+	Keys              struct {
 		OpenInEditor string `json:"open_in_editor"`
 	} `json:"keys"`
 }
@@ -53,8 +54,10 @@ func readConfiguration(path string) (configuration, error) {
 		return defaults, errors.New("Config must be a JSON object")
 	}
 	var overrides struct {
-		EditorCommand *string `json:"editor_command"`
-		Keys          struct {
+		EditorCommand     *string `json:"editor_command"`
+		EditorDirCommand  *string `json:"editor_dir_command"`
+		EditorFileCommand *string `json:"editor_file_command"`
+		Keys              struct {
 			OpenInEditor *string `json:"open_in_editor"`
 			OpenInZed    *string `json:"open_in_zed"`
 		} `json:"keys"`
@@ -69,7 +72,14 @@ func readConfiguration(path string) (configuration, error) {
 	}
 	config := defaults
 	if overrides.EditorCommand != nil {
-		config.EditorCommand = *overrides.EditorCommand
+		config.EditorDirCommand = *overrides.EditorCommand
+		config.EditorFileCommand = *overrides.EditorCommand
+	}
+	if overrides.EditorDirCommand != nil {
+		config.EditorDirCommand = *overrides.EditorDirCommand
+	}
+	if overrides.EditorFileCommand != nil {
+		config.EditorFileCommand = *overrides.EditorFileCommand
 	}
 	if overrides.Keys.OpenInZed != nil {
 		config.Keys.OpenInEditor = *overrides.Keys.OpenInZed
@@ -77,8 +87,11 @@ func readConfiguration(path string) (configuration, error) {
 	if overrides.Keys.OpenInEditor != nil {
 		config.Keys.OpenInEditor = *overrides.Keys.OpenInEditor
 	}
-	if _, err := parseEditorCommand(config.EditorCommand); err != nil {
-		return defaults, fmt.Errorf("editor_command: %w", err)
+	if _, err := parseEditorCommand(config.EditorDirCommand); err != nil {
+		return defaults, fmt.Errorf("editor_dir_command: %w", err)
+	}
+	if _, err := parseEditorCommand(config.EditorFileCommand); err != nil {
+		return defaults, fmt.Errorf("editor_file_command: %w", err)
 	}
 	key := config.Keys.OpenInEditor
 	if key != "" {

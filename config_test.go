@@ -8,7 +8,7 @@ import (
 
 func TestConfigurationOverridesAndFallback(t *testing.T) {
 	defaults := defaultConfiguration()
-	if defaults.Keys.OpenInEditor != "z" || defaults.EditorCommand != "zed --new || zeditor --new || code --new-window" {
+	if defaults.Keys.OpenInEditor != "z" || defaults.EditorDirCommand != "zed --classic || zeditor --classic || code --new-window" || defaults.EditorFileCommand != "zed --new || zeditor --new || code --new-window" {
 		t.Fatal("shipped config must bind the editor fallback command to z")
 	}
 	for _, tt := range []struct {
@@ -31,6 +31,8 @@ func TestConfigurationOverridesAndFallback(t *testing.T) {
 		{"bad command", `{"editor_command":"zed ||"}`, "z", true},
 		{"shell command", `{"editor_command":"zed; code"}`, "z", true},
 		{"command type", `{"editor_command":[]}`, "z", true},
+		{"bad dir command", `{"editor_dir_command":"zed ||"}`, "z", true},
+		{"bad file command", `{"editor_file_command":"zed ||"}`, "z", true},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "config.json")
@@ -38,7 +40,7 @@ func TestConfigurationOverridesAndFallback(t *testing.T) {
 				t.Fatal(err)
 			}
 			got, err := readConfiguration(path)
-			if (err != nil) != tt.invalid || got.Keys.OpenInEditor != tt.want || got.EditorCommand != defaults.EditorCommand {
+			if (err != nil) != tt.invalid || got.Keys.OpenInEditor != tt.want || got.EditorDirCommand != defaults.EditorDirCommand || got.EditorFileCommand != defaults.EditorFileCommand {
 				t.Fatalf("config=%+v, error=%v", got, err)
 			}
 		})
@@ -51,14 +53,27 @@ func TestConfigurationOverridesAndFallback(t *testing.T) {
 	}
 }
 
-func TestEditorCommandOverride(t *testing.T) {
-	for _, command := range []string{"code --new-window", ""} {
+func TestEditorCommandOverrides(t *testing.T) {
+	defaults := defaultConfiguration()
+	for _, tt := range []struct {
+		body, dir, file string
+	}{
+		{`{"editor_command":"code --new-window"}`, "code --new-window", "code --new-window"},
+		{`{"editor_command":""}`, "", ""},
+		{`{"editor_dir_command":"zed --classic"}`, "zed --classic", defaults.EditorFileCommand},
+		{`{"editor_file_command":"code --new-window"}`, defaults.EditorDirCommand, "code --new-window"},
+		{`{"editor_dir_command":""}`, "", defaults.EditorFileCommand},
+		{`{"editor_file_command":""}`, defaults.EditorDirCommand, ""},
+		{`{"editor_command":"legacy","editor_dir_command":"dirs"}`, "dirs", "legacy"},
+		{`{"editor_file_command":"files","editor_command":"legacy"}`, "legacy", "files"},
+		{`{"editor_dir_command":"dirs","editor_file_command":"files","editor_command":"legacy"}`, "dirs", "files"},
+	} {
 		path := filepath.Join(t.TempDir(), "config.json")
-		if err := os.WriteFile(path, []byte(`{"editor_command":"`+command+`"}`), 0o600); err != nil {
+		if err := os.WriteFile(path, []byte(tt.body), 0o600); err != nil {
 			t.Fatal(err)
 		}
 		got, err := readConfiguration(path)
-		if err != nil || got.EditorCommand != command || got.Keys.OpenInEditor != "z" {
+		if err != nil || got.EditorDirCommand != tt.dir || got.EditorFileCommand != tt.file || got.Keys.OpenInEditor != "z" {
 			t.Fatalf("config=%+v, error=%v", got, err)
 		}
 	}

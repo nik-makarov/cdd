@@ -11,11 +11,11 @@ version is published on GitHub. Development history is recorded separately in
 - Create an empty named file with Shift+N inside the highlighted folder or beside
   the highlighted file. Focus the new file without opening it or overwriting
   existing entries.
-- Open a folder as a project or a single file in a new editor window through its
-  installed CLI: prefer Zed, then VS Code. Configure the fallback command in one
-  `editor_command` string and the binding in `keys.open_in_editor` (default: `z`);
-  existing `keys.open_in_zed` settings still work. Ignore the key if no editor is
-  available.
+- Open a folder as a project or a single file through an installed editor CLI:
+  prefer Zed, then VS Code. Configure separate `editor_dir_command` and
+  `editor_file_command` strings and the binding in `keys.open_in_editor` (default:
+  `z`). Existing `editor_command` and `keys.open_in_zed` settings still work.
+  Ignore the key if no editor is available.
 - Open highlighted files in the default application with Enter, preserving
   browsing state and keeping files out of shell directory selection.
 - Preview files with Space: native Quick Look on macOS and a bounded, scrollable
@@ -60,6 +60,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Reuse an already-open project by default when opening a folder in the editor;
+  open a new project window otherwise. Keep opening individual files in new
+  windows. Configure or disable folder and file editor actions independently.
 - Use tree as the default view, followed by panes. Remove the compact list mode;
   saved `list` preferences now fall back to tree.
   Continue restoring a valid saved mode.

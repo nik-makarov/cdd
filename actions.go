@@ -100,7 +100,7 @@ func validateActionPath(action externalAction) error {
 }
 
 func (m *browser) openInEditor() {
-	action := externalAction{kind: "editor", path: m.focusedPath(), command: m.config.EditorCommand}
+	action := externalAction{kind: "editor", path: m.focusedPath(), command: m.selectedEditorCommand()}
 	program, _, err := editorCommand(action.command, action.path)
 	if err != nil {
 		m.message = err.Error()

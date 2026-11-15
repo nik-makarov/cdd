@@ -63,7 +63,7 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Up / Down, `k` / `j` | Move selection |
 | Enter | Open a file; in tree, choose a directory; in panes, confirm `.` or browse another directory |
 | Space | Preview a file: Quick Look on macOS, built-in viewer on Linux |
-| Configured editor key (default `z`) | Open the highlighted folder as a project or a file by itself in a new editor window |
+| Configured editor key (default `z`) | Focus/open the highlighted folder as a project; open a file by itself in a new editor window |
 | Right, `l` | Open the highlighted directory |
 | Left, `h`, Backspace | Focus `..` first; from `..` go to the parent directory |
 | Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
@@ -81,10 +81,13 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | `?` | Show or hide controls help; Esc also closes help |
 | Esc, `q`, Ctrl+C / Ctrl+D | Cancel |
 
-The editor key and command come from [configuration](configuration.md). The
-default tries Zed's `zed`/`zeditor` CLI, then VS Code's `code`. The key is ignored
-when none is installed and remains literal during text input. It also works from
-the built-in file preview. File and editor actions keep cdd open.
+The editor key and separate dir/file commands come from
+[configuration](configuration.md). Both defaults try Zed's `zed`/`zeditor` CLI,
+then VS Code's `code`. Folders reuse an open project or open a new project window;
+individual files open in new windows. The key is ignored when the applicable
+command is disabled or none of its CLIs is installed, and stays literal during
+text input. The file command also works from the built-in preview. File and
+editor actions keep cdd open.
 
 In terminals that support mouse reporting:
 

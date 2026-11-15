@@ -128,7 +128,7 @@ func (m browser) shortHelp(width int) viewLine {
 	} else {
 		hints = append(hints, keyHint{"Enter", "open file"}, keyHint{"Space", "preview"})
 	}
-	if key := m.config.Keys.OpenInEditor; key != "" && m.config.EditorCommand != "" {
+	if key := m.config.Keys.OpenInEditor; key != "" && m.selectedEditorCommand() != "" {
 		hints = append(hints, keyHint{key, "Editor"})
 	}
 	hints = append(hints, keyHint{"n/N", "new dir/file"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
@@ -164,8 +164,8 @@ func (m browser) helpLines(width int) []viewLine {
 	var lines []viewLine
 	var row []keyHint
 	hints := append([]keyHint(nil), helpHints...)
-	if key := m.config.Keys.OpenInEditor; key != "" && m.config.EditorCommand != "" {
-		hints = append([]keyHint{{key, "Editor: new window"}}, hints...)
+	if key := m.config.Keys.OpenInEditor; key != "" && m.selectedEditorCommand() != "" {
+		hints = append([]keyHint{{key, "Open in editor"}}, hints...)
 	}
 	for _, hint := range hints {
 		if m.mode == outlineView {

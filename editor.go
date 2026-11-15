@@ -6,6 +6,16 @@ import (
 	"strings"
 )
 
+func (m browser) selectedEditorCommand() string {
+	if len(m.visible) == 0 {
+		return ""
+	}
+	if m.visible[m.cursor].isDir() {
+		return strings.TrimSpace(m.config.EditorDirCommand)
+	}
+	return strings.TrimSpace(m.config.EditorFileCommand)
+}
+
 // parseEditorCommand accepts quoted arguments and || alternatives, without shell
 // expansion. Alternatives are used only when an executable is unavailable.
 func parseEditorCommand(command string) ([][]string, error) {

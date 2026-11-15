@@ -8,8 +8,8 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 - Create an empty named file in the highlighted folder with Shift+N.
 - Preview a file with Space: Quick Look on macOS, a text viewer on Linux.
 - Open a file in its default application with Enter while keeping cdd open.
-- Open a folder or file in a new editor window with `z`: Zed, then VS Code, configurable.
-  See [configuration](docs/configuration.md) to change or disable the shortcut.
+- Open a folder or file in an editor with `z`: Zed, then VS Code. Reuse open
+  projects and open files in new windows, with [separate commands](docs/configuration.md).
 - Expandable directory tree and three-pane browsing with colored files and
   directory links; `v` switches between the two views.
 - Reads one directory at a time without recursively scanning the filesystem.

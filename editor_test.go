@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestConfiguredEditorKeyAndNewWindow(t *testing.T) {
+func TestConfiguredEditorKeyAndWindowBehavior(t *testing.T) {
 	capture := fakeActionCLI(t, "zed")
 	root := fixture(t)
 	for _, name := range []string{"Alpha", "regular-file"} {
@@ -23,7 +23,7 @@ func TestConfiguredEditorKeyAndNewWindow(t *testing.T) {
 		if m.handle(keyEvent{name: "z", text: "z"}) || m.action.kind != "" {
 			t.Fatal("old binding must not stay hardcoded")
 		}
-		if m.handle(keyEvent{name: "e", text: "e"}) || m.selected != "" || m.action != (externalAction{kind: "editor", path: m.focusedPath(), command: m.config.EditorCommand}) {
+		if m.handle(keyEvent{name: "e", text: "e"}) || m.selected != "" || m.action != (externalAction{kind: "editor", path: m.focusedPath(), command: m.selectedEditorCommand()}) {
 			t.Fatal("configured key must request the editor without choosing a shell directory")
 		}
 		if err := runExternalAction(t.Context(), m.action, runtime.GOOS); err != nil {
@@ -37,10 +37,14 @@ func TestConfiguredEditorKeyAndNewWindow(t *testing.T) {
 		if err := json.Unmarshal(data, &args); err != nil {
 			t.Fatal(err)
 		}
-		if !slices.Equal(args, []string{"--new", "--", m.focusedPath()}) {
+		flag := "--new"
+		if name == "Alpha" {
+			flag = "--classic"
+		}
+		if !slices.Equal(args, []string{flag, "--", m.focusedPath()}) {
 			t.Fatalf("wrong Zed arguments: %q", args)
 		}
-		if !strings.Contains(plainFrame(m.helpLines(120)[0].render(120)), "e Editor: new window") {
+		if !strings.Contains(plainFrame(m.helpLines(120)[0].render(120)), "e Open in editor") {
 			t.Fatal("help must use the configured key")
 		}
 	}
@@ -62,7 +66,7 @@ func TestMissingEditorsAreIgnored(t *testing.T) {
 	if m.handle(keyEvent{name: m.config.Keys.OpenInEditor}) || m.action.kind != "" || m.message != "existing message" || m.selected != "" {
 		t.Fatal("missing editors must make the binding inert")
 	}
-	if err := runExternalAction(t.Context(), externalAction{kind: "editor", path: filepath.Join(t.TempDir(), "missing"), command: m.config.EditorCommand}, "linux"); err != nil {
+	if err := runExternalAction(t.Context(), externalAction{kind: "editor", path: filepath.Join(t.TempDir(), "missing"), command: m.selectedEditorCommand()}, "linux"); err != nil {
 		t.Fatal("missing CLI must remain ignored at execution time")
 	}
 	file := focus(t, m, "regular-file")
@@ -108,6 +112,9 @@ func TestEditorFallbackPriorityAndLiteralPaths(t *testing.T) {
 						t.Fatal(err)
 					}
 					flag := "--new"
+					if name == "Alpha" {
+						flag = "--classic"
+					}
 					if programs[0] == "code" {
 						flag = "--new-window"
 					}
@@ -115,7 +122,7 @@ func TestEditorFallbackPriorityAndLiteralPaths(t *testing.T) {
 				}
 			}
 			t.Setenv("CDD_TEST_ACTION", "fail")
-			action := externalAction{kind: "editor", path: root, command: defaultConfiguration().EditorCommand}
+			action := externalAction{kind: "editor", path: root, command: defaultConfiguration().EditorDirCommand}
 			if err := runExternalAction(t.Context(), action, runtime.GOOS); err == nil || !strings.HasPrefix(err.Error(), filepath.Join(dir, programs[0])+":") {
 				t.Fatalf("an installed editor's failure must not launch a fallback: %v", err)
 			}
@@ -126,7 +133,7 @@ func TestEditorFallbackPriorityAndLiteralPaths(t *testing.T) {
 func TestCustomEditorCommandAndFailures(t *testing.T) {
 	capture := fakeActionCLI(t, "custom editor")
 	m := focus(t, loadOutline(t, fixture(t)), "regular-file")
-	m.config.EditorCommand = `missing-editor || "custom editor" --new-window --profile 'Work Profile'`
+	m.config.EditorFileCommand = `missing-editor || "custom editor" --new-window --profile 'Work Profile'`
 	m.previewFile("linux")
 	m = press(m, "z", "z")
 	if m.filePreview != nil || m.action.kind != "editor" {
@@ -153,10 +160,67 @@ func TestCustomEditorCommandAndFailures(t *testing.T) {
 		t.Fatalf("stale paths must be rejected before launch: %v", err)
 	}
 	m.action = externalAction{}
-	m.config.EditorCommand = ""
+	m.config.EditorFileCommand = ""
 	m = press(m, "z", "z")
-	if m.action.kind != "" || strings.Contains(plainFrame(m.helpLines(120)[0].render(120)), "Editor: new window") {
+	if m.action.kind != "" || strings.Contains(plainFrame(m.helpLines(120)[0].render(120)), "Open in editor") {
 		t.Fatal("empty editor command must disable the action and hint")
+	}
+}
+
+func TestSeparateEditorCommandsFollowSelection(t *testing.T) {
+	capture := fakeActionCLI(t, "folder-editor")
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(executable, filepath.Join(filepath.Dir(capture), "file-editor")); err != nil {
+		t.Fatal(err)
+	}
+	root := fixture(t)
+	for name, target := range map[string]string{"dir-link": "Alpha", "file-link": "regular-file"} {
+		if err := os.Symlink(target, filepath.Join(root, name)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, mode := range []viewMode{outlineView, panesView} {
+		for _, name := range []string{"Alpha", "dir-link", "regular-file", "file-link"} {
+			m := loadBrowser(t, root)
+			if mode == outlineView {
+				m = loadOutline(t, root)
+			}
+			m = focus(t, m, name)
+			m.config.EditorDirCommand = "folder-editor --project"
+			m.config.EditorFileCommand = "file-editor --single"
+			isDir := name == "Alpha" || name == "dir-link"
+			command, flag := "file-editor --single", "--single"
+			if isDir {
+				command, flag = "folder-editor --project", "--project"
+			}
+			m = press(m, "z", "z")
+			if m.action.command != command || m.selected != "" {
+				t.Fatalf("%s/%s dispatched the wrong command: %+v", mode, name, m.action)
+			}
+			if err := runExternalAction(t.Context(), m.action, runtime.GOOS); err != nil {
+				t.Fatal(err)
+			}
+			assertEditorArgs(t, capture, []string{flag, "--", filepath.Join(root, name)})
+			m.action = externalAction{}
+			if isDir {
+				m.config.EditorFileCommand = ""
+			} else {
+				m.config.EditorDirCommand = ""
+			}
+			m = press(m, "z", "z")
+			if m.action.command != command {
+				t.Fatal("disabling the other entry type must not affect this action")
+			}
+			m.action = externalAction{}
+			m.config.EditorDirCommand, m.config.EditorFileCommand = "", ""
+			m = press(m, "z", "z")
+			if m.action.kind != "" || strings.Contains(plainFrame(m.helpLines(120)[0].render(120)), "Open in editor") {
+				t.Fatal("disabled command must hide the hint and leave the key inert")
+			}
+		}
 	}
 }
 

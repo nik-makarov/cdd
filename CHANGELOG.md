@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Open highlighted files in the default application with Enter, preserving
+  browsing state and keeping files out of shell directory selection.
 - Preview files with Space: native Quick Look on macOS and a bounded, scrollable
   text preview on Linux. Close the built-in preview with Esc or Space.
 - Click visible folder components in header paths to navigate without changing

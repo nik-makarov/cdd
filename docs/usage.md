@@ -40,9 +40,16 @@ cdd --version
 
 Place options before the starting directory. The default tree view lists files,
 directories, and symbolic links; only directories and links to directories can
-be opened or chosen as a destination.
+be chosen as a destination. Enter on a file opens its default desktop application.
 
 ## Controls
+
+Enter on a highlighted file invokes `open` on macOS or `xdg-open` on Linux and
+keeps cdd open at the same location. Enter also opens a file from the built-in
+preview. In panes view, Enter while editing a filter finishes input first;
+in tree view it acts on the highlighted result. Modified Enter and Change Dir
+remain directory-only. Missing files or application-launch failures appear in
+the terminal; file paths are never returned to shell integration.
 
 Space on a file opens Quick Look on macOS, or the built-in text preview on Linux.
 The built-in viewer supports arrows, mouse wheel, Page Up/Down, Home/End, and
@@ -86,7 +93,7 @@ and empty rows do not select anything. Tree-specific controls are described belo
 Double-click the same entry and row within 400 ms; up to two cells of horizontal
 pointer drift are allowed. On `.`, this confirms the current directory and exits;
 other directories open for browsing.
-Right-click has no action. Files cannot be opened or chosen. While
+Right-click has no action. Files cannot be chosen as cd destinations. While
 filtering, double-clicking `.` also confirms the current directory; double-clicking
 another directory opens it and clears the filter. While entering
 a new directory name, mouse actions are ignored. Mouse reporting is disabled
@@ -186,7 +193,7 @@ within their own column, preserving the directory name when space permits.
 Folders are cyan, files use the theme's dim foreground, and directory symlinks
 are magenta. Folder names have no trailing slash. Symlink markers remain visible
 without color: `@` for directory and file links, and `@!` for broken or inaccessible
-links. A file may be highlighted, but cannot be opened or chosen.
+links. Enter opens a file in its default application; files cannot be cd destinations.
 Preview read errors stay in their side pane without preventing navigation in
 the middle.
 
@@ -207,7 +214,8 @@ lines, `▸` for a collapsed branch, and `▾` for an expanded branch. The root 
 home directory when it is an ancestor of the browsing location; otherwise it is
 `/`. Ancestors expand automatically to reveal and focus the browsing location.
 The tree contains real directory nodes, without synthetic `.` or parent rows.
-Files stay visible as context and cannot be opened or selected. Empty folders
+Files stay visible and Enter opens their default application. They cannot be
+selected as cd destinations. Empty folders
 lose the disclosure arrow after
 being checked and display `(empty)`; folders with only hidden entries say so.
 

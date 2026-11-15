@@ -57,6 +57,9 @@ Preview tests cover Linux text scrolling, closing, tiny windows, sanitization,
 binary/empty/large files, partial UTF-8 at the byte limit, and rejection of FIFOs.
 A fake Quick Look CLI verifies literal arguments, bounded errors, output isolation,
 and cancellation without opening a desktop application during automated tests.
+Default-application tests cover both platform commands, literal Unicode and
+metacharacter paths, Enter from preview, stale-file rejection, retained focus,
+and independent directory-only confirmation guards.
 Real zsh and bash subprocesses verify literal path
 handling, trailing newlines, quotes, metacharacters, cancellation, partial output
 on failure, and help passthrough. Separate stdout/stderr assertions verify move

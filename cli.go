@@ -27,7 +27,7 @@ Options:
 Keys:
   ↑/↓, k/j       Move selection
   v              Cycle views: tree, panes
-  Enter          Change dir in tree; open in panes (. confirms)
+  Enter          Open file; change dir in tree; browse dir in panes (. confirms)
   →, l           Open highlighted dir
   ←, h, Backspace  Focus parent first; press again to go up
   Cmd+Enter      Change dir and exit (macOS)
@@ -60,7 +60,7 @@ The next row, . (current dir), selects the current dir and is highlighted initia
 The Change Dir button shows the shortcut and destination; click to confirm.
 The last used view is restored on startup; tree is the default.
 Modified Enter needs a terminal that supports the kitty keyboard protocol.
-Panes and tree views list files; they cannot be opened or chosen as a destination.
+Files open in the default application with Enter; they cannot be a cd destination.
 Shell integration is required to choose a dir and change the current shell.
 The binary returns only the selected absolute path, without a trailing newline.
 Cancellation produces no output and exits 130.

@@ -125,6 +125,11 @@ func (m *browser) handle(key keyEvent) bool {
 		return true
 	}
 	if m.filePreview != nil {
+		if key.name == "enter" {
+			m.filePreview = nil
+			m.openFile()
+			return false
+		}
 		m.handleFilePreview(key)
 		return false
 	}
@@ -155,6 +160,11 @@ func (m *browser) handle(key keyEvent) bool {
 				m.message = ""
 			}
 		}
+		return false
+	}
+	if key.name == "enter" && !m.visible[m.cursor].isDir() && (!m.filtering || m.mode == outlineView) {
+		m.filtering = false
+		m.openFile()
 		return false
 	}
 	if m.mode == outlineView && (key.name == "enter" || key.name == "confirm") {
@@ -350,7 +360,7 @@ func (m *browser) navigate(path, focus string) {
 func (m *browser) openSelected() {
 	item := m.visible[m.cursor]
 	if !item.isDir() {
-		m.message = "Files cannot be opened; choose a dir"
+		m.message = "Use Enter to open a file; Right opens dirs"
 		return
 	}
 	if m.mode == outlineView && item.name != ".." {

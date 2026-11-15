@@ -117,7 +117,7 @@ func (m browser) filePreviewView() string {
 	for len(lines) < m.height-1 {
 		lines = append(lines, nil)
 	}
-	footer := "Esc / Space close  |  arrows / PgUp / PgDn scroll"
+	footer := "Esc / Space close  |  Enter open  |  arrows / PgUp / PgDn scroll"
 	if p.truncated {
 		footer = "First 256 KiB  |  " + footer
 	}

@@ -62,6 +62,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 	}
 	var actionDone chan error
 	var cancelAction context.CancelFunc
+	var activeAction externalAction
 	defer func() {
 		if cancelAction != nil {
 			cancelAction()
@@ -133,14 +134,19 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 				m.action = externalAction{}
 				if cancelAction != nil {
 					cancelAction()
-				} else {
-					actionCtx, cancel := context.WithCancel(ctx)
-					cancelAction = cancel
-					actionDone = make(chan error, 1)
-					go func(done chan<- error) {
-						done <- runExternalAction(actionCtx, action, runtime.GOOS)
-					}(actionDone)
+					<-actionDone
+					actionDone, cancelAction = nil, nil
+					if action.kind == "preview" && action == activeAction {
+						changed = true
+						continue
+					}
 				}
+				actionCtx, cancel := context.WithCancel(ctx)
+				cancelAction, activeAction = cancel, action
+				actionDone = make(chan error, 1)
+				go func(done chan<- error) {
+					done <- runExternalAction(actionCtx, action, runtime.GOOS)
+				}(actionDone)
 			}
 			changed = true
 		}

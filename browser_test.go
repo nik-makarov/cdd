@@ -504,7 +504,7 @@ func TestPanesAndModeSwitch(t *testing.T) {
 		t.Fatal("browser construction must initialize panes before restoring preferences")
 	}
 	m = focus(t, m, "regular-file")
-	for _, key := range []string{"right", "l", "enter", "confirm"} {
+	for _, key := range []string{"right", "l", "confirm"} {
 		t.Run("file/"+key, func(t *testing.T) {
 			copy := m
 			if copy.handle(keyEvent{name: key}) || copy.path != root || copy.selected != "" || copy.message == "" {

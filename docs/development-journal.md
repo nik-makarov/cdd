@@ -684,3 +684,16 @@ entries, keep private data out, and distinguish local work from publication.
   `shell_test.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-15T22:25:46Z` — Open regular files with Enter through macOS `open`
+  or Linux `xdg-open`, retaining browser focus and directory-only confirmation.
+  Support Enter from the built-in preview and filtered tree results; preserve
+  pane filter input behavior. Cancel and join an active launcher before replacing
+  it. Update file hints and project scope. Fake opener tests verify both platform
+  commands, literal paths, stale-file rejection, and separate cd guards.
+  `make check build`, gopls diagnostics, and `git diff --check` passed; the build
+  retained the nonfatal module-cache write warning. No dependencies changed or
+  publication ran. Paths: `actions.go`, `open_test.go`, `browser.go`,
+  `browser_test.go`, `outline_test.go`, `view.go`, `view_test.go`, `preview.go`,
+  `terminal.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

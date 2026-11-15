@@ -22,7 +22,7 @@ func regularFile(path string) error {
 		return err
 	}
 	if !info.Mode().IsRegular() {
-		return errors.New("Only regular files can be previewed")
+		return errors.New("This action requires a regular file")
 	}
 	return nil
 }
@@ -33,6 +33,14 @@ func actionCommand(action externalAction, platform string) (string, []string, er
 	}
 	if action.kind == "preview" && platform == "darwin" {
 		return "qlmanage", []string{"-p", action.path}, nil
+	}
+	if action.kind == "open" {
+		switch platform {
+		case "darwin":
+			return "open", []string{action.path}, nil
+		case "linux":
+			return "xdg-open", []string{action.path}, nil
+		}
 	}
 	return "", nil, errors.New("Unsupported file action")
 }
@@ -68,4 +76,14 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 		return fmt.Errorf("%s: %w", program, err)
 	}
 	return nil
+}
+
+func (m *browser) openFile() {
+	path := m.focusedPath()
+	if err := regularFile(path); err != nil {
+		m.message = err.Error()
+		return
+	}
+	m.message = ""
+	m.action = externalAction{kind: "open", path: path}
 }

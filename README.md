@@ -6,6 +6,7 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 - Keyboard and mouse navigation, filtering, hidden directories, and directory symlinks.
 - Create a directory with `n`, then choose it.
 - Preview a file with Space: Quick Look on macOS, a text viewer on Linux.
+- Open a file in its default application with Enter while keeping cdd open.
 - Expandable directory tree and three-pane browsing with colored files and
   directory links; `v` switches between the two views.
 - Reads one directory at a time without recursively scanning the filesystem.

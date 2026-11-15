@@ -116,7 +116,8 @@ Panes view is second and also an emergency fallback if tree initialization fails
 Only the middle list owns the cursor; parent and child
 panes are read-only context. Navigation and refresh update their cached entries,
 and cursor movement refreshes child context only when its path changes. Files
-can be highlighted but never opened or returned as a selected destination.
+can be opened explicitly in their default application but never returned as a
+selected directory destination.
 Symlink targets are checked for directory status without resolving their logical
 paths. Colors distinguish entry types; suffixes mark symlinks. Folder labels
 have no trailing slash.
@@ -142,6 +143,11 @@ On macOS, `qlmanage -p` receives the absolute path as one literal argument.
 The terminal owns one cancellable child operation and joins it during cleanup.
 Child stdout is discarded, stderr is bounded, and failures appear in the UI.
 No process receives the terminal input stream or the selected-path output stream.
+Enter on a regular file requests `open` on macOS or `xdg-open` on Linux, with
+one absolute argument and no shell interpolation. The terminal keeps browsing
+state; a new action cancels and joins the previous launcher first. File opening
+does not pass through directory confirmation. Linux opener behavior follows
+the [xdg-open specification](https://portland.freedesktop.org/doc/xdg-open.html).
 
 The expandable tree follows the arrow-key model from the
 [WAI-ARIA tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/): Right

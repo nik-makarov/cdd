@@ -66,7 +66,7 @@ type keyHint struct{ key, action string }
 
 var helpHints = []keyHint{
 	{"↑↓ / j k", "move"}, {"→ / l", "open"}, {"← / h / Backspace", "focus parent, then open"},
-	{"Enter", "open; . changes dir"}, {changeShortcut(runtime.GOOS), "change dir"},
+	{"Enter", "open file/dir; . changes dir"}, {changeShortcut(runtime.GOOS), "change dir"},
 	{"Home / End", "first / last"}, {"PgUp / PgDn", "page"},
 	{"n", "new dir"},
 	{"Space", "preview file"},
@@ -96,6 +96,8 @@ func (m browser) shortHelp(width int) viewLine {
 			hints := []keyHint{{"Esc", "finish filter"}, {"↑↓", "move"}}
 			if len(m.visible) > 0 && m.visible[m.cursor].isDir() {
 				hints = append([]keyHint{{"Enter", "change dir"}}, hints...)
+			} else {
+				hints = append([]keyHint{{"Enter", "open file"}}, hints...)
 			}
 			return m.hints(hints)
 		}
@@ -123,7 +125,7 @@ func (m browser) shortHelp(width int) viewLine {
 	if len(m.visible) == 0 || m.visible[m.cursor].isDir() {
 		hints = append(hints, keyHint{"→", rightAction}, keyHint{"Enter", enterAction})
 	} else {
-		hints = append(hints, keyHint{"Space", "preview"})
+		hints = append(hints, keyHint{"Enter", "open file"}, keyHint{"Space", "preview"})
 	}
 	hints = append(hints, keyHint{"n", "new dir"}, keyHint{"/", "filter"}, keyHint{"v", "view"}, keyHint{"?", "help"}, keyHint{"Esc", "cancel"})
 	// Preserve Enter, help and exit when space is limited.
@@ -166,7 +168,7 @@ func (m browser) helpLines(width int) []viewLine {
 			case "← / h / Backspace":
 				hint.action = "collapse / parent"
 			case "Enter":
-				hint.action = "change dir"
+				hint.action = "change dir / open file"
 			case "Double click":
 				hint.action = "toggle branch"
 			case "Click":

@@ -181,7 +181,7 @@ func TestOutlineLazyLinksAndGuards(t *testing.T) {
 	if len(m.branches) != 3 || !visiblePath(m, filepath.Join(root, "cycle", "cycle")) {
 		t.Fatal("a cyclic symlink must not trigger recursive traversal")
 	}
-	for _, key := range []string{"right", "enter", "confirm"} {
+	for _, key := range []string{"right", "confirm"} {
 		t.Run("file/"+key, func(t *testing.T) {
 			m := focus(t, loadOutline(t, root), "regular-file")
 			if m.handle(keyEvent{name: key}) || m.selected != "" || m.path != root || m.message == "" {

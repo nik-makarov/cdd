@@ -336,8 +336,8 @@ func TestSelectButtonAppearance(t *testing.T) {
 		if strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.muted) {
 			t.Fatal("selection button must look inactive for files")
 		}
-		if strings.Contains(button, "Enter") || strings.Contains(m.shortHelp(80).render(80), "Enter") {
-			t.Fatal("files must not advertise an Enter action")
+		if strings.Contains(button, "Enter") || !strings.Contains(plainFrame(m.shortHelp(80).render(80)), "Enter open file") {
+			t.Fatal("file opening must be advertised separately from directory confirmation")
 		}
 	}
 }

@@ -88,6 +88,13 @@ guards, stale dirs, retained browsing state, the `f` binding, text input, macOS
 visibility, and wrapped/clipped button hit areas. A fake `open` verifies the
 Finder bundle identifier, literal paths, platform guards, and bounded failures
 without opening desktop windows.
+Clipboard tests cover both views, files/dirs and navigation rows, logical and
+broken links, retained browsing state, narrow/clipped buttons, text-input
+precedence, and sanitized success feedback. Fake `pbcopy`, `wl-copy`, and `xclip`
+verify exact stdin bytes including Unicode, metacharacters and trailing newlines,
+UTF-8 locale selection, platform/session priority, missing tools, bounded errors,
+cancellation, and a forked clipboard owner retaining stderr. These checks do not
+read or replace the user's real clipboard.
 Configuration/editor tests cover defaults, custom and disabled keys/commands,
 legacy key compatibility, malformed and conflicting overrides, literal
 filter/name input, dynamic help, and missing CLIs. Fake editors verify Zed,

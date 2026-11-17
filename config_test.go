@@ -25,6 +25,7 @@ func TestConfigurationOverridesAndFallback(t *testing.T) {
 		{"new file conflict", `{"keys":{"open_in_zed":"N"}}`, "z", true},
 		{"rename conflict", `{"keys":{"open_in_editor":"r"}}`, "z", true},
 		{"Finder conflict", `{"keys":{"open_in_editor":"f"}}`, "z", true},
+		{"clipboard conflict", `{"keys":{"open_in_editor":"y"}}`, "z", true},
 		{"multiple", `{"keys":{"open_in_zed":"zz"}}`, "z", true},
 		{"unknown", `{"keys":{"zed":"e"}}`, "z", true},
 		{"invalid", "{", "z", true},

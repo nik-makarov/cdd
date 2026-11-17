@@ -30,6 +30,7 @@ type browser struct {
 	query        string
 	newName      string
 	message      string
+	notice       string
 	selected     string
 	width        int
 	height       int
@@ -126,6 +127,10 @@ func (m *browser) refilter() {
 
 // handle returns true when the user selects a directory or cancels.
 func (m *browser) handle(key keyEvent) bool {
+	if key.name != "mouse-release" && key.name != "mouse-ignore" {
+		// Keep the rendered layout for mouse hit testing before dismissing feedback.
+		defer func() { m.notice = "" }()
+	}
 	if key.name == "ctrl+c" || key.name == "ctrl+d" {
 		return true
 	}
@@ -272,6 +277,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.beginRename()
 	case "f":
 		m.openInFinder(runtime.GOOS)
+	case "y":
+		m.copyPath()
 	case "trash":
 		m.beginTrash()
 	case ".":

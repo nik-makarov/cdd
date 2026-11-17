@@ -17,7 +17,8 @@ The application's scope is directory navigation and selection, creating a
 directory as a navigation destination, creating an empty named file, renaming a
 selected file or directory without replacing existing entries, moving a selected
 entry to the system Trash after exact typed-name confirmation, explicit file
-preview/opening, opening the selected directory in Finder on macOS,
+preview/opening, copying the selected path to the system clipboard,
+opening the selected directory in Finder on macOS,
 editor project or single-file launching, and shell integration
 for cd. Do not add other file management, background services, networking, or
 unrelated capabilities.

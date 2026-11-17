@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -14,12 +16,33 @@ import (
 )
 
 func actionTestHelper() int {
+	if os.Getenv("CDD_TEST_ACTION") == "clipboard-owner" {
+		time.Sleep(time.Second)
+		return 0
+	}
 	data, _ := json.Marshal(os.Args[1:])
 	if err := os.WriteFile(os.Getenv("CDD_TEST_ACTION_ARGS"), data, 0o600); err != nil {
 		return 2
 	}
 	fmt.Print("child stdout must not reach the selected path")
 	switch os.Getenv("CDD_TEST_ACTION") {
+	case "copy", "copy-fork":
+		input, err := io.ReadAll(os.Stdin)
+		if err != nil || os.WriteFile(os.Getenv("CDD_TEST_ACTION_ARGS")+".stdin", input, 0o600) != nil {
+			return 2
+		}
+		if err := os.WriteFile(os.Getenv("CDD_TEST_ACTION_ARGS")+".locale", []byte(os.Getenv("LC_ALL")), 0o600); err != nil {
+			return 2
+		}
+		if os.Getenv("CDD_TEST_ACTION") == "copy-fork" {
+			child := exec.Command(os.Args[0])
+			child.Env = append(os.Environ(), "CDD_TEST_ACTION=clipboard-owner")
+			child.Stderr = os.Stderr
+			if err := child.Start(); err != nil {
+				return 2
+			}
+			_ = child.Process.Release()
+		}
 	case "trash":
 		if len(os.Args) != 4 || os.Args[1] != "trash" || os.Args[2] != "--" {
 			return 2

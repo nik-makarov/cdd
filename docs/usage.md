@@ -76,6 +76,7 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Shift+N | Enter a name for an empty file inside the highlighted directory (or beside a highlighted file) |
 | `r` / Rename button | Rename the highlighted file or dir; Enter saves, Esc cancels |
 | `f` / Finder button (macOS) | Open the highlighted dir in Finder; keep cdd open |
+| `y` / Copy Path button | Copy the highlighted file or dir's absolute path to the clipboard |
 | Cmd+Backspace (macOS) / Ctrl+Backspace (Linux) / Delete button | Move to Trash after exact name confirmation |
 | Enter / Esc while naming | Create the directory or file / cancel name input |
 | `.` | Toggle hidden directories |
@@ -187,6 +188,23 @@ is visible. Right opens it for browsing; use the confirmation shortcut or
 `Change Dir` to select it and exit. Enter confirms it in tree view and opens it
 for browsing in panes views.
 Cancelling the picker after creation leaves the new directory on disk.
+
+## Copy a path
+
+Highlight a file or dir and click Copy Path above the shortcut hints, or press
+`y`. Both views support copying, including current/parent dirs and symlinks.
+The clipboard receives the absolute path exactly as browsed, with no shell
+quoting or extra newline. A symlink's own path is copied, including broken links;
+file contents are not read. The picker stays open and keeps its selection.
+
+`Copied: ...` confirms success. An unavailable clipboard or failed copy displays
+an error. macOS uses the built-in `pbcopy`. Linux uses `wl-copy` from
+`wl-clipboard` in a Wayland session, or `xclip` in an X11 session; install the
+applicable utility and make it available in PATH. A headless Linux session
+has no supported clipboard.
+
+The button is hidden during text input and the built-in preview. While filtering,
+naming, or confirming deletion, `y` remains ordinary text.
 
 ## Open a dir in Finder
 

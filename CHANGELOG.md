@@ -8,6 +8,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Copy the highlighted file, folder, or symlink's absolute path using `y` or
+  Copy Path in either view. Show confirmation after copying; Linux requires
+  `wl-copy` for Wayland or `xclip` for X11.
 - Open the highlighted dir in Finder on macOS using `f` or the Finder button,
   including current/parent dirs and dir links, while retaining the cdd selection.
 - Move a file, folder, or symlink to the system Trash using Cmd+Backspace on

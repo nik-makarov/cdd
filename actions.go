@@ -33,6 +33,9 @@ func actionCommand(action externalAction, platform string) (string, []string, er
 	if !filepath.IsAbs(action.path) {
 		return "", nil, errors.New("File actions require an absolute path")
 	}
+	if action.kind == "copy" {
+		return clipboardCommand(platform)
+	}
 	if action.kind == "preview" && platform == "darwin" {
 		return "qlmanage", []string{"-p", action.path}, nil
 	}
@@ -77,10 +80,23 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 		return err
 	}
 	cmd := exec.CommandContext(ctx, program, args...)
+	if action.kind == "copy" {
+		cmd.Stdin = strings.NewReader(action.path)
+		if platform == "darwin" {
+			// pbcopy otherwise interprets UTF-8 paths using the caller's locale.
+			cmd.Env = append(os.Environ(), "LC_ALL=en_US.UTF-8")
+		}
+	}
 	var output actionOutput
 	cmd.Stderr = &output
 	cmd.WaitDelay = 500 * time.Millisecond
-	if err := cmd.Run(); err != nil {
+	err = cmd.Run()
+	// Linux clipboard owners fork to serve later paste requests. Successful
+	// parent exit can leave stderr open in that child until WaitDelay expires.
+	if action.kind == "copy" && platform == "linux" && errors.Is(err, exec.ErrWaitDelay) && ctx.Err() == nil {
+		err = nil
+	}
+	if err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
@@ -102,6 +118,10 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 }
 
 func validateActionPath(action externalAction) error {
+	if action.kind == "copy" {
+		// Copy the logical path, including a broken symlink, without opening it.
+		return nil
+	}
 	if action.kind == "trash" {
 		if action.target == nil || !action.target.busy || action.target.kind != "trash" ||
 			action.path != action.target.resolved || action.target.input != filepath.Base(action.target.path) {

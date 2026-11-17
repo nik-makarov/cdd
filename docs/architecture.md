@@ -34,6 +34,17 @@ argument. The footer's Finder action is independent of mutation protection, so
 current/parent locations can be opened. Buttons wrap into centered rows and
 share hit testing with their rendered positions. Files and other platforms do
 not expose Finder; the action keeps browsing and shell selection unchanged.
+Copy Path sends the highlighted logical absolute path to the external-action
+runner as literal stdin, without reading the entry, adding a newline, or using a
+shell. macOS uses `pbcopy` with a UTF-8 locale. Linux prefers `wl-copy` when
+WAYLAND_DISPLAY is set, then `xclip` when DISPLAY is set and the CLI is installed.
+The [Wayland helper](https://github.com/bugaevc/wl-clipboard/blob/master/src/wl-copy.c)
+and [X11 helper](https://github.com/astrand/xclip/blob/master/xclip.c) can retain
+stderr in a forked clipboard owner after their parent exits successfully.
+Only Linux copy actions accept `exec.ErrWaitDelay` after that successful exit;
+other errors and cancellation remain failures. Completion reports the original
+copied path through sanitized success feedback, keeping stdout and shell
+selection untouched.
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 
@@ -52,6 +63,7 @@ the highlighted directory. It does not execute external commands to list entries
 | `preferences.go` | Last-view storage, validation, and startup restoration |
 | `preview.go` | Bounded text preview, scrolling, and platform preview selection |
 | `actions.go` | Direct external CLI invocation with cancellation and bounded diagnostics |
+| `clipboard.go` | Platform clipboard selection and copy completion feedback |
 | `mutation.go`, `rename_*.go` | Frozen targets, exclusive renaming, and listing refresh |
 | `trash.go` | Exact-name confirmation and system Trash commands |
 | `entry_buttons.go`, `mutation_view.go` | Entry action buttons and modal name input |

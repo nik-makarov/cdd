@@ -854,3 +854,26 @@ entries, keep private data out, and distinguish local work from publication.
   build retained the nonfatal module-cache write warning. No dependencies changed
   or publication ran. Paths: `entry_buttons.go`, `CHANGELOG.md`,
   `docs/development-journal.md`.
+- `2026-11-17T21:17:56Z` — Add a compact Copy Path button and `y` binding in
+  both views, including files, current/parent dirs, and valid or broken symlinks.
+  Send the logical absolute path as exact stdin without shell quoting, added
+  newlines, or file-content reads. Use macOS `pbcopy` with a UTF-8 locale and
+  Linux `wl-copy` or `xclip` according to the active display and installed tools.
+  Keep browsing and shell selection intact; report successful copying separately
+  from errors. Accept the Linux clipboard owner's inherited stderr only after
+  successful parent exit. Preserve confirmation through mouse release and retain
+  rendered geometry for hit testing. Reserve the binding and update help/docs.
+  Fake CLI tests verify literal Unicode/metacharacter/newline input, session
+  selection, missing tools, bounded errors, cancellation, and forked ownership.
+  Model/view tests cover both modes, links, navigation rows, wrapped/clipped
+  buttons, input isolation, and safe feedback. Reproduce premature feedback
+  dismissal with a failing regression test before fixing it. The user's real
+  clipboard was not accessed; native desktop clipboard integration was not run.
+  `make check build cross-build`, gopls diagnostics, and `git diff --check` passed.
+  Cross-builds cover Linux/macOS amd64/arm64; builds retained the nonfatal
+  module-cache write warning. No dependencies changed or publication ran.
+  Paths: `clipboard.go`, `clipboard_test.go`, `actions.go`, `actions_test.go`,
+  `browser.go`, `terminal.go`, `entry_buttons.go`, `view.go`, `config.go`,
+  `config_test.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
+  `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

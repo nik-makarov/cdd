@@ -98,7 +98,7 @@ func readConfiguration(path string) (configuration, error) {
 		if len(key) != 1 || !((key[0] >= 'a' && key[0] <= 'z') || (key[0] >= 'A' && key[0] <= 'Z')) {
 			return defaults, errors.New("keys.open_in_editor must be one ASCII letter, or empty to disable")
 		}
-		if strings.Contains("fhjklqnNrv", key) {
+		if strings.Contains("fhjklqnNrvy", key) {
 			return defaults, fmt.Errorf("keys.open_in_editor conflicts with built-in key %q", key)
 		}
 	}

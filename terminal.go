@@ -82,6 +82,8 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			actionDone, cancelAction = nil, nil
 			if activeAction.kind == "trash" {
 				m.finishTrash(activeAction, err)
+			} else if activeAction.kind == "copy" {
+				m.finishCopyPath(activeAction, err)
 			} else if err != nil && !errors.Is(err, context.Canceled) {
 				m.message = err.Error()
 			}

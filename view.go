@@ -71,6 +71,7 @@ var helpHints = []keyHint{
 	{"n", "new dir"},
 	{"Shift+N", "new file"},
 	{"r", "rename file/dir"},
+	{"y", "copy path"},
 	{deleteShortcut(runtime.GOOS), "move to Trash"},
 	{"Space", "preview file"},
 	{"v", "switch view"},
@@ -318,6 +319,9 @@ func (m browser) frame() (header, footer []viewLine) {
 			query += "_"
 		}
 		status = append(status, viewLine{{query, m.styles.accent}})
+	}
+	if m.notice != "" {
+		status = append([]viewLine{{{display(m.notice), m.styles.accent}}}, status...)
 	}
 	if m.message != "" {
 		status = append([]viewLine{{{"Error: " + display(m.message), m.styles.failure}}}, status...)

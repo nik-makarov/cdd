@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -67,7 +68,12 @@ func TestTrashMovesEntriesAndRefreshesBothViews(t *testing.T) {
 			if name == "Alpha" && mode == outlineView {
 				m.expandOutline()
 			}
-			m = press(m, "trash", "")
+			shortcut := "\x1b[127;5u"
+			if runtime.GOOS == "darwin" {
+				shortcut = "\x15"
+			}
+			key, _ := decodeKey([]byte(shortcut), false)
+			m.handle(key)
 			before := m.mutation.info
 			m = press(m, "text", name)
 			m = press(m, "enter", "")
@@ -212,6 +218,58 @@ func TestTrashShortcutsAndPromptIsolation(t *testing.T) {
 		if done := m.handle(keyEvent{name: cancel}); done != (cancel != "esc") || m.action.kind != "" {
 			t.Fatal("cancel must not queue Trash")
 		}
+	}
+}
+
+func TestTrashLegacyMacShortcut(t *testing.T) {
+	key, consumed := decodeKey([]byte("\x15next"), false)
+	if consumed != 1 || key.text != "" {
+		t.Fatal("legacy shortcut must consume only its control byte")
+	}
+	if runtime.GOOS != "darwin" {
+		if key.name != "" {
+			t.Fatal("legacy Ctrl+U must not become a deletion shortcut outside macOS")
+		}
+		return
+	}
+	if key.name != "trash" {
+		t.Fatal("Ghostty/agterm Cmd+Backspace must open Trash confirmation")
+	}
+	root := fixture(t)
+	for _, mode := range []viewMode{outlineView, panesView} {
+		for _, name := range []string{"Alpha", "regular-file"} {
+			m := loadBrowser(t, root)
+			if mode == outlineView {
+				m = loadOutline(t, root)
+			}
+			m = focus(t, m, name)
+			if m.handle(key) || m.mutation == nil || m.mutation.input != "" || m.action.kind != "" {
+				t.Fatal("legacy shortcut must open a blank prompt without deleting or exiting")
+			}
+			m.handle(key)
+			if m.mutation.input != "" || m.action.kind != "" {
+				t.Fatal("repeated legacy shortcuts must not confirm deletion")
+			}
+			m = press(m, "text", name+"wrong")
+			m = press(m, "enter", "")
+			if m.action.kind != "" || m.mutation.busy {
+				t.Fatal("legacy shortcut must retain exact name confirmation")
+			}
+			m = press(m, "esc", "")
+			if _, err := os.Lstat(filepath.Join(root, name)); err != nil {
+				t.Fatal("cancelled legacy shortcut affected the entry")
+			}
+		}
+	}
+	for _, input := range []string{"/", "n", "N", "r"} {
+		m := press(focus(t, loadBrowser(t, root), "Alpha"), input, input)
+		m.handle(key)
+		if m.action.kind != "" || m.mutation != nil && m.mutation.kind == "trash" {
+			t.Fatal("legacy shortcut must not interrupt text input")
+		}
+	}
+	if key := decodeCSIKey("117;5u", "darwin"); key.name != "" {
+		t.Fatal("unambiguous Ctrl+U must not be treated as Cmd+Backspace")
 	}
 }
 

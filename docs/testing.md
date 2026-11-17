@@ -41,6 +41,10 @@ into an isolated temporary Trash dir; failures, no-op commands, missing support,
 and cancellation preserve source data and require a fresh confirmation. Tests
 also check platform shortcuts, ignored repeat/release events, input precedence,
 button hit testing, tiny confirmation views, and literal native-command arguments.
+Legacy Cmd+Backspace checks feed Ghostty/agterm's `0x15` byte through the decoder
+and both browsing modes. They verify blank confirmation, exact-name enforcement,
+repeat safety, cancellation, input precedence, and no Ctrl+U alias on Linux.
+The native macOS check and fake-CLI move checks also start with decoded shortcuts.
 The standard suite never touches the user's system Trash. On macOS, opt into
 native verification with `CDD_TEST_NATIVE_TRASH=1 go test -run '^TestNativeTrash$'`.
 This creates disposable entries, checks their identity in Trash, and restores

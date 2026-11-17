@@ -239,6 +239,13 @@ func decodeKey(data []byte, expired bool) (keyEvent, int) {
 		return keyEvent{name: "ctrl+d"}, 1
 	case 18:
 		return keyEvent{name: "ctrl+r"}, 1
+	case 21:
+		// Ghostty/agterm encode Cmd+Backspace as Ctrl+U even in kitty mode.
+		// This ambiguous legacy byte only opens name confirmation on macOS.
+		if runtime.GOOS == "darwin" {
+			return keyEvent{name: "trash"}, 1
+		}
+		return keyEvent{}, 1
 	case '\r', '\n':
 		return keyEvent{name: "enter"}, 1
 	case '\b', 127:

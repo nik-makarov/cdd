@@ -54,7 +54,11 @@ func TestNativeTrash(t *testing.T) {
 				}
 			})
 			m := focus(t, loadBrowser(t, root), name)
-			m = press(m, "trash", "")
+			key, _ := decodeKey([]byte("\x15"), false)
+			m.handle(key)
+			if m.mutation == nil {
+				t.Fatal("Cmd+Backspace did not open Trash confirmation")
+			}
 			m = press(m, "text", name)
 			m = press(m, "enter", "")
 			if err := runExternalAction(t.Context(), m.action, "darwin"); err != nil {

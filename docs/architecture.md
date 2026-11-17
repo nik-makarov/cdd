@@ -83,8 +83,14 @@ select the highlighted directory. Legacy ambiguous Enter input follows the same
 rules as plain Enter. While naming a directory, Enter creates it; in panes
 filters, Enter only finishes input.
 Modified Backspace opens Trash confirmation only outside other text input;
-repeats and releases never trigger it. Plain Backspace retains navigation and
-editing behavior. Confirmation modals capture input before navigation or clicks.
+kitty repeat and release reports never trigger it. Plain Backspace retains
+navigation and editing behavior. Confirmation modals capture input before
+navigation or clicks.
+On macOS, the legacy byte `0x15` also opens Trash confirmation because
+[Ghostty's default Cmd+Backspace binding](https://github.com/ghostty-org/ghostty/blob/main/src/config/Config.zig)
+emits Ctrl+U even in kitty mode; agterm inherits that binding. This fallback is
+limited to macOS, cannot distinguish legacy Ctrl+U, and never bypasses exact-name
+confirmation. The unambiguous kitty Ctrl+U report remains ignored.
 
 Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking),
 with legacy mouse packets consumed as a whole for terminals without SGR support.

@@ -807,3 +807,21 @@ entries, keep private data out, and distinguish local work from publication.
   `actions.go`, `actions_test.go`, `terminal.go`, `keyboard.go`, `browser.go`,
   `view.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-17T11:33:04Z` — Fix Cmd+Backspace (Finder's Cmd+Delete) in macOS
+  terminals that send the legacy Ctrl+U byte. Inspect agterm's active keymap and
+  config, and confirm Ghostty's default binding emits `0x15` even in kitty mode.
+  Reproduce the ignored input with a failing decoder-to-browser regression test
+  before accepting that byte on macOS. Preserve exact-name confirmation, modal
+  input isolation, cancellation, and Linux's ignored legacy Ctrl+U. Document the
+  unavoidable legacy Ctrl+U alias and retain distinct kitty Ctrl+U handling.
+  Exercise decoded shortcuts through both views and fake Trash commands. Native
+  macOS tests moved disposable files, nonempty dirs, and valid/broken symlinks
+  through the corrected input path into system Trash, then restored all fixtures.
+  `make check build cross-build`, gopls diagnostics, the ten-second keyboard fuzz
+  run, and `git diff --check` passed. Cross-builds cover Linux/macOS amd64/arm64;
+  builds retained the nonfatal module-cache write warning. No dependencies or
+  terminal settings changed. The Homebrew installation remains separate from the
+  local `bin/cdd` build; no publication ran. Paths: `terminal.go`,
+  `terminal_test.go`, `trash_test.go`, `trash_darwin_test.go`, `cli.go`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/development-journal.md`.

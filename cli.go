@@ -67,7 +67,8 @@ The last used view is restored on startup; tree is the default.
 Customize editor_dir_command, editor_file_command, and keys.open_in_editor
 in cdd/config.json. Dirs focus an open project; files open in a new window.
 The binding is ignored when none of the configured editor CLIs is installed.
-Modified Enter/Backspace need the kitty keyboard protocol; buttons work too.
+Modified Enter/Backspace use the kitty keyboard protocol; buttons work too.
+macOS also accepts the legacy Cmd+Backspace byte used by Ghostty/agterm.
 Delete always uses the system Trash, with no permanent-deletion fallback.
 Files open in the default application with Enter; they cannot be a cd destination.
 Shell integration is required to choose a dir and change the current shell.

@@ -79,6 +79,7 @@ func FuzzDecodeKey(f *testing.F) {
 	f.Add([]byte("\x1b[<0;999999999999999999999;1M"), true)
 	f.Add([]byte("\x1b[13;9u\x1b[13;5u\x1b[13;9:3u"), false)
 	f.Add([]byte("\x1b[114;5u\x1b[1;65A\x1b[9;2u"), false)
+	f.Add([]byte("\x15\x1b[127;9u\x1b[117;5u"), false)
 	f.Fuzz(func(t *testing.T, data []byte, expired bool) {
 		for len(data) > 0 {
 			_, consumed := decodeKey(data, expired)

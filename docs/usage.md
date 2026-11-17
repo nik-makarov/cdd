@@ -129,13 +129,15 @@ directory, Enter creates it and modified Enter has no action.
 Small windows omit the entire button if it cannot fit beside the selected row
 and any input/error message.
 
-Modified Enter and Backspace require a terminal that supports the
+Modified Enter and Backspace use the
 [kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 cdd enables disambiguated keys for the picker and restores the previous mode on
 exit. A terminal or desktop may intercept the shortcut; in that case free the
 binding in its settings or click the button. Legacy terminals may send the same
 bytes for plain and modified Enter; cdd treats those bytes as plain Enter,
 confirming `.` or opening another directory for browsing.
+On macOS, Cmd+Backspace also works with the legacy encoding used by Ghostty and
+agterm, without changing terminal settings; see the Trash controls below.
 
 In panes views, the first row, `← Back to parent`, is a navigation action for `..`.
 Its arrow sits in the left gutter, with the action text aligned to directory names.
@@ -207,6 +209,14 @@ and any leading or trailing spaces, then press Enter. A mismatch leaves the
 prompt open and moves nothing. Backspace edits; Esc cancels before confirmation.
 Other actions and mouse navigation do not change the target while the prompt is
 open. Finish any active filter or naming input before using this shortcut.
+
+On a Mac keyboard, Backspace is labeled Delete: this is Finder's Cmd+Delete
+(the backward-delete key, not Fn+Delete). Ghostty/agterm send the legacy byte
+`0x15` for this combination even when the kitty protocol is enabled. cdd accepts
+that byte on macOS as well as the distinct kitty key report. Legacy Ctrl+U sends
+the same byte and also opens confirmation on macOS; the distinct kitty Ctrl+U
+report remains ignored. Neither input interrupts filtering or name entry, and
+repeated input cannot confirm a deletion.
 
 The entry goes to the system Trash and can be restored there. A folder moves
 with its contents; a symlink moves as a link without affecting its target.

@@ -35,6 +35,7 @@ Keys:
   n              Create a dir in the current location
   Shift+N        Create an empty file in the highlighted dir (or file's parent)
   r              Rename the highlighted file/dir without overwriting
+  f              Open the highlighted dir in Finder (macOS)
   Cmd+Backspace  Move to Trash after typing the exact name (macOS)
   Ctrl+Backspace Move to Trash after typing the exact name (Linux; requires gio)
   Space          Preview file (Quick Look on macOS; text preview on Linux)
@@ -63,6 +64,7 @@ In tree view, n creates inside the highlighted dir (or a file's parent).
 In panes, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
 The Change Dir button shows the shortcut and destination; click to confirm.
+On macOS, the Finder button opens the highlighted dir while keeping cdd open.
 The last used view is restored on startup; tree is the default.
 Customize editor_dir_command, editor_file_command, and keys.open_in_editor
 in cdd/config.json. Dirs focus an open project; files open in a new window.

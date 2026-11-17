@@ -825,3 +825,24 @@ entries, keep private data out, and distinguish local work from publication.
   `terminal_test.go`, `trash_test.go`, `trash_darwin_test.go`, `cli.go`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/development-journal.md`.
+- `2026-11-17T11:45:00Z` — Add a Finder footer button and `f` binding on macOS
+  for the highlighted dir, including current/parent locations and dir links.
+  Invoke `open -b com.apple.finder` through the existing external-action runner
+  with one literal absolute path and dir validation before queueing and launch.
+  Keep browsing position and shell selection intact. Hide the action for files
+  and during text input; leave `f` literal while filtering or naming. Reserve
+  the binding against editor overrides. Wrap footer actions into centered rows,
+  retain mutation protection separately, and use rendered rows for hit testing.
+  Update help, scope, configuration, and usage docs. Tests cover both views,
+  current/parent dirs, links, stale/replaced dirs, file and platform guards,
+  retained state, keyboard/mouse equivalence, narrow/clipped layouts, input
+  precedence, literal CLI arguments, and bounded errors through a fake `open`.
+  Checked the installed macOS `open` manual for explicit application selection;
+  no desktop windows were opened by tests. `make check build cross-build`, gopls
+  diagnostics, and `git diff --check` passed. Cross-builds cover Linux/macOS
+  amd64/arm64; builds retained the nonfatal module-cache write warning. No
+  dependencies changed or publication ran. Paths: `actions.go`, `browser.go`,
+  `entry_buttons.go`, `view.go`, `config.go`, `config_test.go`, `mutation_test.go`,
+  `finder_test.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
+  `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
+  `docs/testing.md`, `docs/development-journal.md`.

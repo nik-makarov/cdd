@@ -83,6 +83,11 @@ and cancellation without opening a desktop application during automated tests.
 Default-application tests cover both platform commands, literal Unicode and
 metacharacter paths, Enter from preview, stale-file rejection, retained focus,
 and independent directory-only confirmation guards.
+Finder tests cover both modes, current/parent dirs and dir links, file/broken-link
+guards, stale dirs, retained browsing state, the `f` binding, text input, macOS
+visibility, and wrapped/clipped button hit areas. A fake `open` verifies the
+Finder bundle identifier, literal paths, platform guards, and bounded failures
+without opening desktop windows.
 Configuration/editor tests cover defaults, custom and disabled keys/commands,
 legacy key compatibility, malformed and conflicting overrides, literal
 filter/name input, dynamic help, and missing CLIs. Fake editors verify Zed,

@@ -36,6 +36,9 @@ func actionCommand(action externalAction, platform string) (string, []string, er
 	if action.kind == "preview" && platform == "darwin" {
 		return "qlmanage", []string{"-p", action.path}, nil
 	}
+	if action.kind == "finder" && platform == "darwin" {
+		return "open", []string{"-b", "com.apple.finder", action.path}, nil
+	}
 	if action.kind == "open" {
 		switch platform {
 		case "darwin":
@@ -106,6 +109,16 @@ func validateActionPath(action externalAction) error {
 		}
 		return action.target.validate()
 	}
+	if action.kind == "finder" {
+		info, err := os.Stat(action.path)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return errors.New("Finder requires a dir")
+		}
+		return nil
+	}
 	if action.kind != "editor" {
 		return regularFile(action.path)
 	}
@@ -145,4 +158,16 @@ func (m *browser) openFile() {
 	}
 	m.message = ""
 	m.action = externalAction{kind: "open", path: path}
+}
+
+func (m *browser) openInFinder(platform string) {
+	if platform != "darwin" || len(m.visible) == 0 || !m.visible[m.cursor].isDir() {
+		return
+	}
+	action := externalAction{kind: "finder", path: m.focusedPath()}
+	if err := validateActionPath(action); err != nil {
+		m.message = err.Error()
+		return
+	}
+	m.message, m.action = "", action
 }

@@ -27,6 +27,13 @@ arguments, and neither backend falls back to permanent deletion. Missing Trash
 support fails visibly. The modal locks during the operation; success refreshes
 the listing and failure clears confirmation for retry. Native calls run through
 the cancellable external-action runner, keeping diagnostics out of stdout.
+Finder uses the same runner with `open -b com.apple.finder PATH` on macOS.
+Validate that the highlighted path is still a dir before queuing and before
+launching, retaining logical dir links and passing the path as one literal
+argument. The footer's Finder action is independent of mutation protection, so
+current/parent locations can be opened. Buttons wrap into centered rows and
+share hit testing with their rendered positions. Files and other platforms do
+not expose Finder; the action keeps browsing and shell selection unchanged.
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 

@@ -169,6 +169,9 @@ func (m browser) helpLines(width int) []viewLine {
 	var lines []viewLine
 	var row []keyHint
 	hints := append([]keyHint(nil), helpHints...)
+	if runtime.GOOS == "darwin" {
+		hints = append([]keyHint{{"f", "Open dir in Finder"}}, hints...)
+	}
 	if key := m.config.Keys.OpenInEditor; key != "" && m.selectedEditorCommand() != "" {
 		hints = append([]keyHint{{key, "Open in editor"}}, hints...)
 	}

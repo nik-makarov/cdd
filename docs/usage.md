@@ -75,6 +75,7 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | `n` | Enter a name for a new directory in the current location |
 | Shift+N | Enter a name for an empty file inside the highlighted directory (or beside a highlighted file) |
 | `r` / Rename button | Rename the highlighted file or dir; Enter saves, Esc cancels |
+| `f` / Finder button (macOS) | Open the highlighted dir in Finder; keep cdd open |
 | Cmd+Backspace (macOS) / Ctrl+Backspace (Linux) / Delete button | Move to Trash after exact name confirmation |
 | Enter / Esc while naming | Create the directory or file / cancel name input |
 | `.` | Toggle hidden directories |
@@ -186,6 +187,17 @@ is visible. Right opens it for browsing; use the confirmation shortcut or
 `Change Dir` to select it and exit. Enter confirms it in tree view and opens it
 for browsing in panes views.
 Cancelling the picker after creation leaves the new directory on disk.
+
+## Open a dir in Finder
+
+On macOS, highlight a dir and press `f` or click Finder above the shortcut hints.
+Finder opens that dir while cdd retains its browsing location and selection.
+The action works in both modes, including the current dir, parent dir, and dir
+links. It does not choose a shell destination or exit cdd.
+
+The button is hidden for files, broken links, and during text input. While
+filtering or naming an entry, `f` stays ordinary text. A dir that disappeared or
+became a file produces an error. Finder is unavailable on Linux.
 
 ## Rename a file or dir
 

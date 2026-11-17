@@ -68,7 +68,7 @@ For example, change the editor shortcut from `z` to `e`:
 ```
 
 Use an empty string to disable the binding. It accepts one ASCII letter, including
-uppercase letters; built-in keys `h`, `j`, `k`, `l`, `q`, `n`, `N`, `r`, and `v`
+uppercase letters; built-in keys `f`, `h`, `j`, `k`, `l`, `q`, `n`, `N`, `r`, and `v`
 cannot be reassigned. Shortcut letters stay literal while editing a filter or
 file/dir name. Help displays the configured key as `Editor`. The old
 `keys.open_in_zed` name remains an alias; `keys.open_in_editor` wins if both appear.

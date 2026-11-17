@@ -6,17 +6,26 @@ import (
 	"strings"
 )
 
-func entryActions() []keyHint {
-	return []keyHint{{"r", "[ Rename  r ]"}, {"trash", "[ Delete  " + deleteShortcut(runtime.GOOS) + " ]"}}
+func (m browser) entryActions(platform string) []keyHint {
+	var actions []keyHint
+	if platform == "darwin" && len(m.visible) > 0 && m.visible[m.cursor].isDir() {
+		actions = append(actions, keyHint{"f", "[ Finder  f ]"})
+	}
+	if m.mutationAllowed() {
+		actions = append(actions, keyHint{"r", "[ Rename  r ]"}, keyHint{"trash", "[ Delete  " + deleteShortcut(platform) + " ]"})
+	}
+	return actions
 }
 
 func (m browser) entryButtons() []viewLine {
 	width, _ := m.viewWidth()
-	if m.creating || m.filtering || m.mutation != nil || !m.mutationAllowed() {
+	if m.creating || m.filtering || m.mutation != nil || m.filePreview != nil {
 		return nil
 	}
-	actions := entryActions()
+	actions := m.entryActions(runtime.GOOS)
 	var rows []viewLine
+	var row viewLine
+	used := 0
 	for _, action := range actions {
 		label, style := action.action, m.styles.directory
 		if action.key == "trash" {
@@ -25,12 +34,23 @@ func (m browser) entryButtons() []viewLine {
 				label = "[ Delete ]"
 			}
 		}
-		if textWidth(label) <= width {
-			rows = append(rows, viewLine{{label, style}})
+		size := textWidth(label)
+		if size > width {
+			continue
 		}
+		if len(row) > 0 && used+2+size > width {
+			rows = append(rows, row)
+			row, used = nil, 0
+		}
+		if len(row) > 0 {
+			row = append(row, span{"  ", ""})
+			used += 2
+		}
+		row = append(row, span{label, style})
+		used += size
 	}
-	if len(rows) == 2 && textWidth(rows[0][0].text)+textWidth(rows[1][0].text)+2 <= width {
-		rows = []viewLine{append(append(rows[0], span{"  ", ""}), rows[1]...)}
+	if len(row) > 0 {
+		rows = append(rows, row)
 	}
 	for i, row := range rows {
 		used := 0
@@ -53,6 +73,9 @@ func (m browser) entryButtonAt(x, y int) string {
 		left := margin
 		for _, part := range line {
 			if x >= left && x < left+textWidth(part.text) {
+				if strings.HasPrefix(part.text, "[ Finder") {
+					return "f"
+				}
 				if strings.HasPrefix(part.text, "[ Rename") {
 					return "r"
 				}

@@ -8,6 +8,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Open the highlighted dir in Finder on macOS using `f` or the Finder button,
+  including current/parent dirs and dir links, while retaining the cdd selection.
 - Move a file, folder, or symlink to the system Trash using Cmd+Backspace on
   macOS, Ctrl+Backspace on Linux, or the Delete button. Require its exact name
   in a blank confirmation field; refuse mismatches and never permanently delete

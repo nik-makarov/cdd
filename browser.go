@@ -270,6 +270,8 @@ func (m *browser) handle(key keyEvent) bool {
 		m.newName, m.message = "", ""
 	case "r":
 		m.beginRename()
+	case "f":
+		m.openInFinder(runtime.GOOS)
 	case "trash":
 		m.beginTrash()
 	case ".":

@@ -116,7 +116,7 @@ func TestRenameButtonCancellationAndProtection(t *testing.T) {
 	for _, name := range []string{".", ".."} {
 		m = focus(t, loadBrowser(t, root), name)
 		m = press(m, "r", "r")
-		if m.mutation != nil || m.message == "" || len(m.entryButtons()) != 0 {
+		if m.mutation != nil || m.message == "" || strings.Contains(m.view(), "[ Rename") || strings.Contains(m.view(), "[ Delete") {
 			t.Fatal("navigation rows must be protected")
 		}
 	}

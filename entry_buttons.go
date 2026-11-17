@@ -12,7 +12,7 @@ func (m browser) entryActions(platform string) []keyHint {
 		actions = append(actions, keyHint{"f", "[ Finder  f ]"})
 	}
 	if m.mutationAllowed() {
-		actions = append(actions, keyHint{"r", "[ Rename  r ]"}, keyHint{"trash", "[ Delete  " + deleteShortcut(platform) + " ]"})
+		actions = append(actions, keyHint{"r", "[ Rename  r ]"}, keyHint{"trash", "[ Delete ]"})
 	}
 	return actions
 }
@@ -27,13 +27,7 @@ func (m browser) entryButtons() []viewLine {
 	var row viewLine
 	used := 0
 	for _, action := range actions {
-		label, style := action.action, m.styles.directory
-		if action.key == "trash" {
-			style = m.styles.failure
-			if textWidth(label) > width {
-				label = "[ Delete ]"
-			}
-		}
+		label := action.action
 		size := textWidth(label)
 		if size > width {
 			continue
@@ -46,7 +40,7 @@ func (m browser) entryButtons() []viewLine {
 			row = append(row, span{"  ", ""})
 			used += 2
 		}
-		row = append(row, span{label, style})
+		row = append(row, span{label, m.styles.directory})
 		used += size
 	}
 	if len(row) > 0 {

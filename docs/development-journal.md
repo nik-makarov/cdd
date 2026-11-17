@@ -846,3 +846,11 @@ entries, keep private data out, and distinguish local work from publication.
   `finder_test.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
   `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-17T11:47:58Z` — Make the Delete footer button compact by displaying
+  only its action label and using the same color as Finder and Rename. Keep the
+  platform keyboard shortcut in controls help and retain exact-name confirmation.
+  Update the changelog. Existing button, navigation, and Trash tests passed with
+  `make check build`; gopls diagnostics and `git diff --check` also passed. The
+  build retained the nonfatal module-cache write warning. No dependencies changed
+  or publication ran. Paths: `entry_buttons.go`, `CHANGELOG.md`,
+  `docs/development-journal.md`.

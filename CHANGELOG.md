@@ -68,6 +68,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Make the Delete button compact and use the same color as the other entry
+  actions. Keep its keyboard shortcut available in controls help.
 - Reuse an already-open project by default when opening a folder in the editor;
   open a new project window otherwise. Keep opening individual files in new
   windows. Configure or disable folder and file editor actions independently.

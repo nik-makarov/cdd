@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
 	"regexp"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -309,85 +307,14 @@ func TestViewStatusAndHelp(t *testing.T) {
 	}
 }
 
-func TestSelectButtonAppearance(t *testing.T) {
-	for _, noColor := range []string{"", "1"} {
-		m := loadBrowser(t, fixture(t))
-		m.styles = terminalStyles(true, "xterm", noColor)
-		lines := m.selectButton()
-		button := lines[1].render(80)
-		if len(lines) != 4 || !strings.Contains(button, "Change Dir") || strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.accent) {
-			t.Fatal("selection button must show its action and shortcut with visible emphasis")
+func TestBrowsingFooterFitsEntryActionsAndHints(t *testing.T) {
+	root := fixture(t)
+	for _, m := range []browser{loadBrowser(t, root), loadOutline(t, root)} {
+		m = focus(t, m, "Alpha")
+		_, footer := m.frame()
+		if got, want := len(footer), len(m.entryButtons())+1; got != want {
+			t.Errorf("%s footer takes %d rows, want %d for entry actions and shortcuts", m.mode, got, want)
 		}
-		if !strings.Contains(plainFrame(button), " Enter ") || !strings.Contains(lines[2].render(80), m.styles.accent+filepath.Base(m.path)) {
-			t.Fatal("button must show plain Enter for the current directory and its destination")
-		}
-		if !strings.Contains(lines[0].render(80), "\u256d") || !strings.Contains(lines[3].render(80), "\u256f") {
-			t.Fatal("button must retain its outline without color")
-		}
-		width, _ := m.viewWidth()
-		left := textWidth(lines[0][0].text)
-		if right := width - left - textWidth(lines[0][1].text); right < left || right-left > 1 {
-			t.Fatal("button must be horizontally centered")
-		}
-		m.mode = panesView
-		m.refilter()
-		m = focus(t, m, "regular-file")
-		button = m.selectButton()[1].render(80)
-		if strings.Contains(button, m.styles.selected) || !strings.Contains(button, m.styles.muted) {
-			t.Fatal("selection button must look inactive for files")
-		}
-		if strings.Contains(button, "Enter") || !strings.Contains(plainFrame(m.shortHelp(80).render(80)), "Enter open file") {
-			t.Fatal("file opening must be advertised separately from directory confirmation")
-		}
-	}
-}
-
-func TestSelectButtonDestination(t *testing.T) {
-	m := browser{path: "/work/current", width: 100, height: 24}
-	m.visible = []entry{
-		{name: "..", path: "/work"},
-		{name: ".", path: m.path},
-		{name: "child", path: "/work/current/child"},
-		{name: "unsafe", path: "/work/current/\x1b[31munsafe\nname"},
-		{name: "unicode", path: "/work/\u0420\u0443\u0441/\u754c"},
-	}
-	for i, want := range []string{"/work", "/work/current", "/work/current/child", "/work/current/\ufffd[31munsafe\ufffdname", "/work/\u0420\u0443\u0441/\u754c"} {
-		m.cursor = i
-		button := m.selectButton()
-		shortcut := changeShortcut(runtime.GOOS)
-		if m.visible[i].name == "." {
-			shortcut = "Enter"
-		}
-		if !strings.Contains(plainFrame(button[1].render(100)), " "+shortcut+" ") {
-			t.Fatalf("button must show %s for %s", shortcut, m.visible[i].name)
-		}
-		path := plainFrame(button[2].render(100))
-		if got := strings.Trim(path, " \u2502"); got != want {
-			t.Fatalf("destination = %q, want %q", got, want)
-		}
-		if strings.ContainsAny(path, "\x1b\n\r\t") {
-			t.Fatal("destination contains terminal controls")
-		}
-	}
-	m.visible = []entry{{name: "destination", path: "/" + strings.Repeat("long-parent/", 20) + "destination"}}
-	m.cursor = 0
-	m.width = 40
-	path := strings.Trim(plainFrame(m.selectButton()[2].render(40)), " \u2502")
-	if !strings.HasPrefix(path, "...") || !strings.HasSuffix(path, "/destination") {
-		t.Fatal("clipped destination must retain its final directory name")
-	}
-	view := strings.Split(plainFrame(m.view()), "\n")
-	buttonRow, hintRow := -1, -1
-	for row, line := range view {
-		if strings.Contains(line, "Change Dir") {
-			buttonRow = row
-		}
-		if strings.Contains(line, "Enter open") {
-			hintRow = row
-		}
-	}
-	if buttonRow < 0 || hintRow <= buttonRow || !strings.Contains(view[buttonRow], changeShortcut(runtime.GOOS)) || !strings.Contains(view[buttonRow+1], "destination") {
-		t.Fatal("the button must appear above the keyboard shortcuts")
 	}
 }
 

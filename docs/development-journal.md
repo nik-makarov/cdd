@@ -896,3 +896,12 @@ entries, keep private data out, and distinguish local work from publication.
   `rename_darwin.go`, `rename_linux.go`, `terminal.go`, `view.go`, `AGENTS.md`,
   `README.md`, `CHANGELOG.md`, `docs/architecture.md`, `docs/testing.md`,
   `docs/usage.md`, `docs/development-journal.md`.
+- `2026-11-18T23:26:26Z` — Remove the four-row Change Dir button and its mouse hit
+  target from both views. Check that the browsing footer uses only the rows
+  needed for entry actions and shortcut hints. Update CLI help and usage
+  documentation. `make check build` passed with a nonfatal module-cache write
+  warning. In a terminal, the built picker showed tree entries and footer
+  actions, and Enter returned the highlighted directory.
+  Paths: `view.go`, `view_test.go`, `mouse.go`, `mouse_test.go`, `keyboard_test.go`,
+  `outline_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

@@ -47,8 +47,8 @@ be chosen as a destination. Enter on a file opens its default desktop applicatio
 Enter on a highlighted file invokes `open` on macOS or `xdg-open` on Linux and
 keeps cdd open at the same location. Enter also opens a file from the built-in
 preview. In panes view, Enter while editing a filter finishes input first;
-in tree view it acts on the highlighted result. Modified Enter and Change Dir
-remain directory-only. Missing files or application-launch failures appear in
+in tree view it acts on the highlighted result. Modified Enter selects directories.
+Missing files or application-launch failures appear in
 the terminal; file paths are never returned to shell integration.
 
 Space on a file opens Quick Look on macOS, or the built-in text preview on Linux.
@@ -101,7 +101,6 @@ In terminals that support mouse reporting:
 | --- | --- |
 | Left click | Highlight the entry under the pointer |
 | Double left click | Open the directory for browsing; `..` opens the parent; `.` confirms the current directory and exits |
-| Click `Change Dir` | Choose the highlighted directory and exit |
 | Wheel up / down | Move selection one entry up / down |
 
 Mouse actions work in the middle pane of panes view and the expandable tree.
@@ -116,30 +115,18 @@ another directory opens it and clears the filter. While entering
 a new directory name, mouse actions are ignored. Mouse reporting is disabled
 when the picker exits, including cancellation.
 
-The centered button above the keyboard shortcuts uses a thin rounded outline
-instead of a filled block. Its title and platform shortcut share one line; the
-destination appears below with the final directory name emphasized. All four rows,
-including the border, are clickable. Long paths are shortened from the left.
-The shortcut is Enter for every directory in tree view. In panes views, it
-changes to Enter on the current-directory row; other directories show Cmd+Enter
-on macOS or Ctrl+Enter on Linux.
-The outline and bold title remain visible with `NO_COLOR`. For files it appears
-dim, shows no shortcut, and asks you to choose a directory. The short controls
-also omit opening and confirmation hints for files. The button is hidden while editing a
-filter or directory name. While filtering in tree view, Enter or modified Enter
+While filtering in tree view, Enter or modified Enter
 chooses the highlighted directory and Esc finishes editing. In panes filters,
 Enter finishes input and modified Enter has no action. While naming a new
 directory, Enter creates it and modified Enter has no action.
-Small windows omit the entire button if it cannot fit beside the selected row
-and any input/error message.
 
 Modified Enter and Backspace use the
 [kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 cdd enables disambiguated keys for the picker and restores the previous mode on
-exit. A terminal or desktop may intercept the shortcut; in that case free the
-binding in its settings or click the button. Legacy terminals may send the same
-bytes for plain and modified Enter; cdd treats those bytes as plain Enter,
-confirming `.` or opening another directory for browsing.
+exit. If the terminal intercepts modified Enter, use Enter on the highlighted
+directory in tree view. In panes, open the directory and press Enter on `.`.
+Legacy terminals may send the same bytes for plain and modified Enter. cdd
+treats those bytes as plain Enter.
 On macOS, Cmd+Backspace also works with the legacy encoding used by Ghostty and
 agterm, without changing terminal settings; see the Trash controls below.
 
@@ -151,7 +138,7 @@ double-click on `.` confirms that directory and exits, applying the shell direct
 change. On other directory rows, Enter opens them for further browsing, like Right
 or double-click.
 Opening `..` moves up and focuses the directory you came from, while the
-confirmation shortcut or button selects the parent as the destination.
+confirmation shortcut selects the parent as the destination.
 Both rows remain available regardless of the name filter or hidden-entry setting;
 the filesystem root omits `..`. Left, `h`, or Backspace first
 focuses `..` in panes views without leaving the directory or clearing a completed filter.
@@ -186,8 +173,8 @@ remain visible while the name stays editable, so you can correct it and retry.
 
 After creation, the list refreshes, the filter clears, and the new directory is
 highlighted. A name beginning with `.` enables hidden entries so the new directory
-is visible. Right opens it for browsing; use the confirmation shortcut or
-`Change Dir` to select it and exit. Enter confirms it in tree view and opens it
+is visible. Use the confirmation shortcut to select it and exit.
+Enter confirms it in tree view and opens it
 for browsing in panes views.
 Cancelling the picker after creation leaves the new directory on disk.
 
@@ -364,8 +351,7 @@ being checked and display `(empty)`; folders with only hidden entries say so.
 | Home / End, Page Up / Down | Move to the first/last visible row or by one screen |
 | Tab / Shift+Tab | Keep the single tree column focused |
 
-Left on a collapsed root stays at that root. The Change Dir button shows Enter
-for directories; the platform confirmation shortcut continues to work too.
+Left on a collapsed root stays at that root.
 
 The directory from which the shell launched cdd uses the theme's dim foreground, with a
 `(starting dir)` label, independently of focus and view changes. The label and

@@ -64,9 +64,8 @@ Enter on `.` confirms the directory currently being viewed and exits. Esc cancel
 `/` filters names; `n` creates a directory; `?` opens controls help.
 In mouse-compatible terminals, click to highlight and double-click to open a
 directory, including `..` to go up; double-click `.` to confirm the current directory.
-Confirm with Cmd+Enter on macOS, Ctrl+Enter on Linux, or the centered `Change Dir`
-button, which shows the destination.
-The shortcut needs a compatible terminal; the wheel moves selection.
+In a compatible terminal, Cmd+Enter on macOS or Ctrl+Enter on Linux chooses
+the highlighted directory from either view. The mouse wheel moves selection.
 
 ```sh
 cdd ~/projects

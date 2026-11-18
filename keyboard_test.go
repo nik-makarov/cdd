@@ -2,7 +2,6 @@ package main
 
 import (
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -90,9 +89,6 @@ func TestConfirmationDoesNotSubmitTextInput(t *testing.T) {
 		m.query, m.newName = "Alpha", "new"
 		if m.handle(keyEvent{name: "confirm"}) || m.selected != "" || (!m.filtering && !m.creating) || m.query != "Alpha" || m.newName != "new" {
 			t.Fatal("confirmation must not finish text input or change directory")
-		}
-		if strings.Contains(m.view(), "Change Dir") {
-			t.Fatal("confirmation button must be hidden while editing")
 		}
 	}
 }

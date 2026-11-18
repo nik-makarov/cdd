@@ -107,8 +107,8 @@ Cmd+Enter/Backspace on macOS and Ctrl+Enter/Backspace on Linux, while retaining
 legacy UTF-8/CSI/SS3 input. It ignores release events and confirmation repeats. Lock modifiers do not
 affect shortcuts. In panes views, plain Enter confirms the current directory
 on the `.` row and opens other directories for browsing. In tree view, Enter
-confirms any highlighted directory, including while filtering. The confirmation shortcut and button
-select the highlighted directory. Legacy ambiguous Enter input follows the same
+confirms any highlighted directory, including while filtering. The confirmation shortcut
+selects the highlighted directory. Legacy ambiguous Enter input follows the same
 rules as plain Enter. While naming a directory, Enter creates it; in panes
 filters, Enter only finishes input.
 Modified Backspace opens Trash confirmation only outside other text input;
@@ -131,28 +131,10 @@ terminal resizing reset the click state. Double-clicks on `.` finish filter edit
 and invoke the confirmation handler; other directories use the keyboard navigation
 handler. In expandable tree view, directory double-clicks toggle branches in
 place; disclosure arrows provide the same action with a single click.
-Clicking any of the footer button's four rows
-invokes the same confirmation handler as modified Enter, including its directory
-checks. Button hit testing follows the centered rendered block after clipping,
-help expansion, and input-mode changes. The outlined block pairs the action and
-platform shortcut on one line, with the sanitized destination beneath it and its
-final name emphasized. It appears above the keyboard shortcuts in the footer.
-Its shortcut label is Enter for tree directories and the panes current row,
-the platform confirmation shortcut for other panes directories, and empty for files. Short controls
-omit opening and confirmation hints for files. Button size stays stable as the label changes.
-Box-drawing glyphs and UI arrows use one cell; other non-ASCII text retains
-conservative two-cell budgeting. The button's right edge is anchored explicitly
-so narrower filename glyphs cannot displace the border.
 
-The design applies clear action labels and visual hierarchy from
-[NN/g's button guidance](https://www.nngroup.com/articles/button-states-communicate-interaction/),
-visible button boundaries used by [Textual](https://textual.textualize.io/widgets/button/),
-and generous pointer targets recommended by
-[W3C](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum).
-These principles inform the terminal layout; CSS pixel thresholds are not treated
-as terminal-cell measurements. The entire outlined block is clickable. A double-click
-confirms a shell change only on the panes current-directory row; tree
-double-clicks always toggle branches.
+The footer displays entry actions and keyboard shortcuts. Box-drawing glyphs
+and UI arrows use one cell. Other non-ASCII text retains conservative two-cell
+budgeting.
 
 In panes views, the emphasized `← Back to parent` action precedes the current-directory row `.` and filesystem
 entries. The current row is highlighted initially; Home focuses the first row.
@@ -237,8 +219,7 @@ expands or moves to a first child, and Left collapses or focuses a parent.
 Indentation, visible disclosure state, and guide lines follow established
 filesystem tree conventions also exposed by
 [Textual's DirectoryTree](https://textual.textualize.io/widgets/directory_tree/).
-The terminal adaptation uses Enter to confirm any directory and keeps the
-Change Dir button; it does not implement a browser ARIA widget.
+Enter confirms the highlighted directory at any depth.
 
 The tree root is home when it contains the browsing location, otherwise `/`.
 Entering the mode reads and expands the ancestor chain, preserving logical paths

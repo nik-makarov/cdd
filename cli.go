@@ -66,14 +66,13 @@ In tree view, n creates inside the highlighted dir (or a file's parent).
 
 In panes, the first row (← Back to parent) goes up; it is absent at /.
 The next row, . (current dir), selects the current dir and is highlighted initially.
-The Change Dir button shows the shortcut and destination; click to confirm.
 On macOS, the Finder button opens the highlighted dir while keeping cdd open.
 Copy Path copies the absolute path; Linux requires wl-copy (Wayland) or xclip (X11).
 The last used view is restored on startup; tree is the default.
 Customize editor_dir_command, editor_file_command, and keys.open_in_editor
 in cdd/config.json. Dirs focus an open project; files open in a new window.
 The binding is ignored when none of the configured editor CLIs is installed.
-Modified Enter/Backspace use the kitty keyboard protocol; buttons work too.
+Modified Enter/Backspace use the kitty keyboard protocol.
 macOS also accepts the legacy Cmd+Backspace byte used by Ghostty/agterm.
 Delete always uses the system Trash, with no permanent-deletion fallback.
 Files open in the default application with Enter; they cannot be a cd destination.

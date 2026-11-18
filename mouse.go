@@ -1,7 +1,6 @@
 package main
 
 import (
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -98,26 +97,6 @@ func (m browser) mouseEntry(x, y int) int {
 	return -1
 }
 
-func (m browser) selectButtonAt(x, y int) bool {
-	button := m.selectButton()
-	_, margin := m.viewWidth()
-	if len(button) == 0 || y < 0 || y >= m.height {
-		return false
-	}
-	left := margin + textWidth(button[0][0].text)
-	if x < left || x >= left+textWidth(button[0][1].text) {
-		return false
-	}
-	_, footer := m.frame()
-	top := m.footerTop(footer)
-	for i, line := range footer {
-		if y == top+i {
-			return slices.ContainsFunc(button, func(row viewLine) bool { return slices.Equal(line, row) })
-		}
-	}
-	return false
-}
-
 func (m *browser) handleMouse(key keyEvent) bool {
 	if m.creating {
 		m.lastClick = mouseClick{}
@@ -142,9 +121,6 @@ func (m *browser) handleMouse(key keyEvent) bool {
 			m.navigate(path, "")
 			return false
 		}
-	}
-	if key.name == "mouse-left" && m.selectButtonAt(key.x, key.y) {
-		return m.handle(keyEvent{name: "confirm"})
 	}
 	index := m.mouseEntry(key.x, key.y)
 	if index < 0 {

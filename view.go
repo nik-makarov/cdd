@@ -231,57 +231,6 @@ func (m browser) pathLine(path string, width int, active bool) viewLine {
 	return viewLine{{text, m.styles.accent}}
 }
 
-func (m browser) selectButton() []viewLine {
-	width, margin := m.viewWidth()
-	shortcut := changeShortcut(runtime.GOOS)
-	label := "Change Dir"
-	if m.filtering || m.creating || m.mutation != nil || width < textWidth(label+shortcut)+6 || len(m.visible) == 0 {
-		return nil
-	}
-	buttonWidth := min(width, 54)
-	innerWidth := buttonWidth - 4
-	left := strings.Repeat(" ", (width-buttonWidth)/2)
-	border, action := m.styles.directory, m.styles.accent
-	item := m.visible[m.cursor]
-	if m.mode == outlineView || item.name == "." {
-		shortcut = "Enter"
-	}
-	path := m.pathLine(item.path, innerWidth, true)
-	for i := range path {
-		if path[i].style == "" {
-			path[i].style = m.styles.muted
-		}
-	}
-	if !item.isDir() {
-		shortcut = ""
-		border, action = m.styles.muted, m.styles.muted
-		path = viewLine{{"Choose a dir", m.styles.muted}}
-	}
-	title := viewLine{
-		{label, action},
-		{strings.Repeat(" ", innerWidth-textWidth(label+shortcut)), ""},
-		{shortcut, m.styles.muted},
-	}
-	row := func(content viewLine) viewLine {
-		line := viewLine{{left, ""}, {"│ ", border}}
-		line = append(line, content...)
-		used := 0
-		for _, part := range content {
-			used += textWidth(part.text)
-		}
-		line = append(line, span{strings.Repeat(" ", max(0, innerWidth-used)) + " ", ""})
-		// Anchor the edge even when a filename's conservative width leaves gaps.
-		right := columnPosition(margin + textWidth(left) + buttonWidth)
-		return append(line, span{"│", right + border})
-	}
-	return []viewLine{
-		{{left, ""}, {"╭" + strings.Repeat("─", buttonWidth-2) + "╮", border}},
-		row(title),
-		row(path),
-		{{left, ""}, {"╰" + strings.Repeat("─", buttonWidth-2) + "╯", border}},
-	}
-}
-
 func (m browser) frame() (header, footer []viewLine) {
 	width, _ := m.viewWidth()
 	pathLine := m.pathLine(m.path, width, true)
@@ -332,14 +281,11 @@ func (m browser) frame() (header, footer []viewLine) {
 		maxFooter = max(0, maxFooter-3)
 	}
 	status = status[:min(len(status), maxFooter)]
-	button := m.selectButton()
-	if len(button) > maxFooter-len(status) {
-		button = nil
+	actions := m.entryButtons()
+	if len(actions) >= maxFooter-len(status) {
+		actions = nil
 	}
-	if actions := m.entryButtons(); len(actions) <= maxFooter-len(status)-len(button)-1 {
-		button = append(button, actions...)
-	}
-	helpRows := maxFooter - len(status) - len(button)
+	helpRows := maxFooter - len(status) - len(actions)
 	if len(footer) > helpRows {
 		if m.showHelp && helpRows > 0 {
 			footer = append(footer[:helpRows-1], footer[len(footer)-1])
@@ -347,7 +293,7 @@ func (m browser) frame() (header, footer []viewLine) {
 			footer = footer[:helpRows]
 		}
 	}
-	footer = append(append(status, button...), footer...)
+	footer = append(append(status, actions...), footer...)
 	return header, footer
 }
 

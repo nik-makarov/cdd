@@ -441,10 +441,6 @@ func TestOutlineEnterConfirmsEveryDirAndFilteredMatch(t *testing.T) {
 				if !m.handle(keyEvent{name: "enter"}) || m.selected != want {
 					t.Fatal("Enter must confirm the highlighted dir at any depth, even while filtering")
 				}
-				button := m.selectButton()
-				if len(button) != 4 || !strings.Contains(plainFrame(button[1].render(100)), " Enter ") {
-					t.Fatal("tree confirmation button must show Enter")
-				}
 			})
 		}
 	}

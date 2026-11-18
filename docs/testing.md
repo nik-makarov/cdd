@@ -55,9 +55,8 @@ single/double clicks with small pointer drift, current-directory confirmation
 with filtering and stale-path validation, parent navigation through logical
 symlinks, wheel movement,
 and file/stale-directory guards. Parent-row tests cover filtering, hidden entries,
-root behavior, focus restoration, counts, and child previews. Button checks cover
-confirmation-shortcut equivalence, inactive file styling, NO_COLOR, centered
-outlined geometry, destination clipping, and all four clickable rows.
+root behavior, focus restoration, counts, and child previews. Footer checks
+cover the rows used by entry actions and keyboard hints in both views.
 Both modes retain one active selection column, with page navigation and stable
 selection while resizing. Removed `list` preferences restore tree view.
 Panes-mode tests verify default mode, a single active middle pane, file-action
@@ -180,9 +179,9 @@ Use a disposable directory tree and a real interactive terminal:
 8. Click a directory to highlight it, double-click to browse it, and double-click
    `..` to return to its parent. Enter must browse other directories without
    exiting; on `.` Enter or a double-click must confirm the current directory and
-   exit. Confirm with each row of the Change Dir button, Cmd+Enter on macOS, or Ctrl+Enter on
-   Linux in a compatible terminal. Check that the shown path follows the
-   highlighted directory and that terminal keyboard mode is restored on exit.
+   exit. In a compatible terminal, choose the highlighted directory with Cmd+Enter
+   on macOS or Ctrl+Enter on Linux. Check that the shell enters that directory
+   and that terminal keyboard mode is restored on exit.
    Repeat in panes view, including after scrolling and
    resizing. Check the wheel, inert side previews and blank rows, file selection
    guards, filtering, and directory-name input.

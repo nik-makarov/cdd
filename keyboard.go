@@ -94,6 +94,14 @@ func decodeCSIKey(sequence, goos string) keyEvent {
 				return keyEvent{name: "backspace"}
 			}
 		default:
+			if goos == "darwin" && mods == 8 && event == 1 {
+				switch code {
+				case 'c':
+					return keyEvent{name: "copy-entry"}
+				case 'v':
+					return keyEvent{name: "paste-entry"}
+				}
+			}
 			if mods == 1 && ((code >= 'a' && code <= 'z') || (code >= 'A' && code <= 'Z')) {
 				text := string(unicode.ToUpper(rune(code)))
 				return keyEvent{name: text, text: text}

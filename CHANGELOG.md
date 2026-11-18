@@ -8,6 +8,9 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Added
 
+- Copy and paste a file or folder between cdd and Finder on macOS with Cmd+C
+  and Cmd+V or the Copy and Paste buttons. Confirm the full destination path
+  before writing. A name conflict offers a numbered copy when needed.
 - Copy the highlighted file, folder, or symlink's absolute path using `y` or
   Copy Path in either view. Show confirmation after copying; Linux requires
   `wl-copy` for Wayland or `xclip` for X11.

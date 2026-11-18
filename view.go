@@ -171,7 +171,7 @@ func (m browser) helpLines(width int) []viewLine {
 	var row []keyHint
 	hints := append([]keyHint(nil), helpHints...)
 	if runtime.GOOS == "darwin" {
-		hints = append([]keyHint{{"f", "Open dir in Finder"}}, hints...)
+		hints = append([]keyHint{{"f", "Open dir in Finder"}, {"Cmd+C", "copy file/dir"}, {"Cmd+V", "paste file/dir"}}, hints...)
 	}
 	if key := m.config.Keys.OpenInEditor; key != "" && m.selectedEditorCommand() != "" {
 		hints = append([]keyHint{{key, "Open in editor"}}, hints...)
@@ -467,6 +467,9 @@ func (m browser) itemLine(item entry, width int, selected bool) viewLine {
 }
 
 func (m browser) view() string {
+	if m.paste != nil {
+		return m.pasteView()
+	}
 	if m.mutation != nil {
 		return m.mutationView()
 	}

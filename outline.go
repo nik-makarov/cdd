@@ -370,6 +370,10 @@ func (m browser) creationPath() string {
 	if m.mode != outlineView && !m.creatingFile {
 		return m.path
 	}
+	return m.highlightedDirectory()
+}
+
+func (m browser) highlightedDirectory() string {
 	item := m.visible[m.cursor]
 	if item.isDir() {
 		return item.path

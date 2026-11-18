@@ -45,6 +45,14 @@ Only Linux copy actions accept `exec.ErrWaitDelay` after that successful exit;
 other errors and cancellation remain failures. Completion reports the original
 copied path through sanitized success feedback, keeping stdout and shell
 selection untouched.
+
+On macOS, Copy writes an NSURL to the system pasteboard. Paste accepts one
+local `public.file-url` item and snapshots the source and destination folder
+identities. After confirmation, `/bin/cp -pPR` copies into a private staging
+directory on the destination volume. An exclusive rename installs the completed
+copy at the displayed path. Bracketed terminal pastes never replay clipboard
+text as browsing commands. [NSPasteboard](https://developer.apple.com/documentation/appkit/nspasteboard)
+
 Panes view caches the current listing, its parent, and one level inside
 the highlighted directory. It does not execute external commands to list entries.
 
@@ -64,6 +72,8 @@ the highlighted directory. It does not execute external commands to list entries
 | `preview.go` | Bounded text preview, scrolling, and platform preview selection |
 | `actions.go` | Direct external CLI invocation with cancellation and bounded diagnostics |
 | `clipboard.go` | Platform clipboard selection and copy completion feedback |
+| `file_clipboard.go`, `bracketed_paste.go` | macOS file URLs and terminal paste input |
+| `paste.go`, `entry_copy.go` | Destination review and exclusive file or directory copying |
 | `mutation.go`, `rename_*.go` | Frozen targets, exclusive renaming, and listing refresh |
 | `trash.go` | Exact-name confirmation and system Trash commands |
 | `entry_buttons.go`, `mutation_view.go` | Entry action buttons and modal name input |

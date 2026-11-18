@@ -77,6 +77,8 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | `r` / Rename button | Rename the highlighted file or dir; Enter saves, Esc cancels |
 | `f` / Finder button (macOS) | Open the highlighted dir in Finder; keep cdd open |
 | `y` / Copy Path button | Copy the highlighted file or dir's absolute path to the clipboard |
+| Cmd+C / Copy button (macOS) | Copy the highlighted file or folder to the file clipboard |
+| Cmd+V / Paste button (macOS) | Review the destination path, then press Enter to paste or Esc to cancel |
 | Cmd+Backspace (macOS) / Ctrl+Backspace (Linux) / Delete button | Move to Trash after exact name confirmation |
 | Enter / Esc while naming | Create the directory or file / cancel name input |
 | `.` | Toggle hidden directories |
@@ -206,6 +208,28 @@ has no supported clipboard.
 The button is hidden during text input and the built-in preview. While filtering,
 naming, or confirming deletion, `y` remains ordinary text.
 
+## Copy and paste a file or folder on macOS
+
+1. Highlight an entry in either view and press Cmd+C. You can also copy a
+   single entry in Finder.
+2. Highlight the destination folder and press Cmd+V. With a file highlighted,
+   cdd uses its parent folder. In panes, highlight `.` to paste into the current
+   directory.
+3. Review the full path under **Paste to**. Use Up/Down if it spans more lines
+   than the terminal can display. Enter creates the copy and Esc
+   cancels. A folder includes its contents, and symlinks are copied as links.
+
+If the name already exists, the prompt offers a free name such as
+`report copy.txt` or `report copy 2.txt`. If another entry takes that name
+after the prompt opens, paste again to review the next available name.
+The source and existing destination entries are preserved.
+
+An entry copied in cdd can also be pasted into Finder. For an absolute path
+as plain text, use `y` or Copy Path. If your terminal handles either Command
+shortcut itself, use cdd's **Copy** and **Paste** buttons. Terminals with
+configurable key mappings can send `ESC [ 99 ; 9 u` for Cmd+C and
+`ESC [ 118 ; 9 u` for Cmd+V (omit the spaces).
+
 ## Open a dir in Finder
 
 On macOS, highlight a dir and press `f` or click Finder above the shortcut hints.
@@ -290,8 +314,8 @@ files. The left pane shows its parent's entries as context. The right pane
 previews entries inside the highlighted directory, including directory symlinks.
 Highlighting the `.` or `..` row leaves Children blank, including after entering
 a directory.
-Highlighting a file shows no directory preview. File contents are read only after
-an explicit Space preview action.
+Highlighting a file shows no directory preview. Press Space to read its contents
+in a preview.
 
 Each pane shows its directory's absolute path above its entries: the parent on
 the left, the current directory in the middle, and the highlighted directory

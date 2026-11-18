@@ -877,3 +877,22 @@ entries, keep private data out, and distinguish local work from publication.
   `config_test.go`, `cli.go`, `AGENTS.md`, `README.md`, `CHANGELOG.md`,
   `docs/configuration.md`, `docs/usage.md`, `docs/architecture.md`,
   `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-18T19:42:34Z` — Add macOS Cmd+C and Cmd+V and Copy/Paste buttons
+  for one file, folder or symlink in either view. Exchange file URLs with
+  AppKit. Show the full destination for Enter confirmation, including the
+  proposed copy suffix when a name is occupied. Stage the copy, recheck
+  source and parent identities and install it with an exclusive rename.
+  Tests exercised recursive folders, symlinks, concurrent pastes, cancellation,
+  read-only staging cleanup, keyboard/button dispatch, bracketed paste and
+  scrolling through a long destination. A private native pasteboard round trip
+  passed for files, folders and symlinks, including broken links. It rejected
+  text and multiple entries. The general pasteboard and Finder UI were not
+  used during verification. `make check build cross-build` and a ten-second
+  `FuzzDecodeKey` run passed. The builds reported a nonfatal module-cache
+  write warning. Paths: `file_clipboard.go`, `file_clipboard_darwin_test.go`,
+  `entry_copy.go`, `entry_copy_test.go`, `paste.go`, `paste_test.go`,
+  `bracketed_paste.go`, `bracketed_paste_test.go`, `actions.go`, `browser.go`,
+  `cli.go`, `entry_buttons.go`, `keyboard.go`, `mutation_view.go`, `outline.go`,
+  `rename_darwin.go`, `rename_linux.go`, `terminal.go`, `view.go`, `AGENTS.md`,
+  `README.md`, `CHANGELOG.md`, `docs/architecture.md`, `docs/testing.md`,
+  `docs/usage.md`, `docs/development-journal.md`.

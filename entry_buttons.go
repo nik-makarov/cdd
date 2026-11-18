@@ -10,6 +10,9 @@ func (m browser) entryActions(platform string) []keyHint {
 	var actions []keyHint
 	if len(m.visible) > 0 {
 		actions = append(actions, keyHint{"y", "[ Copy Path  y ]"})
+		if platform == "darwin" {
+			actions = append(actions, keyHint{"copy-entry", "[ Copy ]"}, keyHint{"paste-entry", "[ Paste ]"})
+		}
 	}
 	if platform == "darwin" && len(m.visible) > 0 && m.visible[m.cursor].isDir() {
 		actions = append(actions, keyHint{"f", "[ Finder  f ]"})
@@ -22,7 +25,7 @@ func (m browser) entryActions(platform string) []keyHint {
 
 func (m browser) entryButtons() []viewLine {
 	width, _ := m.viewWidth()
-	if m.creating || m.filtering || m.mutation != nil || m.filePreview != nil {
+	if m.creating || m.filtering || m.mutation != nil || m.filePreview != nil || m.paste != nil {
 		return nil
 	}
 	actions := m.entryActions(runtime.GOOS)
@@ -70,6 +73,12 @@ func (m browser) entryButtonAt(x, y int) string {
 		left := margin
 		for _, part := range line {
 			if x >= left && x < left+textWidth(part.text) {
+				switch part.text {
+				case "[ Copy ]":
+					return "copy-entry"
+				case "[ Paste ]":
+					return "paste-entry"
+				}
 				if strings.HasPrefix(part.text, "[ Copy Path") {
 					return "y"
 				}

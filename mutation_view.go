@@ -28,6 +28,10 @@ func (m browser) mutationView() string {
 	if m.height >= len(rows)+3 {
 		rows = append([]viewLine{{{title, m.styles.strong}}, {{tail(display(edit.path), width), m.styles.muted}}, nil}, rows...)
 	}
+	return m.modalView(rows, width, margin)
+}
+
+func (m browser) modalView(rows []viewLine, width, margin int) string {
 	rows = rows[:min(len(rows), max(1, m.height))]
 	lines := make([]string, max(0, (m.height-len(rows))/2))
 	for _, row := range rows {

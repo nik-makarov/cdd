@@ -16,6 +16,7 @@ type externalAction struct {
 	path    string
 	command string
 	target  *entryMutation
+	paste   *entryCopy
 }
 
 func regularFile(path string) error {
@@ -35,6 +36,9 @@ func actionCommand(action externalAction, platform string) (string, []string, er
 	}
 	if action.kind == "copy" {
 		return clipboardCommand(platform)
+	}
+	if action.kind == "copy-entry" && platform == "darwin" {
+		return "/usr/bin/osascript", []string{"-l", "JavaScript", "-e", fileClipboardScript, "--", "write", action.path}, nil
 	}
 	if action.kind == "preview" && platform == "darwin" {
 		return "qlmanage", []string{"-p", action.path}, nil
@@ -69,6 +73,9 @@ func (b *actionOutput) Write(p []byte) (int, error) {
 }
 
 func runExternalAction(ctx context.Context, action externalAction, platform string) error {
+	if action.kind == "paste-entry" && platform == "darwin" && action.paste != nil {
+		return action.paste.run(ctx)
+	}
 	program, args, err := actionCommand(action, platform)
 	if err != nil {
 		return err
@@ -87,23 +94,8 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 			cmd.Env = append(os.Environ(), "LC_ALL=en_US.UTF-8")
 		}
 	}
-	var output actionOutput
-	cmd.Stderr = &output
-	cmd.WaitDelay = 500 * time.Millisecond
-	err = cmd.Run()
-	// Linux clipboard owners fork to serve later paste requests. Successful
-	// parent exit can leave stderr open in that child until WaitDelay expires.
-	if action.kind == "copy" && platform == "linux" && errors.Is(err, exec.ErrWaitDelay) && ctx.Err() == nil {
-		err = nil
-	}
-	if err != nil {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-		if detail := strings.TrimSpace(string(output.text)); detail != "" {
-			return fmt.Errorf("%s: %w: %s", program, err, detail)
-		}
-		return fmt.Errorf("%s: %w", program, err)
+	if err := runActionCommand(ctx, cmd, action.kind == "copy" && platform == "linux"); err != nil {
+		return err
 	}
 	if action.kind == "trash" {
 		info, err := os.Lstat(action.path)
@@ -117,7 +109,29 @@ func runExternalAction(ctx context.Context, action externalAction, platform stri
 	return nil
 }
 
+func runActionCommand(ctx context.Context, cmd *exec.Cmd, clipboardOwner bool) error {
+	var output actionOutput
+	cmd.Stderr = &output
+	cmd.WaitDelay = 500 * time.Millisecond
+	err := cmd.Run()
+	// Linux clipboard owners can retain stderr after a successful parent exit.
+	if err == nil || clipboardOwner && errors.Is(err, exec.ErrWaitDelay) && ctx.Err() == nil {
+		return nil
+	}
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	if detail := strings.TrimSpace(string(output.text)); detail != "" {
+		return fmt.Errorf("%s: %w: %s", cmd.Args[0], err, detail)
+	}
+	return fmt.Errorf("%s: %w", cmd.Args[0], err)
+}
+
 func validateActionPath(action externalAction) error {
+	if action.kind == "copy-entry" {
+		_, err := copySourceInfo(action.path)
+		return err
+	}
 	if action.kind == "copy" {
 		// Copy the logical path, including a broken symlink, without opening it.
 		return nil

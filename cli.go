@@ -37,6 +37,8 @@ Keys:
   r              Rename the highlighted file/dir without overwriting
   f              Open the highlighted dir in Finder (macOS)
   y              Copy the highlighted file/dir path to the clipboard
+  Cmd+C / Cmd+V  Copy / paste a file or dir on macOS (also Copy / Paste buttons)
+                 Review the full destination, then Enter to paste or Esc to cancel
   Cmd+Backspace  Move to Trash after typing the exact name (macOS)
   Ctrl+Backspace Move to Trash after typing the exact name (Linux; requires gio)
   Space          Preview file (Quick Look on macOS; text preview on Linux)

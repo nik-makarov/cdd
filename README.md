@@ -9,6 +9,8 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
 - Rename a file or folder with `r` or the Rename button.
 - Open the highlighted folder in Finder with `f` or the Finder button on macOS.
 - Copy the highlighted file or folder's absolute path with `y` or Copy Path.
+- On macOS, copy a file or folder with Cmd+C and paste with Cmd+V. Review the
+  destination path and press Enter to confirm. The clipboard works with Finder.
 - Move an entry to Trash with Cmd+Backspace (macOS), Ctrl+Backspace (Linux), or
   the Delete button, after typing its exact name. Linux requires `gio` from GLib.
 - Preview a file with Space: Quick Look on macOS, a text viewer on Linux.
@@ -17,7 +19,7 @@ shell. A small Go CLI for macOS and Linux with zsh and bash integration.
   projects and open files in new windows, with [separate commands](docs/configuration.md).
 - Expandable directory tree and three-pane browsing with colored files and
   directory links; `v` switches between the two views.
-- Reads one directory at a time without recursively scanning the filesystem.
+- Browsing loads one directory at a time.
 - Two application dependencies, both maintained within the Go project.
 
 The scope is choosing or creating a destination directory and shell integration.

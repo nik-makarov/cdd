@@ -18,13 +18,15 @@ directory as a navigation destination, creating an empty named file, renaming a
 selected file or directory without replacing existing entries, moving a selected
 entry to the system Trash after exact typed-name confirmation, explicit file
 preview/opening, copying the selected path to the system clipboard,
+copying a file or directory through the macOS clipboard and confirming its
+full destination path before pasting,
 opening the selected directory in Finder on macOS,
 editor project or single-file launching, and shell integration
 for cd. Do not add other file management, background services, networking, or
 unrelated capabilities.
 Features must directly support browsing and choosing a directory or the explicit
 file actions listed above.
-File contents may be read only for an explicitly requested preview. Opening a
+Only an explicit preview or confirmed file copy may read file contents. Opening a
 file must use the operating system's default application or the configured editor
 binding on explicit input. Launch editors only through installed CLIs. Keep the
 selected path a literal argument, never shell source.

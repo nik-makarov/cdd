@@ -95,6 +95,11 @@ verify exact stdin bytes including Unicode, metacharacters and trailing newlines
 UTF-8 locale selection, platform/session priority, missing tools, bounded errors,
 cancellation, and a forked clipboard owner retaining stderr. These checks do not
 read or replace the user's real clipboard.
+File paste tests cover both views, destination confirmation and cancellation,
+recursive copies, symlinks, name conflicts and changed entries. On a logged-in
+Mac, run `CDD_TEST_NATIVE_FILE_CLIPBOARD=1 go test -run '^TestNativeFileClipboard$' .`
+to exercise AppKit file URL round trips, plain text and multiple items using
+a private pasteboard.
 Configuration/editor tests cover defaults, custom and disabled keys/commands,
 legacy key compatibility, malformed and conflicting overrides, literal
 filter/name input, dynamic help, and missing CLIs. Fake editors verify Zed,

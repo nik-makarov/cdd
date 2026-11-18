@@ -38,12 +38,18 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 	if err != nil {
 		return wrapError("enable raw terminal mode", err)
 	}
+	var enablePaste, disablePaste string
+	var pasteInput *bracketedPaste
+	if runtime.GOOS == "darwin" {
+		enablePaste, disablePaste = "\x1b[?2004h", "\x1b[?2004l"
+		pasteInput = &bracketedPaste{}
+	}
 	defer func() {
-		_, screenErr := io.WriteString(output, "\x1b[<u\x1b[?1000l\x1b[?1006l\x1b[0m\x1b[?25h\x1b[?1049l")
+		_, screenErr := io.WriteString(output, disablePaste+"\x1b[<u\x1b[?1000l\x1b[?1006l\x1b[0m\x1b[?25h\x1b[?1049l")
 		restoreErr := term.Restore(fd, state)
 		err = errors.Join(err, screenErr, restoreErr)
 	}()
-	if _, err := io.WriteString(output, "\x1b[?1049h\x1b[?25l\x1b[?1006h\x1b[?1000h\x1b[>1u"); err != nil {
+	if _, err := io.WriteString(output, "\x1b[?1049h\x1b[?25l\x1b[?1006h\x1b[?1000h\x1b[>1u"+enablePaste); err != nil {
 		return wrapError("open terminal screen", err)
 	}
 	redraw := func() error {
@@ -60,7 +66,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 	if err := redraw(); err != nil {
 		return wrapError("draw terminal", err)
 	}
-	var actionDone chan error
+	var actionDone chan actionResult
 	var cancelAction context.CancelFunc
 	var activeAction externalAction
 	defer func() {
@@ -77,16 +83,10 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		select {
 		case <-ctx.Done():
 			return errCancelled
-		case err := <-actionDone:
+		case result := <-actionDone:
 			cancelAction()
 			actionDone, cancelAction = nil, nil
-			if activeAction.kind == "trash" {
-				m.finishTrash(activeAction, err)
-			} else if activeAction.kind == "copy" {
-				m.finishCopyPath(activeAction, err)
-			} else if err != nil && !errors.Is(err, context.Canceled) {
-				m.message = err.Error()
-			}
+			m.finishAction(activeAction, result)
 			if err := redraw(); err != nil {
 				return wrapError("redraw terminal", err)
 			}
@@ -121,7 +121,7 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 		}
 		changed := false
 		for len(pending) > 0 {
-			key, consumed := decodeKey(pending, time.Since(lastInput) >= 50*time.Millisecond)
+			key, consumed := pasteInput.decode(pending, time.Since(lastInput) >= 50*time.Millisecond, m)
 			if consumed == 0 {
 				break
 			}
@@ -137,9 +137,20 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 				action := m.action
 				m.action = externalAction{}
 				if cancelAction != nil {
+					// A fast paste must read the item just copied, even if both
+					// shortcuts arrived in the same terminal packet.
+					awaitCopy := action.kind == "prepare-paste" && (activeAction.kind == "copy-entry" || activeAction.kind == "copy")
+					if !awaitCopy {
+						cancelAction()
+					}
+					previous := <-actionDone
 					cancelAction()
-					<-actionDone
 					actionDone, cancelAction = nil, nil
+					if awaitCopy && previous.err != nil {
+						m.paste, m.message = nil, previous.err.Error()
+						changed = true
+						continue
+					}
 					if action.kind == "preview" && action == activeAction {
 						changed = true
 						continue
@@ -147,9 +158,9 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 				}
 				actionCtx, cancel := context.WithCancel(ctx)
 				cancelAction, activeAction = cancel, action
-				actionDone = make(chan error, 1)
-				go func(done chan<- error) {
-					done <- runExternalAction(actionCtx, action, runtime.GOOS)
+				actionDone = make(chan actionResult, 1)
+				go func(done chan<- actionResult) {
+					done <- runBrowserAction(actionCtx, action)
 				}(actionDone)
 			}
 			changed = true
@@ -158,6 +169,54 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			if err := redraw(); err != nil {
 				return wrapError("redraw terminal", err)
 			}
+		}
+	}
+}
+
+type actionResult struct {
+	entry *entryCopy
+	err   error
+}
+
+func runBrowserAction(ctx context.Context, action externalAction) actionResult {
+	if runtime.GOOS == "darwin" {
+		switch action.kind {
+		case "prepare-paste", "copy-entry", "copy":
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+			defer cancel()
+		}
+		if action.kind == "prepare-paste" {
+			source, err := readClipboardEntry(ctx)
+			if err != nil {
+				return actionResult{err: err}
+			}
+			entry, err := prepareEntryCopy(source, action.path)
+			return actionResult{entry, err}
+		}
+	}
+	return actionResult{err: runExternalAction(ctx, action, runtime.GOOS)}
+}
+
+func (m *browser) finishAction(action externalAction, result actionResult) {
+	switch action.kind {
+	case "trash":
+		m.finishTrash(action, result.err)
+	case "copy", "copy-entry":
+		m.finishCopyPath(action, result.err)
+	case "prepare-paste":
+		if m.paste != nil {
+			if result.err != nil {
+				m.paste, m.message = nil, result.err.Error()
+			} else {
+				m.paste.entry = result.entry
+			}
+		}
+	case "paste-entry":
+		m.finishPaste(action.paste, result.err)
+	default:
+		if result.err != nil && !errors.Is(result.err, context.Canceled) {
+			m.message = result.err.Error()
 		}
 	}
 }

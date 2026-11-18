@@ -3,5 +3,9 @@ package main
 import "golang.org/x/sys/unix"
 
 func renameExclusive(from, to string) error {
-	return unix.Renameat2(unix.AT_FDCWD, from, unix.AT_FDCWD, to, unix.RENAME_NOREPLACE)
+	return renameExclusiveAt(unix.AT_FDCWD, from, to)
+}
+
+func renameExclusiveAt(dir int, from, to string) error {
+	return unix.Renameat2(dir, from, dir, to, unix.RENAME_NOREPLACE)
 }

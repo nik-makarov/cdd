@@ -44,6 +44,7 @@ type browser struct {
 	action       externalAction
 	config       configuration
 	mutation     *entryMutation
+	paste        *pastePrompt
 }
 
 func newBrowser(path string, hidden bool) (browser, error) {
@@ -133,6 +134,10 @@ func (m *browser) handle(key keyEvent) bool {
 	}
 	if key.name == "ctrl+c" || key.name == "ctrl+d" {
 		return true
+	}
+	if m.paste != nil {
+		m.handlePaste(key)
+		return false
 	}
 	if m.filePreview != nil {
 		if m.config.Keys.OpenInEditor != "" && key.name == m.config.Keys.OpenInEditor {
@@ -279,6 +284,10 @@ func (m *browser) handle(key keyEvent) bool {
 		m.openInFinder(runtime.GOOS)
 	case "y":
 		m.copyPath()
+	case "copy-entry", "paste-entry":
+		if runtime.GOOS == "darwin" {
+			m.clipboardEntry(key.name)
+		}
 	case "trash":
 		m.beginTrash()
 	case ".":

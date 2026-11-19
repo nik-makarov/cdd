@@ -30,16 +30,20 @@ func writeViewPreference(path string, mode viewMode) error {
 	if mode != panesView && mode != outlineView {
 		return errors.New("unknown view mode")
 	}
+	return writeStateFile(path, mode.String()+"\n")
+}
+
+func writeStateFile(path, value string) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
-	file, err := os.CreateTemp(dir, ".last-view-*")
+	file, err := os.CreateTemp(dir, "."+filepath.Base(path)+"-*")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(file.Name())
-	_, writeErr := file.WriteString(mode.String() + "\n")
+	_, writeErr := file.WriteString(value)
 	if err := errors.Join(writeErr, file.Close()); err != nil {
 		return err
 	}

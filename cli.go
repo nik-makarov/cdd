@@ -27,6 +27,7 @@ Options:
 Keys:
   ↑/↓, k/j       Move selection
   v              Cycle views: tree, panes
+  Tab / Shift+Tab  Switch between the tree and recent places
   Enter          Open file; change dir in tree; browse dir in panes (. confirms)
   →, l           Open highlighted dir
   ←, h, Backspace  Focus parent first; press again to go up
@@ -61,6 +62,8 @@ Left collapses or focuses the parent. Enter always chooses the highlighted dir,
 including while filtering. The root is home when it contains the location, or /.
 Ancestors open automatically; the launch location is marked (starting dir).
 Click a disclosure arrow or double-click a dir to toggle its branch.
+Recent places lists the last 50 distinct confirmed dirs, newest first.
+At 80 columns or more it sits beside the tree. Below 80, Tab swaps panels.
 The tree filter matches expanded branches and keeps their ancestors visible.
 In tree view, n creates inside the highlighted dir (or a file's parent).
 
@@ -207,6 +210,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 		input, output = tty, tty
 	}
 	m.restoreViewPreference(viewPreferencePath())
+	recentFile := configurationPath("recent-dirs")
+	m.recent.paths, err = readRecent(recentFile)
+	if err != nil {
+		io.WriteString(stderr, "cdd: could not load recent places: "+display(err.Error())+"\n")
+	}
 	config, configErr := readConfiguration(configurationPath("config.json"))
 	m.config = config
 	if configErr != nil {
@@ -226,7 +234,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if selected == "" {
 		return 130
 	}
-	return writeResult(stdout, stderr, selected)
+	if code := writeResult(stdout, stderr, selected); code != 0 {
+		return code
+	}
+	if err := recordRecent(recentFile, selected); err != nil {
+		io.WriteString(stderr, "cdd: could not save recent place: "+display(err.Error())+"\n")
+	}
+	return 0
 }
 
 func writeResult(stdout, stderr io.Writer, value string) int {

@@ -71,6 +71,9 @@ controls, Enter confirmation at every depth and during filtering, scrolling,
 NO_COLOR, and tiny terminals. Root tests cover home ancestry, similarly prefixed
 paths, missing home, `/` fallback, automatic hidden-ancestor revelation, fixed
 root navigation, and immutable starting-dir styling across focus and view changes.
+Recent-place tests cover ordering, deduplication, the 50-entry limit, concurrent
+saves, literal path bytes and private permissions. They exercise Tab, paging,
+mouse selection, stale destinations and the 79/80-column layout boundary.
 Preference tests cover all saved modes, missing and malformed values, restoration
 after cancellation, private atomic replacement, failed mode changes, and save
 errors that leave confirmation usable. Test preference files stay in temporary

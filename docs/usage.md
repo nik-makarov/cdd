@@ -304,11 +304,11 @@ a directory.
 Highlighting a file shows no directory preview. Press Space to read its contents
 in a preview.
 
-Each pane shows its directory's absolute path above its entries: the parent on
+Each pane shows its directory's path above its entries: the parent on
 the left, the current directory in the middle, and the highlighted directory
 on the right. The right path is blank for files and the `.` row; the parent
-path is blank at the filesystem root. Long paths are shortened from the left
-within their own column, preserving the directory name when space permits.
+path is blank at the filesystem root. Long paths retain their `~/` or `/`
+prefix and the end of the path when space permits.
 
 Folders are cyan, files use the theme's dim foreground, and directory symlinks
 are magenta. Folder names have no trailing slash. Symlink markers remain visible
@@ -329,7 +329,7 @@ Expanding the terminal restores the panes without changing the selected entry.
 
 ### Expandable tree view (default)
 
-Tree is the default when no saved preference exists. A single column shows nested folders with guide
+Tree is the default when no saved preference exists. The tree column shows nested folders with guide
 lines, `▸` for a collapsed branch, and `▾` for an expanded branch. The root is your
 home directory when it is an ancestor of the browsing location; otherwise it is
 `/`. Ancestors expand automatically to reveal and focus the browsing location.
@@ -349,7 +349,7 @@ being checked and display `(empty)`; folders with only hidden entries say so.
 | Click a disclosure arrow | Expand or collapse the branch |
 | Double-click a name | Expand or collapse the branch |
 | Home / End, Page Up / Down | Move to the first/last visible row or by one screen |
-| Tab / Shift+Tab | Keep the single tree column focused |
+| Tab / Shift+Tab | Switch focus between the tree and recent places |
 
 Left on a collapsed root stays at that root.
 
@@ -382,6 +382,32 @@ opens its containing directory and retains the highlighted file or folder.
 Switching without moving the root preserves cached expansion state within a run.
 The selected view is remembered between runs.
 
+### Recent places
+
+Recent places keeps the last 50 distinct directories confirmed in either view.
+Each selection moves its path to the top. Expanding branches, highlighting
+entries and cancelling leave the order intact. History starts with the first
+selection made by a version that supports it.
+
+Press Tab or Shift+Tab to switch panels. Move with the arrows, Home/End or
+Page Up/Down and press Enter to choose a directory. A single click focuses a
+recent entry and a double-click chooses it. The tree keeps its position while
+you browse history. If a directory has disappeared, cdd reports the error and
+keeps the picker open.
+
+At 80 terminal columns, the tree gets 42 cells and recent places gets 30.
+Four cells form the outer margins, three form the separator and one prevents
+terminal wrapping. In larger windows the history gets 40% of the remaining
+space, rounded down with a 30-cell minimum. The tree takes the rest. Below
+80 columns, Tab switches which panel fills the window.
+
+Paths under your home directory start with `~/`. Home itself is `~`. Other
+paths start with `/`. Long entries keep the anchor and shorten the middle.
+Confirming uses the full logical path, including directory symlinks.
+
+History is stored locally in `cdd/recent-dirs` alongside `last-view` in the
+user configuration directory. Remove `recent-dirs` to clear the list.
+
 ### Remembered view
 
 In tree view, click `[/ Root]` in the header or press `\` to reveal the tree
@@ -402,19 +428,20 @@ the operating system's user configuration directory:
 - Linux: `$XDG_CONFIG_HOME/cdd/last-view`, or `~/.config/cdd/last-view` by default.
 
 The removed `list` preference is treated as unknown and opens tree view.
-Remove that file to reset the startup view. Paths, filters, hidden-entry settings,
-and expanded branches are not saved. If no user configuration directory can be
+Remove that file to reset the startup view. Filters, hidden-entry settings,
+and expanded branches apply to the current run. If no user configuration directory can be
 determined, cdd runs with the default view without persisting switches.
 
 ### Shared styling and controls
 
 Click any visible folder name in a header path to browse there without confirming
 a shell directory change. In tree view the path follows the highlighted directory
-(or a file's parent); this also exposes ancestors above the initial home root.
-The `/` component navigates to the filesystem root. Clipped ellipses are inert.
+(or a file's parent). When recent places has focus it follows the selected history
+entry. The `~` component navigates home and `/` navigates to the filesystem root.
+Clipped ellipses are inert.
 
 The path highlights the directory currently being viewed; long paths are
-shortened from the left. A reverse-video bar and a `>` marker identify the
+shortened after the home or filesystem root prefix. A reverse-video bar and a `>` marker identify the
 selected row. Errors use the terminal's red and secondary labels use dim text.
 The interface uses the terminal's own
 background, foreground, and palette instead of fixed RGB colors or custom fonts.

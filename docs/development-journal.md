@@ -905,3 +905,14 @@ entries, keep private data out, and distinguish local work from publication.
   Paths: `view.go`, `view_test.go`, `mouse.go`, `mouse_test.go`, `keyboard_test.go`,
   `outline_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-19T16:46:57Z` — Show the 50 most recently confirmed unique directory
+  paths beside the tree. Save selections atomically under a lock shared by
+  concurrent sessions. Anchor displayed paths at home or the filesystem root.
+  In a terminal, verified that Tab switched full-width panels at 79 columns,
+  both panels fit at 80, selecting an older entry moved it to the top on the
+  next run, and cancelling produced empty stdout. `make check build cross-build`
+  passed for Linux and macOS on amd64 and arm64 with a module-cache write warning.
+  Paths: `recent.go`, `recent_view.go`, `recent_test.go`, `browser.go`, `cli.go`,
+  `view.go`, `outline.go`, `mouse.go`, `entry_buttons.go`, `preferences.go`,
+  `breadcrumb.go`, `breadcrumb_test.go`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.

@@ -92,6 +92,12 @@ func (m browser) hints(hints []keyHint) viewLine {
 }
 
 func (m browser) shortHelp(width int) viewLine {
+	if m.recent.focused {
+		if len(m.recent.paths) == 0 {
+			return m.hints([]keyHint{{"Tab", "tree"}, {"Esc", "cancel"}})
+		}
+		return m.hints([]keyHint{{"Tab", "tree"}, {"Enter", "change dir"}, {"↑↓", "move"}, {"Esc", "cancel"}})
+	}
 	if m.mutation != nil {
 		return m.hints([]keyHint{{"Enter", "rename"}, {"Esc", "cancel"}})
 	}
@@ -129,6 +135,9 @@ func (m browser) shortHelp(width int) viewLine {
 		}
 	}
 	hints := []keyHint{{"↑↓", "move"}, {"←", leftAction}}
+	if m.mode == outlineView {
+		hints = append(hints, keyHint{"Tab", "recent"})
+	}
 	if len(m.visible) == 0 || m.visible[m.cursor].isDir() {
 		hints = append(hints, keyHint{"→", rightAction}, keyHint{"Enter", enterAction})
 	} else {
@@ -167,9 +176,19 @@ func hintText(hints []keyHint) string {
 }
 
 func (m browser) helpLines(width int) []viewLine {
+	if m.recent.focused {
+		return []viewLine{
+			m.shortHelp(width),
+			m.hints([]keyHint{{"Home / End", "first / last"}, {"PgUp / PgDn", "page"}}),
+			m.hints([]keyHint{{"? / Esc", "close help"}}),
+		}
+	}
 	var lines []viewLine
 	var row []keyHint
 	hints := append([]keyHint(nil), helpHints...)
+	if m.mode == outlineView {
+		hints = append([]keyHint{{"Tab / Shift+Tab", "tree / recent places"}}, hints...)
+	}
 	if runtime.GOOS == "darwin" {
 		hints = append([]keyHint{{"f", "Open dir in Finder"}, {"Cmd+C", "copy file/dir"}, {"Cmd+V", "paste file/dir"}}, hints...)
 	}
@@ -219,7 +238,7 @@ func (m browser) viewWidth() (width, margin int) {
 }
 
 func (m browser) pathLine(path string, width int, active bool) viewLine {
-	text := tail(display(path), width)
+	text := addressFor(path, m.home).label(width)
 	if !active {
 		return viewLine{{text, m.styles.muted}}
 	}
@@ -238,7 +257,8 @@ func (m browser) frame() (header, footer []viewLine) {
 	if m.height >= 8 {
 		header = []viewLine{{{"cdd", m.styles.muted}}, pathLine, nil}
 		if m.mode == outlineView {
-			header[2] = viewLine{{"From: ", m.styles.muted}, {tail(display(m.origin), max(1, width-6)), m.styles.origin}}
+			left, _ := m.outlineWidths(width)
+			header[2] = viewLine{{"From: ", m.styles.muted}, {addressFor(m.origin, m.home).label(max(0, left-6)), m.styles.origin}}
 		}
 	}
 	footer = []viewLine{m.shortHelp(width)}
@@ -259,7 +279,7 @@ func (m browser) frame() (header, footer []viewLine) {
 		}
 		name := tail(display(m.newName)+"_", max(1, width-textWidth(label)))
 		status = append(status, viewLine{{label, m.styles.strong}, {name, m.styles.accent}})
-	} else if m.filtering || m.query != "" {
+	} else if !m.recent.focused && (m.filtering || m.query != "") {
 		query := "/ " + display(m.query)
 		if m.mode == outlineView {
 			query = "Filter expanded: " + display(m.query)
@@ -334,6 +354,12 @@ func (m browser) paneWidths(width int) []int {
 func (m browser) paneLocations(widths []int) []string {
 	paths := []string{m.path}
 	if m.mode == outlineView {
+		if m.recent.focused {
+			if len(m.recent.paths) == 0 {
+				return []string{""}
+			}
+			return []string{m.recent.paths[m.recent.cursor]}
+		}
 		paths[0] = m.focusedPath()
 		if len(m.visible) > 0 && !m.visible[m.cursor].isDir() {
 			paths[0] = filepath.Dir(paths[0])
@@ -430,7 +456,7 @@ func (m browser) view() string {
 	start := m.pageStart()
 	if m.height >= 8 {
 		header[0] = viewLine{{"cdd  " + m.mode.String(), m.styles.muted}, {"   v", m.styles.strong}, {" tree / panes", m.styles.muted}}
-		if m.mode == outlineView && width >= 14 {
+		if m.mode == outlineView && !m.recent.focused && width >= 14 {
 			title := truncate("cdd  tree   v tree / panes", width-len(rootButton)-1)
 			header[0] = viewLine{{title + strings.Repeat(" ", width-len(rootButton)-textWidth(title)), m.styles.muted}, {rootButton, m.styles.accent}}
 		}
@@ -453,9 +479,17 @@ func (m browser) view() string {
 	lines[pathRow] = m.panePaths(widths, margin)
 	if m.mode == panesView {
 		lines = append(lines, m.treeLines(rows, width, margin)...)
-	}
-	for row := 0; m.mode != panesView && row < min(rows, end-start); row++ {
-		lines = append(lines, render(m.entryLine(start+row, width)))
+	} else {
+		left, right := m.outlineWidths(width)
+		if m.height >= 8 {
+			style := m.styles.muted
+			if m.recent.focused {
+				style = m.styles.strong
+			}
+			recentHeader := viewLine{{"Recent places", style}}
+			lines[2] = m.outlinePanelRow(header[2], recentHeader, left, right, margin)
+		}
+		lines = append(lines, m.outlineLines(rows, width, margin)...)
 	}
 	if m.height >= 8 {
 		for len(lines) < m.height-len(footer)-3 {
@@ -500,7 +534,11 @@ func (m browser) view() string {
 		if end < len(m.visible) {
 			count += "  |  more below"
 		}
-		lines = append(lines, render(nil), render(viewLine{{count + "  |  hidden " + hidden, m.styles.muted}}))
+		count += "  |  hidden " + hidden
+		if m.recent.focused {
+			count = strconv.Itoa(len(m.recent.paths)) + " recent places"
+		}
+		lines = append(lines, render(nil), render(viewLine{{count, m.styles.muted}}))
 	}
 	for len(lines) < m.footerTop(footer) {
 		lines = append(lines, render(nil))

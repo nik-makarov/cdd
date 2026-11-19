@@ -1,7 +1,9 @@
 # Architecture
 
-cdd has one application package and no background service. It persists only the
-last chosen view; browsing paths, filters, and tree expansion stay in memory.
+cdd has one application package and no background service. It persists the
+last chosen view and up to 50 distinct confirmed destinations. Filters and tree
+expansion stay in memory. Concurrent sessions merge recent paths under a file
+lock and atomically replace the private, NUL-delimited history file.
 Browsing reads directory entries without recursive indexing or file-content
 reads except explicit preview. Directory creation uses one literal child name with `os.Mkdir`; it does
 not overwrite existing entries or create intermediate directories.
@@ -239,8 +241,9 @@ visible ancestor when focus disappears. Tree creation uses the highlighted
 directory or a file's parent and expands the destination to reveal the new child.
 Long indentation is clipped from the left so deep labels retain usable space.
 
-Both modes keep one active selection column. Page navigation moves by its visible
-row count; Tab does not change focus. Pane dividers use absolute terminal columns
+In tree view Tab switches between the tree and recent places. Both lists keep
+their own cursor and scroll position. In panes view the middle list has focus.
+Page navigation moves by the visible row count. Pane dividers use absolute terminal columns
 independently of Unicode glyph widths. Dynamic text is sanitized and clipped.
 
 Color detection uses the actual UI terminal, not stdout: stdout is commonly

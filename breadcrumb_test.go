@@ -17,12 +17,13 @@ func TestBreadcrumbClippingAndLiteralPaths(t *testing.T) {
 		{"/one/two", 6, 30, "/one/two"},
 		{"/one/two", 9, 30, ""},
 		{"/one/two", 2, 6, ""},
-		{"/one/two", 3, 6, "/one/two"},
+		{"/one/two", 0, 6, "/"},
+		{"/one/two", 4, 6, "/one/two"},
 		{"/a/\u754c/$(literal)", 4, 40, "/a/\u754c"},
 		{"/a/\x1bname", 4, 40, "/a/\x1bname"},
 		{"/one", 0, 1, "/"},
 	} {
-		if got := breadcrumbPath(tt.path, tt.x, tt.width); got != tt.want {
+		if got := addressFor(tt.path, "").breadcrumb(tt.x, tt.width); got != tt.want {
 			t.Fatalf("%q at %d/%d: got %q, want %q", tt.path, tt.x, tt.width, got, tt.want)
 		}
 	}

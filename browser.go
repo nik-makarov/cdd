@@ -10,6 +10,8 @@ import (
 
 type browser struct {
 	path         string
+	home         string
+	recent       recentPlaces
 	origin       string
 	treeRoot     string
 	rootTree     bool
@@ -49,6 +51,7 @@ type browser struct {
 
 func newBrowser(path string, hidden bool) (browser, error) {
 	m := browser{origin: path, hidden: hidden, width: 80, height: 24, config: defaultConfiguration()}
+	m.home, _ = os.UserHomeDir()
 	if err := m.open(path, ""); err != nil {
 		return browser{}, err
 	}
@@ -189,6 +192,14 @@ func (m *browser) handle(key keyEvent) bool {
 		}
 		return false
 	}
+	if m.mode == outlineView && (key.name == "tab" || key.name == "backtab") {
+		m.recent.focused = !m.recent.focused
+		m.filtering, m.showHelp, m.message = false, false, ""
+		return false
+	}
+	if m.recent.focused {
+		return m.handleRecent(key)
+	}
 	if key.name == "enter" && !m.visible[m.cursor].isDir() && (!m.filtering || m.mode == outlineView) {
 		m.filtering = false
 		m.openFile()
@@ -257,18 +268,7 @@ func (m *browser) handle(key keyEvent) bool {
 			m.message = "Only dirs can be chosen as a destination"
 			break
 		}
-		path := m.visible[m.cursor].path
-		info, err := os.Stat(path)
-		if err != nil {
-			m.message = err.Error()
-			break
-		}
-		if !info.IsDir() {
-			m.message = "Dir no longer exists; press Ctrl+R to refresh"
-			break
-		}
-		m.selected = path
-		return true
+		return m.chooseDirectory(m.focusedPath())
 	case "/":
 		m.showHelp = false
 		m.filtering = true
@@ -318,6 +318,20 @@ func (m *browser) handle(key keyEvent) bool {
 		}
 	}
 	return false
+}
+
+func (m *browser) chooseDirectory(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		m.message = err.Error()
+		return false
+	}
+	if !info.IsDir() {
+		m.message = "The selected path is no longer a directory"
+		return false
+	}
+	m.selected = path
+	return true
 }
 
 func (m *browser) createEntry() {
@@ -436,19 +450,29 @@ func (m *browser) openSelected() {
 
 func (m *browser) move(key string) {
 	m.message = ""
-	switch key {
-	case "up", "k":
-		m.cursor--
-	case "down", "j":
-		m.cursor++
-	case "home":
-		m.cursor = 0
-	case "end":
-		m.cursor = len(m.visible) - 1
-	case "pgup":
-		m.cursor -= m.pageSize()
-	case "pgdown":
-		m.cursor += m.pageSize()
+	cursor, count := m.cursor, len(m.visible)
+	if m.recent.focused {
+		cursor, count = m.recent.cursor, len(m.recent.paths)
 	}
-	m.cursor = max(0, min(m.cursor, len(m.visible)-1))
+	switch key {
+	case "up", "k", "mouse-up":
+		cursor--
+	case "down", "j", "mouse-down":
+		cursor++
+	case "home":
+		cursor = 0
+	case "end":
+		cursor = count - 1
+	case "pgup":
+		cursor -= m.pageSize()
+	case "pgdown":
+		cursor += m.pageSize()
+	}
+	cursor = max(0, min(cursor, count-1))
+	if m.recent.focused {
+		m.recent.cursor = cursor
+		m.recent.scroll = m.recent.pageStart(m.pageRows())
+		return
+	}
+	m.cursor = cursor
 }

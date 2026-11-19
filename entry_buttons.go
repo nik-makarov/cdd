@@ -25,7 +25,7 @@ func (m browser) entryActions(platform string) []keyHint {
 
 func (m browser) entryButtons() []viewLine {
 	width, _ := m.viewWidth()
-	if m.creating || m.filtering || m.mutation != nil || m.filePreview != nil || m.paste != nil {
+	if m.recent.focused || m.creating || m.filtering || m.mutation != nil || m.filePreview != nil || m.paste != nil {
 		return nil
 	}
 	actions := m.entryActions(runtime.GOOS)

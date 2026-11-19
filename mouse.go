@@ -63,9 +63,8 @@ func mouseKey(button, x, y int, released bool) keyEvent {
 	return key
 }
 
-// mouseEntry maps screen cells to the same rows and columns used by view.
-// Side previews, dividers, margins, headers, footers, and empty rows are inert.
-func (m browser) mouseEntry(x, y int) int {
+// Mouse hit testing uses the same viewport as the rendered lists.
+func (m browser) mouseRow(y int) int {
 	if y < 0 || y >= max(1, m.height) {
 		return -1
 	}
@@ -78,8 +77,19 @@ func (m browser) mouseEntry(x, y int) int {
 	if row < 0 || row >= rows {
 		return -1
 	}
+	return row
+}
+
+func (m browser) mouseEntry(x, y int) int {
+	row := m.mouseRow(y)
+	if row < 0 {
+		return -1
+	}
 	width, margin := m.viewWidth()
 	widths := m.paneWidths(width)
+	if m.mode == outlineView {
+		widths[0], _ = m.outlineWidths(width)
+	}
 	left := margin
 	for column, width := range widths {
 		if x >= left && x < left+width {
@@ -95,6 +105,28 @@ func (m browser) mouseEntry(x, y int) int {
 		left += width + 3
 	}
 	return -1
+}
+
+func (m browser) mouseRecentEntry(x, y int) int {
+	if m.mode != outlineView {
+		return -1
+	}
+	width, margin := m.viewWidth()
+	_, right := m.outlineWidths(width)
+	if x < margin+width-right || x >= margin+width {
+		return -1
+	}
+	row := m.mouseRow(y)
+	index := m.recent.pageStart(m.pageRows()) + row
+	if row < 0 || index >= len(m.recent.paths) {
+		return -1
+	}
+	return index
+}
+
+func (c mouseClick) doubleClick(path string, key keyEvent) bool {
+	elapsed, drift := key.when.Sub(c.when), key.x-c.x
+	return !c.when.IsZero() && c.path == path && c.y == key.y && drift >= -2 && drift <= 2 && elapsed >= 0 && elapsed <= 400*time.Millisecond
 }
 
 func (m *browser) handleMouse(key keyEvent) bool {
@@ -118,13 +150,35 @@ func (m *browser) handleMouse(key keyEvent) bool {
 	}
 	if key.name == "mouse-left" {
 		if path := m.breadcrumbAt(key.x, key.y); path != "" {
+			m.recent.focused = false
 			m.navigate(path, "")
 			return false
 		}
 	}
+	if index := m.mouseRecentEntry(key.x, key.y); index >= 0 {
+		switch key.name {
+		case "mouse-left":
+			path := m.recent.paths[index]
+			confirm := m.recent.focused && previous.doubleClick(path, key)
+			m.recent.focused, m.recent.cursor = true, index
+			m.filtering, m.showHelp, m.message = false, false, ""
+			m.lastClick = mouseClick{path: path, x: key.x, y: key.y, when: key.when}
+			if confirm {
+				return m.chooseDirectory(path)
+			}
+		case "mouse-up", "mouse-down":
+			m.recent.focused, m.filtering, m.showHelp = true, false, false
+			return m.handleRecent(key)
+		}
+		return false
+	}
 	index := m.mouseEntry(key.x, key.y)
 	if index < 0 {
 		return false
+	}
+	if m.recent.focused && (key.name == "mouse-left" || key.name == "mouse-up" || key.name == "mouse-down") {
+		m.recent.focused = false
+		previous = mouseClick{}
 	}
 	switch key.name {
 	case "mouse-up":
@@ -138,9 +192,7 @@ func (m *browser) handleMouse(key keyEvent) bool {
 			return false
 		}
 		m.lastClick = mouseClick{path: m.visible[index].path, x: key.x, y: key.y, when: key.when}
-		elapsed := key.when.Sub(previous.when)
-		drift := key.x - previous.x
-		if !previous.when.IsZero() && previous.path == m.lastClick.path && drift >= -2 && drift <= 2 && previous.y == key.y && elapsed >= 0 && elapsed <= 400*time.Millisecond {
+		if previous.doubleClick(m.lastClick.path, key) {
 			m.lastClick = mouseClick{}
 			if m.visible[index].name == "." {
 				m.filtering = false

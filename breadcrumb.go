@@ -5,15 +5,45 @@ import (
 	"strings"
 )
 
-// Match the same sanitized and clipped text used by pathLine. The ellipsis
-// and separators are inert; visible name fragments retain their original path.
-func breadcrumbPath(path string, x, width int) string {
-	if path == "" || x < 0 || x >= width {
+// Keep the anchor separate so clipping cannot turn an address into a basename.
+type pathAddress struct {
+	base, prefix, rest string
+}
+
+func addressFor(path, home string) pathAddress {
+	if path == "" {
+		return pathAddress{}
+	}
+	if filepath.IsAbs(home) {
+		rel, err := filepath.Rel(home, path)
+		if err == nil && filepath.IsLocal(rel) {
+			if rel == "." {
+				return pathAddress{base: home, prefix: "~"}
+			}
+			return pathAddress{home, "~/", rel}
+		}
+	}
+	return pathAddress{"/", "/", strings.TrimPrefix(path, "/")}
+}
+
+func (a pathAddress) label(width int) string {
+	return truncate(a.prefix, width) + tail(display(a.rest), max(0, width-len(a.prefix)))
+}
+
+// The ellipsis and separators are inert. Visible components retain their
+// literal targets even when their displayed names contain replacement runes.
+func (a pathAddress) breadcrumb(x, width int) string {
+	if a.base == "" || x < 0 || x >= width {
 		return ""
 	}
-	full := display(path)
+	if x == 0 {
+		return a.base
+	}
+	x -= len(a.prefix)
+	width -= len(a.prefix)
+	full := display(a.rest)
 	shown := tail(full, width)
-	if x >= textWidth(shown) {
+	if x < 0 || x >= textWidth(shown) {
 		return ""
 	}
 	if textWidth(full) > width && width >= 4 {
@@ -22,11 +52,8 @@ func breadcrumbPath(path string, x, width int) string {
 		}
 		x += textWidth(full) - textWidth(shown)
 	}
-	if x == 0 {
-		return string(filepath.Separator)
-	}
-	position, current := 1, string(filepath.Separator)
-	for _, name := range strings.Split(strings.TrimPrefix(path, current), current) {
+	position, current := 0, a.base
+	for name := range strings.SplitSeq(a.rest, "/") {
 		current = filepath.Join(current, name)
 		end := position + textWidth(display(name))
 		if x >= position && x < end {
@@ -57,7 +84,7 @@ func (m browser) breadcrumbAt(x, y int) string {
 	left := margin
 	for i, cells := range widths {
 		if x >= left && x < left+cells {
-			return breadcrumbPath(paths[i], x-left, cells)
+			return addressFor(paths[i], m.home).breadcrumb(x-left, cells)
 		}
 		left += cells + 3
 	}

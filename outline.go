@@ -181,7 +181,7 @@ const rootButton = "[/ Root]"
 
 func (m browser) rootButtonAt(x, y int) bool {
 	width, margin := m.viewWidth()
-	return m.mode == outlineView && m.height >= 8 && width >= 14 &&
+	return m.mode == outlineView && !m.recent.focused && m.height >= 8 && width >= 14 &&
 		y == 0 && x >= margin+width-len(rootButton) && x < margin+width
 }
 
@@ -419,11 +419,11 @@ func (m browser) outlineEntryLine(index, width int) viewLine {
 		row = append(row, span{label, m.styles.muted})
 	}
 	gutter := "  "
-	if index == m.cursor {
+	if !m.recent.focused && index == m.cursor {
 		gutter = "> "
 	}
 	row = append(viewLine{{gutter + guide, m.styles.muted}}, row...)
-	if index == m.cursor {
+	if !m.recent.focused && index == m.cursor {
 		used := 0
 		for i := range row {
 			if item.path != m.origin {
@@ -446,6 +446,7 @@ func (m browser) outlineDisclosureAt(index, x int) bool {
 		return false
 	}
 	width, margin := m.viewWidth()
+	width, _ = m.outlineWidths(width)
 	left := margin + 2 + textWidth(m.outlineGuide(index, width))
 	return x >= left && x < min(left+2, margin+width)
 }

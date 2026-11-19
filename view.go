@@ -33,6 +33,14 @@ func terminalStyles(tty bool, terminal, noColor string) viewStyles {
 type span struct{ text, style string }
 type viewLine []span
 
+func (line viewLine) cells() int {
+	width := 0
+	for _, part := range line {
+		width += textWidth(display(part.text))
+	}
+	return width
+}
+
 func columnPosition(column int) string { return "\x1b[" + strconv.Itoa(column) + "G" }
 
 // Clip printable text before applying trusted SGR sequences. Never truncate ANSI
@@ -258,7 +266,7 @@ func (m browser) frame() (header, footer []viewLine) {
 		header = []viewLine{{{"cdd", m.styles.muted}}, pathLine, nil}
 		if m.mode == outlineView {
 			left, _ := m.outlineWidths(width)
-			header[2] = viewLine{{"From: ", m.styles.muted}, {addressFor(m.origin, m.home).label(max(0, left-6)), m.styles.origin}}
+			header[2] = viewLine{{fromPrefix, m.styles.muted}, {addressFor(m.origin, m.home).label(max(0, left-len(fromPrefix))), m.styles.origin}}
 		}
 	}
 	footer = []viewLine{m.shortHelp(width)}

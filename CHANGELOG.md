@@ -10,8 +10,8 @@ version is published on GitHub. Development history is recorded separately in
 
 - Return to the last 50 distinct directory selections from Recent places in
   tree view. Tab switches focus and Enter chooses the highlighted destination.
-  The list sits to the right at 80 columns or wider and uses the full width in
-  smaller terminals. Addresses keep their home or filesystem root prefix.
+  The list sits to the right when the expanded tree fits in full. Otherwise
+  Tab switches between full-width panels. Addresses keep their home or filesystem root prefix.
 - Copy and paste a file or folder between cdd and Finder on macOS with Cmd+C
   and Cmd+V or the Copy and Paste buttons. Confirm the full destination path
   before writing. A name conflict offers a numbered copy when needed.

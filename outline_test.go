@@ -322,6 +322,7 @@ func TestOutlineDeepLabelsAndRootControls(t *testing.T) {
 		visible: []entry{{name: "projects", path: "/projects"}, {name: "leaf-\u754c\x1b[2J", path: "/projects/leaf"}},
 		outline: []outlineRow{{parent: -1}, {parent: 0, guide: strings.Repeat("\u2502  ", 30) + "\u2514\u2500 "}},
 	}
+	m.measureOutline()
 	width, margin := m.viewWidth()
 	line := plainFrame(m.entryLine(1, width).render(width))
 	if !strings.Contains(line, "leaf-\u754c") || strings.ContainsRune(line, '\x1b') || textWidth(line) > width {

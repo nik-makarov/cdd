@@ -23,6 +23,7 @@ type browser struct {
 	viewFile     string
 	branches     map[string]treeBranch
 	outline      []outlineRow
+	outlineWidth int
 	lastClick    mouseClick
 	hidden       bool
 	filtering    bool

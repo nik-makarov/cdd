@@ -63,7 +63,8 @@ including while filtering. The root is home when it contains the location, or /.
 Ancestors open automatically; the launch location is marked (starting dir).
 Click a disclosure arrow or double-click a dir to toggle its branch.
 Recent places lists the last 50 distinct confirmed dirs, newest first.
-At 80 columns or more it sits beside the tree. Below 80, Tab swaps panels.
+It sits beside the tree when every expanded row fits and 30 columns
+remain for history. Otherwise Tab switches between full-width panels.
 The tree filter matches expanded branches and keeps their ancestors visible.
 In tree view, n creates inside the highlighted dir (or a file's parent).
 

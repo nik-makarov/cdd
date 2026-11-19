@@ -112,7 +112,7 @@ func TestRecentPanelNavigationAndResize(t *testing.T) {
 			t.Fatalf("%s acted on the tree while history had focus", key)
 		}
 	}
-	m.width = 79
+	m.width = 39
 	if view := plainFrame(m.view()); !strings.Contains(view, "> ~/Alpha") || strings.Contains(view, "(starting dir)") {
 		t.Fatal("resizing did not preserve active history", view)
 	}
@@ -124,6 +124,96 @@ func TestRecentPanelNavigationAndResize(t *testing.T) {
 	m = press(m, "home", "")
 	if !m.handle(keyEvent{name: "enter"}) || m.selected != filepath.Join(root, "beta") {
 		t.Fatal("Enter must choose the absolute history path")
+	}
+}
+
+func TestRecentPanelFitsEveryExpandedRow(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "home")
+	branch := filepath.Join(root, "branch")
+	if err := os.MkdirAll(branch, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	name := strings.Repeat("\u754c", 20) + "z"
+	for _, file := range []string{"a", "b", "c", "d", name} {
+		if err := os.WriteFile(filepath.Join(branch, file), nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m := focus(t, loadOutline(t, root), "branch")
+	m.width, m.height = 70, 12
+	m.recent.paths = []string{root}
+	split := func() bool { return strings.Contains(plainFrame(m.view()), "Recent places") }
+	if !split() {
+		t.Fatal("a short tree should fit beside history even below 80 columns")
+	}
+	m = press(m, "right", "")
+	if split() || strings.Contains(plainFrame(m.view()), name) {
+		t.Fatal("an expanded row below the viewport must also determine the layout")
+	}
+	m = press(m, "tab", "")
+	if !strings.Contains(plainFrame(m.view()), "> ~") || strings.Contains(plainFrame(m.view()), "(starting dir)") {
+		t.Fatal("Tab should show history at full width when the expanded tree cannot share")
+	}
+	m = press(m, "tab", "")
+	if m.focusedPath() != branch || !m.branches[branch].expanded {
+		t.Fatal("Tab should return to the same tree selection and expanded branch")
+	}
+	// The long row needs 51 cells: two for the gutter, six for the guides,
+	// two for the file marker and 41 for its name.
+	m.height, m.width = 30, 89
+	if !split() || !strings.Contains(plainFrame(m.view()), name) {
+		t.Fatal("the entire filename and history should fit exactly at 89 columns")
+	}
+	width, margin := m.viewWidth()
+	left, right := m.outlineWidths(width)
+	if left != 51 || right != 30 || m.mouseRecentEntry(margin+left+3, 3) != 0 {
+		t.Fatalf("expected a 51/30 split with a clickable history, got %d/%d", left, right)
+	}
+	m.width--
+	if split() || !strings.Contains(plainFrame(m.view()), name) || m.mouseRecentEntry(margin+left+3, 3) != -1 {
+		t.Fatal("one cell below the boundary the tree should reclaim the full width")
+	}
+	m = press(m, "/", "")
+	m = press(m, "b", "b")
+	if !split() {
+		t.Fatal("filtering the widest row out should restore the history panel")
+	}
+	m = press(m, "backspace", "")
+	if split() {
+		t.Fatal("clearing the filter should account for the long row again")
+	}
+	m = press(m, "esc", "")
+	m = focus(t, m, "branch")
+	m = press(m, "left", "")
+	if !split() {
+		t.Fatal("collapsing the wide branch should restore the history panel")
+	}
+}
+
+func TestRecentPanelFitsStartingPath(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	path := filepath.Join(home, strings.Repeat("p", 22), strings.Repeat("d", 22), "dir")
+	if err := os.MkdirAll(path, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	m, err := newBrowser(path, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.prepareOutline(path); err != nil {
+		t.Fatal(err)
+	}
+	from := "From: ~/" + strings.Repeat("p", 22) + "/" + strings.Repeat("d", 22) + "/dir"
+	m.width = len(from) + 38 // Margins, last cell, divider and 30 cells of history.
+	frame := plainFrame(m.view())
+	if !strings.Contains(frame, from) || !strings.Contains(frame, "Recent places") {
+		t.Fatal("the full home-relative starting path and history should fit", frame)
+	}
+	m.width--
+	frame = plainFrame(m.view())
+	if !strings.Contains(frame, from) || strings.Contains(frame, "Recent places") {
+		t.Fatal("a long starting path should take priority over history", frame)
 	}
 }
 

@@ -916,3 +916,12 @@ entries, keep private data out, and distinguish local work from publication.
   `view.go`, `outline.go`, `mouse.go`, `entry_buttons.go`, `preferences.go`,
   `breadcrumb.go`, `breadcrumb_test.go`, `README.md`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/architecture.md`, `docs/testing.md`, `docs/development-journal.md`.
+- `2026-11-19T16:52:13Z` — Size the recent places panel from the widest
+  expanded, filtered tree row and the starting path. Tests covered the exact
+  split boundary, off-screen filenames, filtering, and mouse targets. In an
+  82-column terminal, expanding a branch with a long filename hid history,
+  Tab switched panels and back, and collapsing the branch restored the split.
+  `make check build` passed with a module-cache write warning.
+  Paths: `browser.go`, `outline.go`, `recent_view.go`, `view.go`, `cli.go`,
+  `outline_test.go`, `recent_test.go`, `CHANGELOG.md`, `README.md`,
+  `docs/architecture.md`, `docs/testing.md`, `docs/usage.md`, `docs/development-journal.md`.

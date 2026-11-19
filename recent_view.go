@@ -1,19 +1,24 @@
 package main
 
-// viewWidth has already removed margins and the terminal's last cell.
-// At 80 terminal columns there are 42 for the tree, 3 for the divider and
-// 30 for recent places. Below that, Tab swaps full-width panels.
+const fromPrefix = "From: "
+
+// Give the tree its full width before allocating space for recent places.
 func (m browser) outlineWidths(width int) (tree, recent int) {
-	const minTree, minRecent, divider = 42, 30, 3
-	if width < minTree+divider+minRecent {
-		if m.recent.focused {
-			return 0, width
-		}
-		return width, 0
+	const minRecent, divider = 30, 3
+	required := m.outlineWidth
+	if m.height >= 8 {
+		from := addressFor(m.origin, m.home)
+		required = max(required, len(fromPrefix)+len(from.prefix)+textWidth(display(from.rest)))
 	}
 	available := width - divider
-	recent = max(minRecent, available*2/5)
-	return available - recent, recent
+	if available-required >= minRecent {
+		recent = min(available-required, max(minRecent, available*2/5))
+		return available - recent, recent
+	}
+	if m.recent.focused {
+		return 0, width
+	}
+	return width, 0
 }
 
 func (m browser) outlinePanelRow(tree, recent viewLine, left, right, margin int) string {

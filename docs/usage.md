@@ -395,11 +395,14 @@ recent entry and a double-click chooses it. The tree keeps its position while
 you browse history. If a directory has disappeared, cdd reports the error and
 keeps the picker open.
 
-At 80 terminal columns, the tree gets 42 cells and recent places gets 30.
-Four cells form the outer margins, three form the separator and one prevents
-terminal wrapping. In larger windows the history gets 40% of the remaining
-space, rounded down with a 30-cell minimum. The tree takes the rest. Below
-80 columns, Tab switches which panel fills the window.
+The tree takes priority over recent places. Its width includes indentation,
+names, link markers, annotations and the starting path in the From header.
+All rows in expanded branches count, including rows outside the viewport.
+Collapsed children and entries excluded by the current filter do not count.
+After margins and the divider, history normally receives 40% of the available
+width. It can shrink to 30 cells to make room for the tree. If both no longer
+fit, the focused panel fills the window and Tab switches panels. Collapsing a
+wide branch, filtering it out or widening the window can bring history back.
 
 Paths under your home directory start with `~/`. Home itself is `~`. Other
 paths start with `/`. Long entries keep the anchor and shorten the middle.

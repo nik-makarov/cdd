@@ -73,7 +73,9 @@ paths, missing home, `/` fallback, automatic hidden-ancestor revelation, fixed
 root navigation, and immutable starting-dir styling across focus and view changes.
 Recent-place tests cover ordering, deduplication, the 50-entry limit, concurrent
 saves, literal path bytes and private permissions. They exercise Tab, paging,
-mouse selection, stale destinations and the 79/80-column layout boundary.
+mouse selection and stale destinations. Layout tests check the exact fit and
+one cell below it for a wide filename and a long starting path. They also cover
+off-screen rows, branch expansion, collapse, filtering and full-width Tab navigation.
 Preference tests cover all saved modes, missing and malformed values, restoration
 after cancellation, private atomic replacement, failed mode changes, and save
 errors that leave confirmation usable. Test preference files stay in temporary

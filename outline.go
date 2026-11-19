@@ -32,6 +32,7 @@ type treeBranch struct {
 type outlineRow struct {
 	parent int
 	guide  string
+	width  int // Full row in terminal cells, before clipping or selection padding.
 }
 
 func (m browser) focusedPath() string {
@@ -190,8 +191,12 @@ func (m browser) outlineEntries(items []entry) []entry {
 		return items
 	}
 	return slices.DeleteFunc(slices.Clone(items), func(item entry) bool {
-		return strings.HasPrefix(item.name, ".") && !pathWithin(m.path, item.path) && !pathWithin(m.origin, item.path)
+		return !m.showOutlineEntry(item)
 	})
+}
+
+func (m browser) showOutlineEntry(item entry) bool {
+	return m.hidden || !strings.HasPrefix(item.name, ".") || pathWithin(m.path, item.path) || pathWithin(m.origin, item.path)
 }
 
 // Only expanded branches are flattened. Reading a child dir is an explicit
@@ -259,6 +264,7 @@ func (m *browser) rebuildOutline(focus string) {
 		}
 		m.visible, m.outline = items, rows
 	}
+	m.measureOutline()
 	m.cursor = 0
 	m.focusPath(m.path)
 	// If filtering or hiding removes focus, keep its closest visible ancestor.
@@ -267,6 +273,17 @@ func (m *browser) rebuildOutline(focus string) {
 		if m.focusedPath() == path || filepath.Dir(path) == path {
 			break
 		}
+	}
+}
+
+// Measure all expanded, filtered rows, including those outside the viewport.
+// Moving the cursor and resizing the terminal can then reuse the same widths.
+func (m *browser) measureOutline() {
+	m.outlineWidth = 0
+	for i, item := range m.visible {
+		row := &m.outline[i]
+		row.width = 2 + textWidth(row.guide) + m.outlineLabel(item).cells()
+		m.outlineWidth = max(m.outlineWidth, row.width)
 	}
 }
 
@@ -385,24 +402,24 @@ func (m browser) outlineGuide(index, width int) string {
 	if index >= len(m.outline) {
 		return ""
 	}
-	return tail(m.outline[index].guide, max(0, width-16))
+	row := m.outline[index]
+	if row.width <= width {
+		return row.guide
+	}
+	return tail(row.guide, max(0, width-16))
 }
 
-func (m browser) outlineEntryLine(index, width int) viewLine {
-	item := m.visible[index]
-	guide := m.outlineGuide(index, width)
+func (m browser) outlineLabel(item entry) viewLine {
+	branch, loaded := m.branches[item.path]
+	empty := loaded && !slices.ContainsFunc(branch.items, m.showOutlineEntry)
 	marker := "  "
-	if item.isDir() {
+	if item.isDir() && !empty {
 		marker = "▸ "
-		if branch, loaded := m.branches[item.path]; loaded {
-			if len(m.outlineEntries(branch.items)) == 0 {
-				marker = "  "
-			} else if branch.expanded {
-				marker = "▾ "
-			}
+		if branch.expanded {
+			marker = "▾ "
 		}
 	}
-	row := m.itemLine(item, max(1, width-2-textWidth(guide)), false)
+	row := m.itemLine(item, 0, false)
 	// Replace the ordinary list gutter with the tree's disclosure marker.
 	row[0].text = marker + strings.TrimPrefix(row[0].text, "  ")
 	if item.path == m.origin {
@@ -411,28 +428,32 @@ func (m browser) outlineEntryLine(index, width int) viewLine {
 	} else if item.path == m.treeRoot && m.treeRoot != string(filepath.Separator) {
 		row = append(row, span{" (home)", m.styles.muted})
 	}
-	if branch, loaded := m.branches[item.path]; loaded && len(m.outlineEntries(branch.items)) == 0 {
+	if empty {
 		label := " (empty)"
 		if len(branch.items) > 0 {
 			label = " (hidden entries)"
 		}
 		row = append(row, span{label, m.styles.muted})
 	}
+	return row
+}
+
+func (m browser) outlineEntryLine(index, width int) viewLine {
+	item := m.visible[index]
+	row := m.outlineLabel(item)
 	gutter := "  "
 	if !m.recent.focused && index == m.cursor {
 		gutter = "> "
 	}
-	row = append(viewLine{{gutter + guide, m.styles.muted}}, row...)
+	row = append(viewLine{{gutter + m.outlineGuide(index, width), m.styles.muted}}, row...)
 	if !m.recent.focused && index == m.cursor {
-		used := 0
 		for i := range row {
 			if item.path != m.origin {
 				row[i].style = strings.ReplaceAll(row[i].style, m.styles.muted, "")
 			}
 			row[i].style = m.styles.selected + row[i].style
-			used += textWidth(display(row[i].text))
 		}
-		row = append(row, span{strings.Repeat(" ", max(0, width-used)), m.styles.selected})
+		row = append(row, span{strings.Repeat(" ", max(0, width-row.cells())), m.styles.selected})
 	}
 	return row
 }
@@ -442,7 +463,7 @@ func (m browser) outlineDisclosureAt(index, x int) bool {
 	if !item.isDir() {
 		return false
 	}
-	if branch, loaded := m.branches[item.path]; loaded && len(m.outlineEntries(branch.items)) == 0 {
+	if branch, loaded := m.branches[item.path]; loaded && !slices.ContainsFunc(branch.items, m.showOutlineEntry) {
 		return false
 	}
 	width, margin := m.viewWidth()

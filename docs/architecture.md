@@ -232,8 +232,10 @@ An explicit CLI path changes browsing without changing the shell's launch marker
 
 Each loaded branch caches immediate entries and an expanded flag, keyed by its
 logical path. A flattened visible list shares the existing cursor, paging,
-confirmation, and mouse row mapping. Parallel row metadata records parents and
-guide lines. Rendering and filtering never read directories; initial ancestor
+confirmation, and mouse row mapping. Each row records its parent, guide and
+unclipped width in terminal cells. Rebuilding the filtered tree also records
+its widest row, so scrolling and resizing reuse the same measurements.
+Rendering and filtering never read directories; initial ancestor
 revelation, expansion, and explicit refresh load directories. Filtering retains ancestors within expanded
 branches. Symlink cycles cannot cause automatic recursion because unseen logical
 paths have no loaded children. Refresh drops stale caches and falls back to a

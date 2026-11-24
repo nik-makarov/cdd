@@ -925,3 +925,12 @@ entries, keep private data out, and distinguish local work from publication.
   Paths: `browser.go`, `outline.go`, `recent_view.go`, `view.go`, `cli.go`,
   `outline_test.go`, `recent_test.go`, `CHANGELOG.md`, `README.md`,
   `docs/architecture.md`, `docs/testing.md`, `docs/usage.md`, `docs/development-journal.md`.
+- `2026-11-24T18:38:11Z` — Reveal a recent directory in the tree on Enter,
+  modified Enter, or double-click. Tests covered follow-up actions, hidden
+  symlink paths, stale tree listings, and unavailable destinations. In a
+  terminal, Rename targeted the revealed directory, Esc cancelled with empty
+  stdout, and a second Enter returned the exact path. `make check build` passed
+  with a module-cache write warning.
+  Updated `recent.go`, `outline.go`, `browser.go`, `mouse.go`, `view.go`,
+  `recent_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
+  and `docs/development-journal.md`.

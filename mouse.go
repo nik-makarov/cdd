@@ -159,12 +159,12 @@ func (m *browser) handleMouse(key keyEvent) bool {
 		switch key.name {
 		case "mouse-left":
 			path := m.recent.paths[index]
-			confirm := m.recent.focused && previous.doubleClick(path, key)
+			reveal := m.recent.focused && previous.doubleClick(path, key)
 			m.recent.focused, m.recent.cursor = true, index
 			m.filtering, m.showHelp, m.message = false, false, ""
 			m.lastClick = mouseClick{path: path, x: key.x, y: key.y, when: key.when}
-			if confirm {
-				return m.chooseDirectory(path)
+			if reveal {
+				m.revealRecent()
 			}
 		case "mouse-up", "mouse-down":
 			m.recent.focused, m.filtering, m.showHelp = true, false, false

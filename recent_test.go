@@ -122,8 +122,36 @@ func TestRecentPanelNavigationAndResize(t *testing.T) {
 	}
 	m = press(m, "tab", "")
 	m = press(m, "home", "")
-	if !m.handle(keyEvent{name: "enter"}) || m.selected != filepath.Join(root, "beta") {
-		t.Fatal("Enter must choose the absolute history path")
+	path := filepath.Join(root, "beta")
+	if m.handle(keyEvent{name: "enter"}) || m.selected != "" || m.recent.focused || m.focusedPath() != path {
+		t.Fatal("Enter must highlight the recent directory in the full-width tree")
+	}
+	if m.handle(keyEvent{name: "y"}) || m.action.kind != "copy" || m.action.path != path {
+		t.Fatal("Copy Path must target the highlighted recent directory")
+	}
+}
+
+func TestRecentPlaceRevealsFilteredHiddenPath(t *testing.T) {
+	root := fixture(t)
+	m := loadOutline(t, root)
+	// The tree already cached the parent before the link appeared.
+	link := filepath.Join(root, ".project link")
+	if err := os.Symlink("Alpha", link); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(link, "nested")
+	m.recent.paths = []string{path}
+	m = press(m, "/", "")
+	m = press(m, "b", "b")
+	m = press(m, "tab", "")
+	if m.handle(keyEvent{name: "confirm"}) || m.selected != "" || m.recent.focused || m.focusedPath() != path {
+		t.Fatal("modified Enter must reveal the logical history path in the tree")
+	}
+	if m.query != "" || visiblePath(m, filepath.Join(root, ".hidden")) {
+		t.Fatal("revealing a hidden ancestor must clear the filter and keep unrelated hidden entries hidden")
+	}
+	if !m.handle(keyEvent{name: "enter"}) || m.selected != path {
+		t.Fatal("Enter in the tree must confirm the revealed directory")
 	}
 }
 
@@ -233,12 +261,13 @@ func TestRecentPagesMouseAndStalePaths(t *testing.T) {
 	if view := plainFrame(m.view()); !strings.Contains(view, "> ~/place-49") {
 		t.Fatal("last recent place was not reachable", view)
 	}
-	if m.handle(keyEvent{name: "enter"}) || m.selected != "" || m.message == "" {
-		t.Fatal("stale path returned to the shell")
+	if m.handle(keyEvent{name: "enter"}) || m.selected != "" || !m.recent.focused || m.message == "" {
+		t.Fatal("a stale path must keep focus in history and show an error")
 	}
 	m.recent.paths[recentLimit-1] = filepath.Join(root, "regular-file")
-	if m.handle(keyEvent{name: "confirm"}) || m.selected != "" {
-		t.Fatal("replaced directory returned a file to the shell")
+	m.message = ""
+	if m.handle(keyEvent{name: "confirm"}) || m.selected != "" || !m.recent.focused || m.message == "" {
+		t.Fatal("a directory replaced by a file must keep focus in history and show an error")
 	}
 	m = press(m, "home", "")
 	m = press(m, "tab", "")
@@ -251,7 +280,10 @@ func TestRecentPagesMouseAndStalePaths(t *testing.T) {
 		t.Fatal("a single click must focus the visible history row")
 	}
 	key.when = key.when.Add(100 * time.Millisecond)
-	if !m.handle(key) || m.selected != filepath.Join(root, "beta") {
-		t.Fatal("a double click must choose the clicked directory")
+	if m.handle(key) || m.selected != "" || m.recent.focused || m.focusedPath() != filepath.Join(root, "beta") {
+		t.Fatal("a double click must highlight the clicked directory in the tree")
+	}
+	if !m.handle(keyEvent{name: "esc"}) || m.selected != "" {
+		t.Fatal("cancelling after a jump must leave the shell destination empty")
 	}
 }

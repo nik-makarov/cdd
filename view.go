@@ -104,7 +104,7 @@ func (m browser) shortHelp(width int) viewLine {
 		if len(m.recent.paths) == 0 {
 			return m.hints([]keyHint{{"Tab", "tree"}, {"Esc", "cancel"}})
 		}
-		return m.hints([]keyHint{{"Tab", "tree"}, {"Enter", "change dir"}, {"↑↓", "move"}, {"Esc", "cancel"}})
+		return m.hints([]keyHint{{"Enter", "show in tree"}, {"Tab", "tree"}, {"↑↓", "move"}, {"Esc", "cancel"}})
 	}
 	if m.mutation != nil {
 		return m.hints([]keyHint{{"Enter", "rename"}, {"Esc", "cancel"}})

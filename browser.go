@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -321,14 +322,20 @@ func (m *browser) handle(key keyEvent) bool {
 	return false
 }
 
-func (m *browser) chooseDirectory(path string) bool {
+func validateDirectory(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
-		m.message = err.Error()
-		return false
+		return err
 	}
 	if !info.IsDir() {
-		m.message = "The selected path is no longer a directory"
+		return errors.New("The selected path is no longer a directory")
+	}
+	return nil
+}
+
+func (m *browser) chooseDirectory(path string) bool {
+	if err := validateDirectory(path); err != nil {
+		m.message = err.Error()
 		return false
 	}
 	m.selected = path

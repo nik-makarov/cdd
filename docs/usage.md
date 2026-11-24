@@ -47,7 +47,7 @@ be chosen as a destination. Enter on a file opens its default desktop applicatio
 Enter on a highlighted file invokes `open` on macOS or `xdg-open` on Linux and
 keeps cdd open at the same location. Enter also opens a file from the built-in
 preview. In panes view, Enter while editing a filter finishes input first;
-in tree view it acts on the highlighted result. Modified Enter selects directories.
+in tree view it acts on the highlighted result.
 Missing files or application-launch failures appear in
 the terminal; file paths are never returned to shell integration.
 
@@ -61,12 +61,12 @@ in cdd stops the active preview. Neither action chooses a shell directory.
 | Key | Action |
 | --- | --- |
 | Up / Down, `k` / `j` | Move selection |
-| Enter | Open a file; in tree, choose a directory; in panes, confirm `.` or browse another directory |
+| Enter | Show a recent place in the tree, open a file, choose a tree directory, or browse a pane directory (`.` confirms) |
 | Space | Preview a file: Quick Look on macOS, built-in viewer on Linux |
 | Configured editor key (default `z`) | Focus/open the highlighted folder as a project; open a file by itself in a new editor window |
 | Right, `l` | Open the highlighted directory |
 | Left, `h`, Backspace | Focus `..` first; from `..` go to the parent directory |
-| Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Choose the highlighted directory and exit |
+| Cmd+Enter (macOS) / Ctrl+Enter (Linux) | Show a recent place in the tree, or confirm the highlighted directory in tree or panes |
 | Home / End | Jump to the first / last row |
 | Page Up / Page Down | Move by one page |
 | `v` | Switch between expandable tree (default) and panes |
@@ -385,15 +385,17 @@ The selected view is remembered between runs.
 ### Recent places
 
 Recent places keeps the last 50 distinct directories confirmed in either view.
-Each selection moves its path to the top. Expanding branches, highlighting
-entries and cancelling leave the order intact. History starts with the first
+Each confirmed shell destination moves to the top. Browsing a recent place
+and cancelling leave the order intact. History starts with the first
 selection made by a version that supports it.
 
 Press Tab or Shift+Tab to switch panels. Move with the arrows, Home/End or
-Page Up/Down and press Enter to choose a directory. A single click focuses a
-recent entry and a double-click chooses it. The tree keeps its position while
-you browse history. If a directory has disappeared, cdd reports the error and
-keeps the picker open.
+Page Up/Down, or click once to highlight a recent entry. Press Enter or
+double-click to focus that directory in the tree. Cmd+Enter on macOS and
+Ctrl+Enter on Linux do the same while Recent places has focus. From the tree,
+you can browse, use a command such as Copy Path, or press Enter to change the
+shell directory. If the path has disappeared or become a file, cdd shows an
+error and keeps focus in Recent places.
 
 The tree takes priority over recent places. Its width includes indentation,
 names, link markers, annotations and the starting path in the From header.

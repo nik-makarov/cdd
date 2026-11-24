@@ -13,10 +13,11 @@ import (
 const recentLimit = 50
 
 type recentPlaces struct {
-	paths   []string
-	cursor  int
-	scroll  int
-	focused bool
+	paths    []string
+	cursor   int
+	scroll   int
+	focused  bool
+	revealed string // Keep hidden components of this path visible in the tree.
 }
 
 func readRecent(path string) ([]string, error) {
@@ -87,6 +88,31 @@ func (r recentPlaces) pageStart(rows int) int {
 	return max(start, r.cursor-rows+1)
 }
 
+func (m *browser) revealRecent() {
+	path := m.recent.paths[m.recent.cursor]
+	if err := validateDirectory(path); err != nil {
+		m.message = err.Error()
+		return
+	}
+	next := *m
+	next.recent.revealed, next.recent.focused = path, false
+	next.query, next.filtering, next.showHelp = "", false, false
+	if err := next.prepareOutline(path); err != nil {
+		m.message = err.Error()
+		return
+	}
+	if next.focusedPath() != path || !next.visible[next.cursor].isDir() {
+		// A cached parent may predate the directory or a link along its path.
+		next.refreshOutline()
+		next.focusPath(path)
+		if next.focusedPath() != path || !next.visible[next.cursor].isDir() {
+			m.message = "Could not reveal the recent directory in the tree"
+			return
+		}
+	}
+	*m = next
+}
+
 func (m *browser) handleRecent(key keyEvent) bool {
 	r := &m.recent
 	switch key.name {
@@ -109,7 +135,7 @@ func (m *browser) handleRecent(key keyEvent) bool {
 		m.move(key.name)
 	case "enter", "confirm":
 		if len(r.paths) > 0 {
-			return m.chooseDirectory(r.paths[r.cursor])
+			m.revealRecent()
 		}
 	}
 	return false

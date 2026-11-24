@@ -58,8 +58,10 @@ starts at home when it is an ancestor, otherwise `/`, and reveals the browsing
 location. Your launch directory stays dim and marked `(starting dir)`.
 The tree loads folders as you expand them; `/` filters expanded branches.
 Press Tab to switch to your last 50 distinct destinations, newest first, and
-Enter to return to one. The list sits beside the tree when every expanded row
-fits and 30 columns remain for history. Otherwise Tab swaps full-width panels.
+Enter to highlight one in the tree. From there, use any available action or
+press Enter again to change directory. The list sits beside the tree when every
+expanded row fits and 30 columns remain for history. Otherwise Tab swaps
+full-width panels.
 
 In panes views, use Up/Down to move and Enter or Right to open a directory. Left
 first focuses `← Back to parent`; pressing Left again opens the parent.

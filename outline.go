@@ -196,7 +196,8 @@ func (m browser) outlineEntries(items []entry) []entry {
 }
 
 func (m browser) showOutlineEntry(item entry) bool {
-	return m.hidden || !strings.HasPrefix(item.name, ".") || pathWithin(m.path, item.path) || pathWithin(m.origin, item.path)
+	return m.hidden || !strings.HasPrefix(item.name, ".") || pathWithin(m.path, item.path) ||
+		pathWithin(m.origin, item.path) || pathWithin(m.recent.revealed, item.path)
 }
 
 // Only expanded branches are flattened. Reading a child dir is an explicit

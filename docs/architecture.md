@@ -248,8 +248,10 @@ visible ancestor when focus disappears. Tree creation uses the highlighted
 directory or a file's parent and expands the destination to reveal the new child.
 Long indentation is clipped from the left so deep labels retain usable space.
 
-In tree view Tab switches between the tree and recent places. Both lists keep
-their own cursor and scroll position. In panes view the middle list has focus.
+In tree view Tab opens recent places at full width. Each wrapped row maps to a
+history entry for rendering, mouse selection and paging. The preview beside
+the tree uses one row per entry. Both lists keep their own cursor and scroll
+position. In panes view the middle list has focus.
 Page navigation moves by the visible row count. Pane dividers use absolute terminal columns
 independently of Unicode glyph widths. Dynamic text is sanitized and clipped.
 

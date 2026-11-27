@@ -11,8 +11,9 @@ version is published on GitHub. Development history is recorded separately in
 - Revisit the last 50 distinct directory selections from Recent places in
   tree view. Tab switches panels. Enter or a double-click highlights the
   directory in the tree so you can browse, run an action, or confirm with Enter.
-  The list sits to the right when the expanded tree fits in full. Otherwise
-  Tab switches between full-width panels. Addresses keep their home or filesystem root prefix.
+  Recent places uses the full terminal width when focused and wraps long paths.
+  A preview sits to the right when the expanded tree fits. Addresses keep
+  their home or filesystem root prefix.
 - Copy and paste a file or folder between cdd and Finder on macOS with Cmd+C
   and Cmd+V or the Copy and Paste buttons. Confirm the full destination path
   before writing. A name conflict offers a numbered copy when needed.

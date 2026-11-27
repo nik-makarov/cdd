@@ -65,8 +65,8 @@ Click a disclosure arrow or double-click a dir to toggle its branch.
 Recent places lists the last 50 distinct confirmed dirs, newest first.
 Enter, modified Enter, or a double-click highlights the recent dir in the tree.
 From the tree, use an action or press Enter again to change dir.
-It sits beside the tree when every expanded row fits and 30 columns
-remain for history. Otherwise Tab switches between full-width panels.
+Tab opens Recent places at full width and long paths wrap across rows. A preview
+sits beside the tree when every expanded row fits and 30 columns remain for history.
 The tree filter matches expanded branches and keeps their ancestors visible.
 In tree view, n creates inside the highlighted dir (or a file's parent).
 

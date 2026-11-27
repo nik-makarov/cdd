@@ -462,10 +462,10 @@ func (m *browser) openSelected() {
 
 func (m *browser) move(key string) {
 	m.message = ""
-	cursor, count := m.cursor, len(m.visible)
-	if m.recent.focused {
-		cursor, count = m.recent.cursor, len(m.recent.paths)
-	}
+	m.cursor = m.nextCursor(key, m.cursor, len(m.visible))
+}
+
+func (m browser) nextCursor(key string, cursor, count int) int {
 	switch key {
 	case "up", "k", "mouse-up":
 		cursor--
@@ -480,11 +480,5 @@ func (m *browser) move(key string) {
 	case "pgdown":
 		cursor += m.pageSize()
 	}
-	cursor = max(0, min(cursor, count-1))
-	if m.recent.focused {
-		m.recent.cursor = cursor
-		m.recent.scroll = m.recent.pageStart(m.pageRows())
-		return
-	}
-	m.cursor = cursor
+	return max(0, min(cursor, count-1))
 }

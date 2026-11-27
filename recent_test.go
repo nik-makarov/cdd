@@ -94,7 +94,8 @@ func TestRecentPanelNavigationAndResize(t *testing.T) {
 	root := fixture(t)
 	m := focus(t, loadOutline(t, root), "Alpha")
 	m.width, m.height = 80, 18
-	m.recent.paths = []string{filepath.Join(root, "beta"), "/", filepath.Join(root, "Alpha")}
+	const longPlace = "projects/engineering/tools/directory-picker"
+	m.recent.paths = []string{filepath.Join(root, "beta"), filepath.Join(root, longPlace), filepath.Join(root, "Alpha")}
 	treePath := m.focusedPath()
 	view := plainFrame(m.view())
 	if !strings.Contains(view, "Recent places") || !strings.Contains(view, "~/beta") || !strings.Contains(view, "Alpha") {
@@ -103,6 +104,15 @@ func TestRecentPanelNavigationAndResize(t *testing.T) {
 	width, _ := m.viewWidth()
 	if left, right := m.outlineWidths(width); left != 42 || right != 30 {
 		t.Fatalf("split at 80 columns: %d/%d", left, right)
+	}
+	m = press(m, "tab", "")
+	view = plainFrame(m.view())
+	if !strings.Contains(view, "~/"+longPlace) || strings.Contains(view, "(starting dir)") {
+		t.Fatal("focused history must use the whole width for paths that exceed the sidebar", view)
+	}
+	m = press(m, "backtab", "")
+	if m.focusedPath() != treePath || !strings.Contains(plainFrame(m.view()), "(starting dir)") {
+		t.Fatal("returning from full-width history must restore the tree and its selection")
 	}
 	m = press(m, "tab", "")
 	m = press(m, "end", "")
@@ -152,6 +162,59 @@ func TestRecentPlaceRevealsFilteredHiddenPath(t *testing.T) {
 	}
 	if !m.handle(keyEvent{name: "enter"}) || m.selected != path {
 		t.Fatal("Enter in the tree must confirm the revealed directory")
+	}
+}
+
+func TestFocusedRecentWrapsPaths(t *testing.T) {
+	root := fixture(t)
+	name := strings.Repeat("wide-\u754c-", 8) + "last"
+	path := filepath.Join(root, name)
+	if err := os.Mkdir(path, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	m := loadOutline(t, root)
+	m.width, m.height = 30, 14
+	m.recent.paths = []string{root, path, filepath.Join(root, "beta")}
+	m = press(m, "tab", "")
+	m = press(m, "down", "")
+	header, _ := m.frame()
+	width, margin := m.viewWidth()
+	lines := strings.Split(plainFrame(m.view()), "\n")
+	var label strings.Builder
+	var click keyEvent
+	for y := len(header); y < len(header)+m.pageRows(); y++ {
+		if m.mouseRecentEntry(margin, y) != 1 {
+			continue
+		}
+		line := lines[y]
+		if textWidth(line) > width+margin {
+			t.Fatalf("wrapped path exceeds the terminal width: %q", line)
+		}
+		label.WriteString(line[margin+2:])
+		click = keyEvent{name: "mouse-left", x: margin + 2, y: y, when: time.Unix(100, 0)}
+	}
+	if label.String() != "~/"+name {
+		t.Fatalf("wrapped path = %q, want %q", label.String(), "~/"+name)
+	}
+	m.handle(click)
+	click.when = click.when.Add(100 * time.Millisecond)
+	m.handle(click)
+	if m.recent.focused || m.focusedPath() != path {
+		t.Fatal("double-clicking a continuation row must reveal its directory")
+	}
+
+	m.recent.paths = []string{"/" + strings.Repeat("segment/", 100) + "END"}
+	m.recent.cursor = 0
+	m = press(m, "tab", "")
+	for range 20 {
+		m = press(m, "pgdown", "")
+	}
+	if !strings.Contains(strings.Join(strings.Split(plainFrame(m.view()), "\n")[len(header):], "\n"), "END") {
+		t.Fatal("Page Down must reach the end of a path taller than the terminal")
+	}
+	m = press(m, "home", "")
+	if m.recent.scroll != 0 {
+		t.Fatal("Home must return to the first line of the list")
 	}
 }
 
@@ -271,6 +334,7 @@ func TestRecentPagesMouseAndStalePaths(t *testing.T) {
 	}
 	m = press(m, "home", "")
 	m = press(m, "tab", "")
+	m.recent.paths[0] = filepath.Join(root, strings.Repeat("parent/", 24))
 	m.recent.paths[1] = filepath.Join(root, "beta")
 	width, margin := m.viewWidth()
 	left, _ := m.outlineWidths(width)
@@ -278,6 +342,9 @@ func TestRecentPagesMouseAndStalePaths(t *testing.T) {
 	key := keyEvent{name: "mouse-left", x: margin + left + 3, y: len(header) + 1, when: time.Unix(100, 0)}
 	if m.handle(key) || !m.recent.focused || m.recent.cursor != 1 {
 		t.Fatal("a single click must focus the visible history row")
+	}
+	if m.mouseEntry(margin, key.y) != -1 || m.mouseRecentEntry(margin, key.y) != 1 {
+		t.Fatal("the focused history must accept clicks across the former tree column")
 	}
 	key.when = key.when.Add(100 * time.Millisecond)
 	if m.handle(key) || m.selected != "" || m.recent.focused || m.focusedPath() != filepath.Join(root, "beta") {

@@ -15,7 +15,7 @@ const recentLimit = 50
 type recentPlaces struct {
 	paths    []string
 	cursor   int
-	scroll   int
+	scroll   int // First display row, including wrapped path continuations.
 	focused  bool
 	revealed string // Keep hidden components of this path visible in the tree.
 }
@@ -82,12 +82,6 @@ func recordRecent(path, dir string) error {
 	return writeStateFile(path, strings.Join(places, "\x00")+"\x00")
 }
 
-func (r recentPlaces) pageStart(rows int) int {
-	lastPage := max(0, len(r.paths)-rows)
-	start := min(r.scroll, r.cursor, lastPage)
-	return max(start, r.cursor-rows+1)
-}
-
 func (m *browser) revealRecent() {
 	path := m.recent.paths[m.recent.cursor]
 	if err := validateDirectory(path); err != nil {
@@ -113,6 +107,29 @@ func (m *browser) revealRecent() {
 	*m = next
 }
 
+func (m *browser) moveRecent(key string) {
+	m.message = ""
+	r := &m.recent
+	if len(r.paths) == 0 {
+		return
+	}
+	width, _ := m.viewWidth()
+	rows := m.pageRows()
+	list, start := m.recentPage(width, rows)
+	r.scroll = start
+	switch key {
+	case "home", "end", "pgup", "pgdown":
+		// Page by screen rows so every part of a multi-page path is reachable.
+		from := max(list.first[r.cursor], start)
+		to := m.nextCursor(key, from, len(list.rows))
+		r.cursor = list.rows[to].entry
+		r.scroll += to - from
+	default:
+		r.cursor = m.nextCursor(key, r.cursor, len(r.paths))
+	}
+	r.scroll = list.pageStart(*r, rows)
+}
+
 func (m *browser) handleRecent(key keyEvent) bool {
 	r := &m.recent
 	switch key.name {
@@ -132,7 +149,7 @@ func (m *browser) handleRecent(key keyEvent) bool {
 		r.focused = m.mode == outlineView
 		return false
 	case "up", "k", "down", "j", "home", "end", "pgup", "pgdown", "mouse-up", "mouse-down":
-		m.move(key.name)
+		m.moveRecent(key.name)
 	case "enter", "confirm":
 		if len(r.paths) > 0 {
 			m.revealRecent()

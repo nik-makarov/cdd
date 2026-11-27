@@ -959,3 +959,13 @@ entries, keep private data out, and distinguish local work from publication.
   folder on row one with its child directly below. `make check build` passed.
   Updated `mouse.go`, `terminal.go`, `outline_test.go`, `CHANGELOG.md`,
   `docs/usage.md`, `docs/architecture.md`, and this journal.
+- `2026-11-27T14:09:38Z` — Open Recent places at full width on focus and
+  wrap each path across as many rows as it needs. The tree keeps its compact
+  history preview. Tests covered wide characters, mouse selection on a
+  continuation row, paging through an entry taller than the window, and
+  returning to the previous tree selection. In an 80-column terminal, Tab
+  showed a two-line path in full. A double-click on its second line revealed
+  the directory in the tree, and Enter returned the exact path.
+  `make check build` passed. Updated `recent.go`, `recent_view.go`, `browser.go`,
+  `mouse.go`, `recent_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, and this journal.

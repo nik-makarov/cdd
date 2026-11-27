@@ -119,11 +119,15 @@ func (m browser) mouseRecentEntry(x, y int) int {
 		return -1
 	}
 	row := m.mouseRow(y)
-	index := m.recent.pageStart(m.pageRows()) + row
-	if row < 0 || index >= len(m.recent.paths) {
+	if row < 0 {
 		return -1
 	}
-	return index
+	list, start := m.recentPage(right, m.pageRows())
+	index := start + row
+	if index >= len(list.rows) {
+		return -1
+	}
+	return list.rows[index].entry
 }
 
 func (c mouseClick) doubleClick(path string, key keyEvent) bool {
@@ -131,13 +135,20 @@ func (c mouseClick) doubleClick(path string, key keyEvent) bool {
 	return !c.when.IsZero() && c.path == path && c.y == key.y && drift >= -2 && drift <= 2 && elapsed >= 0 && elapsed <= doubleClickInterval
 }
 
-// expireMouseClick releases the held row and reports whether the tree needs a redraw.
+// expireMouseClick releases the held row and reports whether the list needs a redraw.
 func (m *browser) expireMouseClick(now time.Time) bool {
 	if m.lastClick.when.IsZero() || now.Sub(m.lastClick.when) <= doubleClickInterval {
 		return false
 	}
 	m.lastClick = mouseClick{}
-	return m.mode == outlineView && !m.recent.focused && m.pageStart() != m.scroll
+	if m.recent.focused {
+		width, _ := m.viewWidth()
+		_, start := m.recentPage(width, m.pageRows())
+		changed := start != m.recent.scroll
+		m.recent.scroll = start
+		return changed
+	}
+	return m.mode == outlineView && m.pageStart() != m.scroll
 }
 
 func (m *browser) handleMouse(key keyEvent) bool {
@@ -150,6 +161,7 @@ func (m *browser) handleMouse(key keyEvent) bool {
 	}
 	// Resolve the displayed row before clearing the click that holds it in place.
 	index := m.mouseEntry(key.x, key.y)
+	recentIndex := m.mouseRecentEntry(key.x, key.y)
 	previous := m.lastClick
 	m.lastClick = mouseClick{}
 	if key.name == "mouse-left" {
@@ -168,12 +180,20 @@ func (m *browser) handleMouse(key keyEvent) bool {
 			return false
 		}
 	}
-	if index := m.mouseRecentEntry(key.x, key.y); index >= 0 {
+	if index := recentIndex; index >= 0 {
 		switch key.name {
 		case "mouse-left":
 			path := m.recent.paths[index]
 			reveal := m.recent.focused && previous.doubleClick(path, key)
-			m.recent.focused, m.recent.cursor = true, index
+			width, _ := m.viewWidth()
+			if !m.recent.focused {
+				row := m.mouseRow(key.y)
+				m.recent.focused = true
+				m.recent.scroll = max(0, m.recentLayout(width).first[index]-row)
+			} else if previous.path == "" {
+				_, m.recent.scroll = m.recentPage(width, m.pageRows())
+			}
+			m.recent.cursor = index
 			m.filtering, m.showHelp, m.message = false, false, ""
 			m.lastClick = mouseClick{path: path, x: key.x, y: key.y, when: key.when}
 			if reveal {
@@ -187,10 +207,6 @@ func (m *browser) handleMouse(key keyEvent) bool {
 	}
 	if index < 0 {
 		return false
-	}
-	if m.recent.focused && (key.name == "mouse-left" || key.name == "mouse-up" || key.name == "mouse-down") {
-		m.recent.focused = false
-		previous = mouseClick{}
 	}
 	switch key.name {
 	case "mouse-up":

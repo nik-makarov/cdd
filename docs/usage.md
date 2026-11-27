@@ -397,7 +397,8 @@ Each confirmed shell destination moves to the top. Browsing a recent place
 and cancelling leave the order intact. History starts with the first
 selection made by a version that supports it.
 
-Press Tab or Shift+Tab to switch panels. Move with the arrows, Home/End or
+Press Tab or Shift+Tab to open Recent places at full width. Press it again
+to return to the tree. Move with the arrows, Home/End or
 Page Up/Down, or click once to highlight a recent entry. Press Enter or
 double-click to focus that directory in the tree. Cmd+Enter on macOS and
 Ctrl+Enter on Linux do the same while Recent places has focus. From the tree,
@@ -405,17 +406,21 @@ you can browse, use a command such as Copy Path, or press Enter to change the
 shell directory. If the path has disappeared or become a file, cdd shows an
 error and keeps focus in Recent places.
 
-The tree takes priority over recent places. Its width includes indentation,
+While the tree has focus, a preview of recent places can appear beside it.
+The tree's width includes indentation,
 names, link markers, annotations and the starting path in the From header.
 All rows in expanded branches count, including rows outside the viewport.
 Collapsed children and entries excluded by the current filter do not count.
 After margins and the divider, history normally receives 40% of the available
 width. It can shrink to 30 cells to make room for the tree. If both no longer
-fit, the focused panel fills the window and Tab switches panels. Collapsing a
-wide branch, filtering it out or widening the window can bring history back.
+fit, the tree fills the window. Clicking an entry or using the wheel over
+the preview opens Recent places at full width.
 
 Paths under your home directory start with `~/`. Home itself is `~`. Other
-paths start with `/`. Long entries keep the anchor and shorten the middle.
+paths start with `/`. The preview shortens long paths in the middle. In
+full-width Recent places, paths wrap across rows. Click any row of a path to
+select it. If a path is taller than the window, Page Up and Page Down let you
+read it one screen at a time.
 Confirming uses the full logical path, including directory symlinks.
 
 History is stored locally in `cdd/recent-dirs` alongside `last-view` in the

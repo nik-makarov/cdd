@@ -347,12 +347,10 @@ func (m browser) pageSize() int { return m.pageRows() }
 func (m browser) pageStart() int {
 	rows := m.pageRows()
 	start := m.scroll
-	if m.mode == outlineView {
-		// Keep a clicked tree row under the pointer for a double-click.
-		if m.lastClick.path == "" || m.recent.focused {
-			start = m.cursor - (rows-1)/2
-		}
-		start = min(start, len(m.visible)-rows)
+	// Keep a clicked tree row under the pointer for a double-click.
+	if m.mode == outlineView && (m.lastClick.path == "" || m.recent.focused) {
+		centered := m.cursor - (rows-1)/2
+		start = max(m.expandedRow, min(centered, len(m.visible)-rows))
 	}
 	return max(0, min(start, m.cursor), m.cursor-rows+1)
 }

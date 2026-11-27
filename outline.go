@@ -203,6 +203,7 @@ func (m browser) showOutlineEntry(item entry) bool {
 // Only expanded branches are flattened. Reading a child dir is an explicit
 // expansion action, never a side effect of rendering or filtering the tree.
 func (m *browser) rebuildOutline(focus string) {
+	m.expandedRow = 0
 	if m.treeRoot == "" {
 		m.treeRoot = m.path
 	}
@@ -289,9 +290,11 @@ func (m *browser) measureOutline() {
 }
 
 func (m *browser) clearOutlineFilter() {
-	focus := m.focusedPath()
-	m.query, m.filtering, m.message = "", false, ""
-	m.rebuildOutline(focus)
+	m.filtering, m.message = false, ""
+	if m.query != "" {
+		m.query = ""
+		m.rebuildOutline(m.focusedPath())
+	}
 }
 
 func (m *browser) expandOutline() {
@@ -308,6 +311,7 @@ func (m *browser) expandOutline() {
 	branch.expanded = true
 	m.branches[item.path] = branch
 	m.rebuildOutline(item.path)
+	m.expandedRow = m.cursor
 }
 
 func (m *browser) outlineRight() {

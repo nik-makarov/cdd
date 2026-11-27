@@ -942,3 +942,12 @@ entries, keep private data out, and distinguish local work from publication.
   on each side of the selection. Esc cancelled with empty stdout.
   `make check build` passed. Updated `view.go`, `mouse.go`, `outline_test.go`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`, and this journal.
+- `2026-11-27T13:30:06Z` — Place an explicitly expanded directory on the
+  first tree row. Let the selection move down through its children before
+  centered scrolling resumes. Tests cover keyboard expansion, disclosure
+  clicks, double-clicks, collapse, and a nested folder with one child at the
+  end of the tree. In a nine-row tree, expansion showed the folder and its
+  first eight children. Stepping down selected the first child on row two
+  and the fifth child on row five. `make check build` passed.
+  Updated `browser.go`, `outline.go`, `view.go`, `outline_test.go`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`, and this journal.

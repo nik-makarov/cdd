@@ -25,6 +25,7 @@ type browser struct {
 	branches     map[string]treeBranch
 	outline      []outlineRow
 	outlineWidth int
+	expandedRow  int // First row to scroll from within the most recently opened branch.
 	lastClick    mouseClick
 	hidden       bool
 	filtering    bool
@@ -162,6 +163,9 @@ func (m *browser) handle(key keyEvent) bool {
 	}
 	m.scroll = m.pageStart()
 	defer func() {
+		if m.mode == outlineView && m.expandedRow > 0 && !pathWithin(m.focusedPath(), m.visible[m.expandedRow].path) {
+			m.expandedRow = 0
+		}
 		m.scroll = m.pageStart()
 		m.refreshPreview(false)
 	}()

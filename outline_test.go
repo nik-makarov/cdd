@@ -252,9 +252,18 @@ func TestOutlineMouseDisclosureAndConfirmation(t *testing.T) {
 				t.Fatal("double click must expand in place and finish filtering")
 			}
 			click = mouseOn(t, m, "Alpha", "mouse-left", click.when.Add(time.Second))
+			if row := m.mouseRow(click.y); row != 0 {
+				t.Fatalf("double-click opened Alpha on tree row %d, want 0", row)
+			}
 			click.x -= 2
 			if m.handle(click) || visiblePath(m, filepath.Join(root, "Alpha", "nested")) {
 				t.Fatal("a single click on the disclosure must collapse the branch")
+			}
+			click = mouseOn(t, m, "Alpha", "mouse-left", click.when.Add(time.Second))
+			click.x -= 2
+			m.handle(click)
+			if !visiblePath(m, filepath.Join(root, "Alpha", "nested")) || m.pageStart() != m.cursor {
+				t.Fatal("clicking the disclosure must expand the folder at the top of the tree")
 			}
 			if !m.handle(keyEvent{name: "confirm"}) || m.selected != filepath.Join(root, "Alpha") {
 				t.Fatal("tree confirmation must return the highlighted directory")
@@ -272,6 +281,55 @@ func TestOutlineMouseDisclosureAndConfirmation(t *testing.T) {
 				t.Fatal("Enter must confirm even the collapsed starting dir")
 			}
 		})
+	}
+}
+
+func TestOutlineScrollsFromExpandedDirectory(t *testing.T) {
+	root := t.TempDir()
+	for i := range 20 {
+		if err := os.MkdirAll(filepath.Join(root, "projects", fmt.Sprintf("child-%02d", i)), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Mkdir(filepath.Join(root, "projects", "child-19", "leaf"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	m := focus(t, loadOutline(t, root), "projects")
+	m.width, m.height = 140, 17
+	m = press(m, "right", "")
+	parent := m.cursor
+	checkRow := func(name string, want int) {
+		t.Helper()
+		cell := mouseOn(t, m, name, "mouse-left", time.Time{})
+		if got := m.mouseRow(cell.y); got != want || m.mouseEntry(cell.x, cell.y) != m.cursor || m.visible[m.cursor].name != name {
+			t.Fatalf("selection %q on tree row %d, want %q on row %d", m.focusedPath(), got, name, want)
+		}
+	}
+	checkRow("projects", 0)
+	m = press(m, "right", "")
+	checkRow("child-00", 1)
+	middle := (m.pageRows() - 1) / 2
+	for i := 1; i <= middle; i++ {
+		m = press(m, "down", "")
+		checkRow(fmt.Sprintf("child-%02d", i), min(i+1, middle))
+	}
+	m = press(m, "left", "")
+	checkRow("projects", 0)
+	m = press(m, "left", "")
+	if m.pageStart() != 0 || m.cursor != parent {
+		t.Fatal("collapsing the directory must restore the surrounding tree")
+	}
+
+	m = press(m, "right", "")
+	m = focus(t, m, "child-19")
+	m = press(m, "right", "")
+	checkRow("child-19", 0)
+	m = press(m, "down", "")
+	checkRow("leaf", 1)
+	m = press(m, "up", "")
+	m = press(m, "up", "")
+	if m.pageStart() >= m.cursor {
+		t.Fatal("leaving the expanded directory must restore the surrounding rows")
 	}
 }
 

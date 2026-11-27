@@ -12,6 +12,8 @@ type mouseClick struct {
 	when time.Time
 }
 
+const doubleClickInterval = 400 * time.Millisecond
+
 // SGR reports use one-based terminal cells: CSI < button ; x ; y M (or m).
 func decodeMouse(sequence string) keyEvent {
 	if len(sequence) < 2 || sequence[0] != '<' {
@@ -126,7 +128,16 @@ func (m browser) mouseRecentEntry(x, y int) int {
 
 func (c mouseClick) doubleClick(path string, key keyEvent) bool {
 	elapsed, drift := key.when.Sub(c.when), key.x-c.x
-	return !c.when.IsZero() && c.path == path && c.y == key.y && drift >= -2 && drift <= 2 && elapsed >= 0 && elapsed <= 400*time.Millisecond
+	return !c.when.IsZero() && c.path == path && c.y == key.y && drift >= -2 && drift <= 2 && elapsed >= 0 && elapsed <= doubleClickInterval
+}
+
+// expireMouseClick releases the held row and reports whether the tree needs a redraw.
+func (m *browser) expireMouseClick(now time.Time) bool {
+	if m.lastClick.when.IsZero() || now.Sub(m.lastClick.when) <= doubleClickInterval {
+		return false
+	}
+	m.lastClick = mouseClick{}
+	return m.mode == outlineView && !m.recent.focused && m.pageStart() != m.scroll
 }
 
 func (m *browser) handleMouse(key keyEvent) bool {

@@ -951,3 +951,11 @@ entries, keep private data out, and distinguish local work from publication.
   and the fifth child on row five. `make check build` passed.
   Updated `browser.go`, `outline.go`, `view.go`, `outline_test.go`,
   `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`, and this journal.
+- `2026-11-27T13:33:58Z` — Hold a clicked tree row under the pointer during
+  the 400 ms double-click interval. Center a single selection when the interval
+  expires. Tests cover mouse release, a second click at the deadline, and idle
+  expiry. In a nine-row terminal tree, a single click highlighted row eight
+  and moved it to row five without further input. A double-click expanded a
+  folder on row one with its child directly below. `make check build` passed.
+  Updated `mouse.go`, `terminal.go`, `outline_test.go`, `CHANGELOG.md`,
+  `docs/usage.md`, `docs/architecture.md`, and this journal.

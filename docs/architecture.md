@@ -129,7 +129,9 @@ Hit testing shares the renderer's pane widths, row counts, and scroll position.
 The tree centers keyboard and wheel selections within the available entry rows.
 Expanding a directory makes its row the top of the viewport, even on a short
 last page. Scrolling within that branch starts from the directory row.
-Clicking a name keeps the row under the pointer in both views. Double-clicks
+Clicking a tree entry highlights it immediately. The terminal input loop
+holds the row under the pointer until the double-click interval expires,
+then redraws if centering changes the visible rows. Double-clicks
 require the same path and row within 400 ms and allow two cells of horizontal
 pointer drift. Navigation, keyboard input, and terminal resizing reset the
 click state. Double-clicks on `.` finish filter editing

@@ -377,13 +377,28 @@ func TestOutlineCentersSelectionWhileScrolling(t *testing.T) {
 		target := m.visible[start+1].path
 		click := mouseOn(t, m, filepath.Base(target), "mouse-left", time.Unix(100, 0))
 		m.handle(click)
-		if m.focusedPath() != target || m.mouseEntry(click.x, click.y) != m.cursor {
+		m.handle(keyEvent{name: "mouse-release", x: click.x, y: click.y, when: click.when})
+		deadline := click.when.Add(400 * time.Millisecond)
+		if m.expireMouseClick(deadline) || m.focusedPath() != target || m.mouseEntry(click.x, click.y) != m.cursor {
 			t.Fatal("the clicked directory moved away from the pointer")
 		}
-		click.when = click.when.Add(200 * time.Millisecond)
+		t.Run("single click", func(t *testing.T) {
+			single := m
+			if !single.expireMouseClick(deadline.Add(time.Millisecond)) {
+				t.Fatal("a single click on an off-center row must trigger an idle redraw")
+			}
+			row := mouseOn(t, single, filepath.Base(target), "mouse-left", time.Time{})
+			if single.mouseRow(row.y) != (single.pageRows()-1)/2 || single.focusedPath() != target || single.branches[target].expanded {
+				t.Fatal("a single click must center the directory and leave it collapsed")
+			}
+			if single.expireMouseClick(deadline.Add(time.Second)) {
+				t.Fatal("a completed click requested another redraw")
+			}
+		})
+		click.when = deadline
 		m.handle(click)
-		if !m.branches[target].expanded {
-			t.Fatal("double-click did not expand the clicked directory")
+		if !m.branches[target].expanded || m.pageStart() != m.cursor || m.expireMouseClick(deadline.Add(time.Second)) {
+			t.Fatal("double-click must expand the directory at the top and consume the pending click")
 		}
 		click.name = "mouse-down"
 		m.handle(click)

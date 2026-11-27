@@ -165,6 +165,10 @@ func runTerminal(m *browser, input, output *os.File) (err error) {
 			}
 			changed = true
 		}
+		// Finish any partial mouse report against the frame the user clicked.
+		if len(pending) == 0 && m.expireMouseClick(time.Now()) {
+			changed = true
+		}
 		if changed {
 			if err := redraw(); err != nil {
 				return wrapError("redraw terminal", err)

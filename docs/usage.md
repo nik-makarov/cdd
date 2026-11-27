@@ -353,7 +353,9 @@ being checked and display `(empty)`; folders with only hidden entries say so.
 
 Left on a collapsed root stays at that root.
 
-Clicking a folder name keeps it under the pointer for a double-click.
+Clicking a name highlights the row immediately and holds it under the pointer
+for 400 ms. After a single click, the tree centers the selection where space
+allows. A second click on the same folder within that time toggles it immediately.
 Expanding the folder moves its name to the first tree row, with its contents
 immediately below. As you move down with the keyboard or mouse wheel, the
 highlight reaches the middle of the tree and stays there as the rows scroll.

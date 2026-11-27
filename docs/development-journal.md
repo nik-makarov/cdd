@@ -934,3 +934,11 @@ entries, keep private data out, and distinguish local work from publication.
   Updated `recent.go`, `outline.go`, `browser.go`, `mouse.go`, `view.go`,
   `recent_test.go`, `cli.go`, `README.md`, `CHANGELOG.md`, `docs/usage.md`,
   and `docs/development-journal.md`.
+- `2026-11-27T13:22:39Z` — Center the highlighted tree row during keyboard
+  and wheel navigation. Keep the first and last pages full and a clicked name
+  under the pointer for a double-click. Tests cover both directions, odd and
+  even row counts, a tree that fits, a single-row window, and mouse input.
+  In a terminal with nine tree rows, moving down and back up kept four entries
+  on each side of the selection. Esc cancelled with empty stdout.
+  `make check build` passed. Updated `view.go`, `mouse.go`, `outline_test.go`,
+  `CHANGELOG.md`, `docs/usage.md`, `docs/architecture.md`, and this journal.

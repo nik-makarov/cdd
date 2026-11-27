@@ -346,10 +346,15 @@ func (m browser) pageSize() int { return m.pageRows() }
 
 func (m browser) pageStart() int {
 	rows := m.pageRows()
-	// Retain the viewport when focus moves to another visible row, including
-	// a mouse click above the current selection in a scrolled list.
-	start := max(0, min(m.scroll, m.cursor))
-	return max(start, m.cursor-rows+1)
+	start := m.scroll
+	if m.mode == outlineView {
+		// Keep a clicked tree row under the pointer for a double-click.
+		if m.lastClick.path == "" || m.recent.focused {
+			start = m.cursor - (rows-1)/2
+		}
+		start = min(start, len(m.visible)-rows)
+	}
+	return max(0, min(start, m.cursor), m.cursor-rows+1)
 }
 
 func (m browser) paneWidths(width int) []int {

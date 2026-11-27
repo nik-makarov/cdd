@@ -353,6 +353,11 @@ being checked and display `(empty)`; folders with only hidden entries say so.
 
 Left on a collapsed root stays at that root.
 
+When you navigate with the keyboard or mouse wheel, the highlighted row stays
+in the middle of the visible tree. Near either end, the tree stops scrolling
+and the highlight moves toward the edge. Clicking a name keeps the row under
+the pointer for a double-click.
+
 The directory from which the shell launched cdd uses the theme's dim foreground, with a
 `(starting dir)` label, independently of focus and view changes. The label and
 dimming remain with `NO_COLOR`. This identifies the destination that would

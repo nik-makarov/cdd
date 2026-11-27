@@ -126,7 +126,9 @@ confirmation. The unambiguous kitty Ctrl+U report remains ignored.
 Mouse input uses [xterm button tracking and SGR coordinates](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking),
 with legacy mouse packets consumed as a whole for terminals without SGR support.
 Hit testing shares the renderer's pane widths, row counts, and scroll position.
-The viewport stays stable when highlighting another visible row. Double-clicks
+The tree centers keyboard and wheel selections within the available entry rows
+and clamps the viewport to the first and last pages. Clicking a name keeps the
+row under the pointer in both views. Double-clicks
 require the same path and row within 400 ms, allowing two cells of horizontal
 pointer drift; navigation, keyboard input, and
 terminal resizing reset the click state. Double-clicks on `.` finish filter editing

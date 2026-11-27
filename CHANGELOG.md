@@ -75,6 +75,8 @@ version is published on GitHub. Development history is recorded separately in
 
 ### Changed
 
+- Keep the highlighted row centered when scrolling through a long tree. Near the
+  beginning or end, keep the first or last rows in view.
 - Remove the four-row Change Dir button to show more entries in tree and panes views.
 - Make the Delete button compact and use the same color as the other entry
   actions. Keep its keyboard shortcut available in controls help.

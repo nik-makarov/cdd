@@ -275,6 +275,66 @@ func TestOutlineMouseDisclosureAndConfirmation(t *testing.T) {
 	}
 }
 
+func TestOutlineCentersSelectionWhileScrolling(t *testing.T) {
+	root := t.TempDir()
+	for i := range 24 {
+		if err := os.Mkdir(filepath.Join(root, fmt.Sprintf("dir-%02d", i)), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m := loadOutline(t, root)
+	m.width = 160
+	for _, height := range []int{15, 16, 40, 1} {
+		t.Run(fmt.Sprintf("height=%d", height), func(t *testing.T) {
+			m := m
+			m.height = height
+			for _, key := range []string{"down", "up"} {
+				for i := range len(m.visible) {
+					index := i
+					if key == "up" {
+						index = len(m.visible) - 1 - i
+					}
+					rows := m.pageRows()
+					wantRow := (rows - 1) / 2
+					if index < wantRow || len(m.visible) <= rows {
+						wantRow = index
+					} else if remaining := len(m.visible) - 1 - index; remaining < rows-1-wantRow {
+						wantRow = rows - 1 - remaining
+					}
+					header, _ := m.frame()
+					y := min(len(header), height-1) + wantRow
+					line := strings.Split(plainFrame(m.view()), "\n")[y]
+					if !strings.Contains(line, "> ") || !strings.Contains(line, m.visible[index].name) {
+						t.Fatalf("%s at entry %d: expected selection on tree row %d, got %q", key, index, wantRow, line)
+					}
+					m.handle(keyEvent{name: key})
+				}
+			}
+		})
+	}
+	t.Run("mouse", func(t *testing.T) {
+		m.height = 16
+		m.handle(keyEvent{name: "pgdown"})
+		start := m.pageStart()
+		target := m.visible[start+1].path
+		click := mouseOn(t, m, filepath.Base(target), "mouse-left", time.Unix(100, 0))
+		m.handle(click)
+		if m.focusedPath() != target || m.mouseEntry(click.x, click.y) != m.cursor {
+			t.Fatal("the clicked directory moved away from the pointer")
+		}
+		click.when = click.when.Add(200 * time.Millisecond)
+		m.handle(click)
+		if !m.branches[target].expanded {
+			t.Fatal("double-click did not expand the clicked directory")
+		}
+		click.name = "mouse-down"
+		m.handle(click)
+		if m.cursor != start+2 || m.cursor-m.pageStart() != (m.pageRows()-1)/2 {
+			t.Fatal("wheel movement did not center the next directory")
+		}
+	})
+}
+
 func TestOutlineRenderingAndHitTesting(t *testing.T) {
 	root := fixture(t)
 	for i := range 40 {

@@ -137,6 +137,8 @@ func (m *browser) handleMouse(key keyEvent) bool {
 	if key.name == "mouse-release" {
 		return false
 	}
+	// Resolve the displayed row before clearing the click that holds it in place.
+	index := m.mouseEntry(key.x, key.y)
 	previous := m.lastClick
 	m.lastClick = mouseClick{}
 	if key.name == "mouse-left" {
@@ -172,7 +174,6 @@ func (m *browser) handleMouse(key keyEvent) bool {
 		}
 		return false
 	}
-	index := m.mouseEntry(key.x, key.y)
 	if index < 0 {
 		return false
 	}
